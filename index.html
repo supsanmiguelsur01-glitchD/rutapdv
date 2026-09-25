@@ -790,6 +790,11 @@ select.sm{height:38px;border:1px solid var(--line);border-radius:10px;background
 #map{position:absolute;inset:0;background:var(--bg)}
 .mapctl{position:absolute;z-index:500;top:12px;right:12px;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
 .legend{position:absolute;z-index:500;left:12px;bottom:18px;background:rgba(10,26,44,.94);border:1px solid var(--line);border-radius:14px;padding:10px 12px;box-shadow:var(--shadow);max-width:min(260px,70vw);max-height:42%;overflow:auto;font-size:13px}
+.legend.closed{padding:0;max-height:none;overflow:visible}
+.leghead{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;font:700 12px var(--f-tech);letter-spacing:1.6px;text-transform:uppercase;color:var(--cyan);padding:2px 0 6px}
+.legend.closed .leghead{padding:9px 12px}
+.leghead span{margin-left:auto;font-size:14px}
+.legend{max-height:34%}
 .legend h4{margin:0 0 6px;font:700 12px var(--f-tech);letter-spacing:1.8px;text-transform:uppercase;color:var(--cyan)}
 .legend .row{display:flex;align-items:center;gap:7px;padding:1px 0}
 .legend i{width:11px;height:11px;border-radius:50%;flex:none;border:1.5px solid rgba(255,255,255,.35)}
@@ -803,6 +808,9 @@ select.sm{height:38px;border:1px solid var(--line);border-radius:10px;background
 .leaflet-control-layers-expanded{padding:8px 12px;color:var(--ink)}
 .leaflet-control-attribution{background:rgba(5,14,26,.75)!important;color:var(--dim)!important}
 .leaflet-control-attribution a{color:var(--muted)!important}
+.poplist{display:flex;flex-direction:column;gap:6px;margin-top:8px;max-height:220px;overflow-y:auto}
+.popbtn.alt{margin-top:0;text-align:left;text-transform:none;letter-spacing:0;font:600 13.5px var(--f-body);background:var(--field);border:1px solid var(--line);color:var(--ink)}
+.popbtn.alt small{display:block;color:var(--muted);font-weight:500;font-size:12px}
 .popbtn{margin-top:10px;width:100%;border:0;border-radius:10px;background:var(--grad);color:#fff;padding:8px 10px;font:700 12px var(--f-tech);letter-spacing:1.2px;text-transform:uppercase}
 .me-dot{width:18px;height:18px;border-radius:50%;background:var(--cyan);border:3px solid #fff;box-shadow:0 0 0 7px rgba(25,211,255,.25),0 0 18px rgba(25,211,255,.8)}
 
@@ -1018,6 +1026,8 @@ const SHEETS = {
   vpo:       {names:["VPO"],       key:"cliente_id", also:"meta (cj)"}
 };
 const low = v => str(v).toLowerCase();
+const normFr = v => { const f = str(v).toUpperCase(); return (f === "0" || f === "NONE" || f === "-") ? "" : f; };
+const isClientId = v => /^\s*\d+\s*$/.test(String(v ?? ""));   // descarta códigos de ruta/preventa como P265113
 function findHeader(rows, key, also){
   for (let i=0; i<Math.min(15, rows.length); i++){
     const r = rows[i] || [];
@@ -1050,20 +1060,43 @@ function fromEmbed(e){
 }
 
 /* ---------- modelo ---------- */
+let DUP_INFO = {merged:0, skipped:0};
 let DB = {pdv:new Map(), covCols:[], acCols:[], sups:[], rutas:[], rutaSup:new Map(), vpoPlan:null};
 function build(S){
   const pdv = new Map();
-  const get = c => { let p = pdv.get(c); if (!p){ p = {c, n:"", sup:"", ruta:"", fr:"", est:"", etq:"", ef:"", lat:null, lng:null, dir:"", cov:null, ac:[], eq:[], rn:[], vpo:null}; pdv.set(c,p);} return p; };
+  const ALIASC = new Map();   // código duplicado -> código que se conserva
+  const get = c => { c = ALIASC.get(c) ?? c; let p = pdv.get(c); if (!p){ p = {c, n:"", sup:"", ruta:"", fr:"", est:"", etq:"", ef:"", lat:null, lng:null, dir:"", cov:null, ac:[], eq:[], rn:[], vpo:null}; pdv.set(c,p);} return p; };
   const idx = h => { const m = {}; (h||[]).forEach((c,i)=>{ if (c!=null) m[low(c)] = i; }); return k => m[k]; };
 
   // maestra
   if (S.maestra.length){
     const I = idx(S.maestra[0]);
     const cS=I("ruta_supervisor_txt"), cR=I("ruta_id"), cC=I("cliente_id"), cF=I("plan_visitas_frecuencia_cd"), cN=I("nombre_comercial_txt"), cE=I("estrellas_txt"), cT=I("etiqueta_txt"), cQ=I("equipo_frio_puertas_qty"), cLa=I("latitud_val"), cLo=I("longitud_val");
+    // códigos de clientes que tienen información en las otras hojas
+    const withData = new Set();
+    const addCodes = (rows, key) => { if (!rows || !rows.length) return; const ci = rows[0].findIndex(x => low(x) === key); if (ci < 0) return; for (const r of rows.slice(1)){ const c = code(r[ci]); if (c != null) withData.add(c); } };
+    addCodes(S.listados, "cliente"); addCodes(S.ac, "sap"); addCodes(S.vpo, "cliente_id"); addCodes(S.rn, "codigo de cliente"); addCodes(S.mon, "codigo cliente");
+    // agrupar el mismo cliente repetido con varios códigos: misma ruta + mismo nombre + mismas coordenadas
+    const groups = new Map(); let skipped = 0;
     for (const r of S.maestra.slice(1)){
+      if (!isClientId(r[cC])){ if (str(r[cC])) skipped++; continue; }
       const c = code(r[cC]); if (c == null) continue;
+      const la = num(r[cLa]), lo = num(r[cLo]);
+      const k = (la && lo) ? [str(r[cR]), str(r[cN]).toUpperCase().replace(/\s+/g, " "), la.toFixed(5), lo.toFixed(5)].join("|") : "code|" + c;
+      const score = (normFr(r[cF]) ? 4 : 0) + (withData.has(c) ? 2 : 0);
+      const g = groups.get(k);
+      if (!g) groups.set(k, {best:r, bestC:c, score, others:[]});
+      else if (score > g.score){ g.others.push(g.bestC); g.best = r; g.bestC = c; g.score = score; }
+      else g.others.push(c);
+    }
+    let merged = 0;
+    for (const g of groups.values()) for (const o of g.others){ ALIASC.set(o, g.bestC); merged++; }
+    DUP_INFO = {merged, skipped};
+    for (const g of groups.values()){
+      const r = g.best, c = g.bestC;
       const p = get(c);
-      p.sup = normSup(r[cS]); p.ruta = str(code(r[cR]) ?? r[cR]); p.fr = str(r[cF]).toUpperCase(); p.n = str(r[cN]);
+      p.dups = g.others.length;
+      p.sup = normSup(r[cS]); p.ruta = str(code(r[cR]) ?? r[cR]); p.fr = normFr(r[cF]); p.n = str(r[cN]);
       p.est = str(r[cE]); p.etq = str(r[cT]); p.ef = str(r[cQ]);
       const la = num(r[cLa]), lo = num(r[cLo]);
       if (la && lo && Math.abs(la) <= 90 && Math.abs(lo) <= 180){ p.lat = la; p.lng = lo; }
@@ -1082,7 +1115,7 @@ function build(S){
       if (!p.n) p.n = str(r[cN]);
       if (!p.sup) p.sup = normSup(r[cS]);
       if (!p.ruta) p.ruta = str(code(r[cR]) ?? r[cR]);
-      if (!p.fr) p.fr = str(r[cF]).toUpperCase();
+      if (!p.fr) p.fr = normFr(r[cF]);
       if (!p.ef) p.ef = str(r[cE]);
       const items = covCols.map((k,j) => {
         const v = num(r[start+j]); const thr = /cerveza/i.test(k) ? 1 : 0.5;
@@ -1104,7 +1137,7 @@ function build(S){
       if (!p.n) p.n = str(r[cN]);
       if (!p.sup) p.sup = normSup(r[cS]);
       if (!p.ruta) p.ruta = str(code(r[cR]) ?? r[cR]);
-      if (!p.fr && cF != null) p.fr = str(r[cF]).toUpperCase();
+      if (!p.fr && cF != null) p.fr = normFr(r[cF]);
       const act = [];
       acCols.forEach((k,j) => { if (k && num(r[start+j]) > 0) act.push(k); });
       p.ac = act;
@@ -1258,7 +1291,8 @@ function renderList(){
   const vis = current.filter(p => visitedToday(p.c)).length;
   const withCov = current.filter(p => p.cov); const avg = withCov.length ? withCov.reduce((a,p)=>a+p.cov.okN,0)/withCov.length : 0; const nItems = withCov[0]?.cov.n || DB.covCols.length;
   $("#stShown").textContent = fmt(Math.min(n, SHOWN)); $("#stRes").textContent = fmt(n); $("#stBase").textContent = fmt(DB.pdv.size);
-  $("#summary").innerHTML = `<span><b class="num">${fmt(current.filter(p=>p.lat!=null).length)}</b> en mapa</span><span><b class="num">${fmt(vis)}</b> visitados hoy</span><span>Cobertura promedio <b class="num">${fmt(avg,1)}/${nItems}</b></span>${F.sort==="dist"&&!ME?`<span>Activa GPS para ordenar por cercanía</span>`:""}`;
+  const dupNote = DUP_INFO.merged ? `<span title="Mismo nombre, ruta y ubicación con varios códigos">${fmt(DUP_INFO.merged)} códigos repetidos unificados</span>` : "";
+  $("#summary").innerHTML = dupNote + `<span><b class="num">${fmt(current.filter(p=>p.lat!=null).length)}</b> en mapa</span><span><b class="num">${fmt(vis)}</b> visitados hoy</span><span>Cobertura promedio <b class="num">${fmt(avg,1)}/${nItems}</b></span>${F.sort==="dist"&&!ME?`<span>Activa GPS para ordenar por cercanía</span>`:""}`;
   const L = $("#list");
   if (!n){ L.innerHTML = `<div class="empty">No hay puntos de venta con estos filtros.<br>Prueba cambiando supervisor, ruta o frecuencia.</div>`; return; }
   L.innerHTML = current.slice(0, SHOWN).map(cardHTML).join("") + (n > SHOWN ? `<button class="more" id="more">Mostrar ${Math.min(150, n-SHOWN)} más de ${fmt(n-SHOWN)}</button>` : "");
@@ -1302,6 +1336,7 @@ function initMap(){
     lyr.on("tileerror", () => { bad++; if (!ok && bad === 6 && map.hasLayer(lyr)){ const nx = BASES[(i+1) % BASES.length]; map.removeLayer(lyr); nx[1].addTo(map); toast("Mapa cambiado a " + nx[0]); } });
   });
   layer = L.layerGroup().addTo(map);
+  map.on("click", pickAt);
   map.on("contextmenu", e => {
     L.popup().setLatLng(e.latlng).setContent(`<b>¿Estás aquí?</b><br><button class="popbtn" id="setMeBtn">Fijar mi ubicación aquí</button>`).openOn(map);
     setTimeout(() => { const b = document.getElementById("setMeBtn"); if (b) b.onclick = () => { map.closePopup(); setManualMe(e.latlng.lat, e.latlng.lng); }; }, 0);
@@ -1309,6 +1344,24 @@ function initMap(){
   drawMe();
 }
 let PTS = null;
+const popHTML = p => `<b>${esc(p.n)}</b><br><span class="num">${p.c}</span> · Ruta ${esc(p.ruta)} · FR ${esc(p.fr||"—")}<br>${p.cov?`Cobertura ${p.cov.okN}/${p.cov.n}`:"Sin cobertura"}${p._d!=null?` · ${fmt(p._d,1)} km`:""}<button class="popbtn" data-pdv="${p.c}">Abrir ficha</button>`;
+function pickAt(e){
+  const R = L.Browser.mobile ? 24 : 12;          // radio de toque en pixeles
+  const cp = e.containerPoint, hits = [];
+  for (const p of current){
+    if (p.lat == null) continue;
+    const q = map.latLngToContainerPoint([p.lat, p.lng]);
+    const d = Math.hypot(q.x - cp.x, q.y - cp.y);
+    if (d <= R) hits.push({p, d});
+  }
+  if (!hits.length) return;
+  hits.sort((a, b) => a.d - b.d);
+  const near = hits.filter(h => h.d <= hits[0].d + 8);   // puntos encimados en el mismo lugar
+  let html;
+  if (near.length === 1) html = popHTML(near[0].p);
+  else html = `<b>${near.length} clientes aquí</b><div class="poplist">${near.slice(0, 12).map(h => `<button class="popbtn alt" data-pdv="${h.p.c}">${esc(h.p.n || h.p.c)}<small>Ruta ${esc(h.p.ruta)} · ${h.p.c}</small></button>`).join("")}</div>${near.length > 12 ? `<small class="note">Acerca el mapa para ver los demás</small>` : ""}`;
+  L.popup({offset:[0,-6], autoPanPadding:[20,20]}).setLatLng([near[0].p.lat, near[0].p.lng]).setContent(html).openOn(map);
+}
 function renderMap(){
   if (!map) return;
   layer.clearLayers();
@@ -1316,14 +1369,14 @@ function renderMap(){
   const R = PTS;
   for (const p of pts){
     const vis = visitedToday(p.c);
-    const m = L.circleMarker([p.lat, p.lng], {renderer:R, radius: vis ? 9 : 7, color: vis ? "#2EE59D" : "rgba(5,14,26,.85)", weight: vis ? 3 : 1.2, fillColor: colorFor(p), fillOpacity:.92});
-    m.bindPopup(() => `<b>${esc(p.n)}</b><br><span class="num">${p.c}</span> · Ruta ${esc(p.ruta)} · FR ${esc(p.fr||"—")}<br>${p.cov?`Cobertura ${p.cov.okN}/${p.cov.n}`:"Sin cobertura"}${p._d!=null?` · ${fmt(p._d,1)} km`:""}<button class="popbtn" data-pdv="${p.c}">Abrir ficha</button>`);
-    layer.addLayer(m);
+    // los puntos no capturan toques: el toque lo resuelve pickAt() buscando el punto más cercano (funciona igual con 100 o 10,000 clientes)
+    layer.addLayer(L.circleMarker([p.lat, p.lng], {renderer:R, interactive:false, radius: vis ? 9 : 7, color: vis ? "#2EE59D" : "rgba(5,14,26,.85)", weight: vis ? 3 : 1.2, fillColor: colorFor(p), fillOpacity:.92}));
   }
   renderLegend(pts, current.length - pts.length);
   if (needFit && pts.length){ fitPts(pts); needFit = false; }
 }
 function fitPts(pts){ if (!map || !pts.length) return; map.fitBounds(L.latLngBounds(pts.map(p=>[p.lat,p.lng])), {padding:[30,30], maxZoom:16}); }
+let LEG_OPEN = null;
 function renderLegend(pts, noGps){
   const m = F.colorBy, counts = new Map();
   for (const p of pts){
@@ -1331,7 +1384,14 @@ function renderLegend(pts, noGps){
     if (!counts.has(k)) counts.set(k, {n:0, col:colorFor(p)}); counts.get(k).n++;
   }
   const title = {ruta:"Rutas", sup:"Supervisores", fr:"Frecuencia", cov:"Cobertura", vpo:"Plan VPO"}[m];
-  $("#legend").innerHTML = `<h4>${title}</h4>` + [...counts.entries()].sort((a,b)=>String(a[0]).localeCompare(String(b[0]))).map(([k,v]) => `<div class="row"><i style="background:${v.col}"></i><span>${esc(k||"—")}</span><span class="num" style="margin-left:auto;color:var(--muted);padding-left:8px">${v.n}</span></div>`).join("") + `<div class="row note" style="margin-top:4px"><i style="background:transparent;border-color:#2EE59D;border-width:2.5px"></i>Visitado hoy</div>` + (noGps ? `<div class="note" style="margin-top:4px">${fmt(noGps)} PDV sin coordenadas</div>` : "");
+  const nItems = counts.size;
+  const big = nItems > 6 || window.innerWidth < 900;
+  if (LEG_OPEN === null) LEG_OPEN = !big;                       // plegada por defecto en celular o si hay muchas rutas
+  const head = `<button class="leghead" id="legToggle" aria-expanded="${LEG_OPEN}">${title} · ${nItems}<span>${LEG_OPEN ? "▾" : "▸"}</span></button>`;
+  if (!LEG_OPEN){ $("#legend").innerHTML = head; $("#legend").classList.add("closed"); $("#legToggle").onclick = () => { LEG_OPEN = true; renderLegend(pts, noGps); }; return; }
+  $("#legend").classList.remove("closed");
+  $("#legend").innerHTML = head + [...counts.entries()].sort((a,b)=>String(a[0]).localeCompare(String(b[0]))).map(([k,v]) => `<div class="row"><i style="background:${v.col}"></i><span>${esc(k||"—")}</span><span class="num" style="margin-left:auto;color:var(--muted);padding-left:8px">${v.n}</span></div>`).join("") + `<div class="row note" style="margin-top:4px"><i style="background:transparent;border-color:#2EE59D;border-width:2.5px"></i>Visitado hoy</div>` + (noGps ? `<div class="note" style="margin-top:4px">${fmt(noGps)} PDV sin coordenadas</div>` : "");
+  $("#legToggle").onclick = () => { LEG_OPEN = false; renderLegend(pts, noGps); };
 }
 
 /* ---------- GPS en tiempo real ---------- */
