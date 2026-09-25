@@ -1279,7 +1279,9 @@ function colorFor(p){
 }
 function initMap(){
   if (map || typeof L === "undefined") return;
-  map = L.map("map", {preferCanvas:true, zoomControl:true}).setView([13.48,-88.18], 11);
+  // un solo lienzo para todos los puntos: evita capas que tapan los toques; tolerance agranda el área de toque en celular
+  PTS = L.canvas({padding:.5, tolerance: L.Browser.mobile ? 14 : 6});
+  map = L.map("map", {preferCanvas:true, renderer:PTS, zoomControl:true, tapTolerance:20}).setView([13.48,-88.18], 11);
   const esri = (svc, opt={}) => L.tileLayer(`https://server.arcgisonline.com/ArcGIS/rest/services/${svc}/MapServer/tile/{z}/{y}/{x}`, Object.assign({maxZoom:19, attribution:"© Esri"}, opt));
   const BASES = [
     ["Oscuro", L.layerGroup([esri("Canvas/World_Dark_Gray_Base",{maxZoom:16}), esri("Canvas/World_Dark_Gray_Reference",{maxZoom:16})])],
@@ -1306,14 +1308,15 @@ function initMap(){
   });
   drawMe();
 }
+let PTS = null;
 function renderMap(){
   if (!map) return;
   layer.clearLayers();
   const pts = current.filter(p => p.lat != null);
-  const R = L.canvas({padding:.5});
+  const R = PTS;
   for (const p of pts){
     const vis = visitedToday(p.c);
-    const m = L.circleMarker([p.lat, p.lng], {renderer:R, radius: vis ? 8 : 6, color: vis ? "#2EE59D" : "rgba(5,14,26,.85)", weight: vis ? 3 : 1.2, fillColor: colorFor(p), fillOpacity:.92});
+    const m = L.circleMarker([p.lat, p.lng], {renderer:R, radius: vis ? 9 : 7, color: vis ? "#2EE59D" : "rgba(5,14,26,.85)", weight: vis ? 3 : 1.2, fillColor: colorFor(p), fillOpacity:.92});
     m.bindPopup(() => `<b>${esc(p.n)}</b><br><span class="num">${p.c}</span> · Ruta ${esc(p.ruta)} · FR ${esc(p.fr||"—")}<br>${p.cov?`Cobertura ${p.cov.okN}/${p.cov.n}`:"Sin cobertura"}${p._d!=null?` · ${fmt(p._d,1)} km`:""}<button class="popbtn" data-pdv="${p.c}">Abrir ficha</button>`);
     layer.addLayer(m);
   }
@@ -1336,10 +1339,9 @@ function drawMe(){
   if (!map || !ME) return;
   const ll = [ME.lat, ME.lng];
   if (!meMarker){
-    meMarker = L.marker(ll, {icon:L.divIcon({className:"", html:'<div class="me-dot"></div>', iconSize:[18,18], iconAnchor:[9,9]}), zIndexOffset:1000}).addTo(map);
-    meCircle = L.circle(ll, {radius:ME.acc || 30, color:"#2F80ED", weight:1, fillOpacity:.08, interactive:false}).addTo(map);
+    meMarker = L.marker(ll, {icon:L.divIcon({className:"", html:'<div class="me-dot"></div>', iconSize:[18,18], iconAnchor:[9,9]}), zIndexOffset:1000, interactive:false, keyboard:false}).addTo(map);
+    meCircle = L.circle(ll, {renderer:PTS, radius:ME.acc || 30, color:"#2F80ED", weight:1, fillOpacity:.08, interactive:false, bubblingMouseEvents:true}).addTo(map); meCircle.bringToBack();
   } else { meMarker.setLatLng(ll); meCircle.setLatLng(ll).setRadius(ME.acc || 30); }
-  meMarker.bindTooltip(ME.manual ? "Ubicación fijada a mano" : `Tú (±${Math.round(ME.acc)} m)`);
 }
 function gpsBar(state, html){
   const el = $("#gpsBar");
