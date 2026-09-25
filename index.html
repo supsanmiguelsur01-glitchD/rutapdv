@@ -1202,13 +1202,16 @@ const covClass = p => { const v = covPct(p); if (v == null) return "na"; return 
 /* ---------- acceso por código (cifrado AES-GCM) ---------- */
 const TXT = new TextEncoder();
 const normCode = c => String(c || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+// El nombre del archivo se deriva con PBKDF2 (lento a propósito): así nadie puede adivinar
+// un código probando millones de combinaciones contra los nombres de archivo públicos.
 async function codeId(code){
-  const h = await crypto.subtle.digest("SHA-256", TXT.encode("rutapdv|" + normCode(code)));
-  return [...new Uint8Array(h)].slice(0, 16).map(b => b.toString(16).padStart(2, "0")).join("");
+  const base = await crypto.subtle.importKey("raw", TXT.encode(normCode(code)), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits({name:"PBKDF2", salt:TXT.encode("rutapdv-archivo-v2"), iterations:300000, hash:"SHA-256"}, base, 128);
+  return [...new Uint8Array(bits)].map(b => b.toString(16).padStart(2, "0")).join("");
 }
 async function deriveKey(code, salt){
   const base = await crypto.subtle.importKey("raw", TXT.encode(normCode(code)), "PBKDF2", false, ["deriveKey"]);
-  return crypto.subtle.deriveKey({name:"PBKDF2", salt, iterations:150000, hash:"SHA-256"}, base, {name:"AES-GCM", length:256}, false, ["encrypt","decrypt"]);
+  return crypto.subtle.deriveKey({name:"PBKDF2", salt, iterations:300000, hash:"SHA-256"}, base, {name:"AES-GCM", length:256}, false, ["encrypt","decrypt"]);
 }
 const streamThrough = (buf, tr) => new Response(new Blob([buf]).stream().pipeThrough(tr)).arrayBuffer();
 async function encryptPack(obj, code){
