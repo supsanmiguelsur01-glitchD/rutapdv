@@ -722,9 +722,11 @@ main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr)}
 .pane{min-height:0;min-width:0;display:flex;flex-direction:column}
 #mapPane{position:relative}
 @media (min-width:900px){
-  .tabs{display:none}
+  .tabs{justify-content:flex-end;padding-left:440px}
+  .tabs button{flex:0 0 160px}
+  #tabList{display:none}
   main{grid-template-columns:minmax(360px,440px) minmax(0,1fr)}
-  .pane[hidden]{display:flex!important}
+  #listPane[hidden]{display:flex!important}
   #listPane{border-right:1px solid var(--line2)}
 }
 
@@ -868,6 +870,80 @@ select.sm{height:38px;border:1px solid var(--line);border-radius:10px;background
 .welcome label.btn{cursor:pointer}
 .xl summary{cursor:pointer}
 .welcome #codeForm[hidden]{display:none!important}
+.focusbar{display:flex;align-items:center;gap:10px;padding:8px 16px;background:rgba(255,195,77,.10);border-bottom:1px solid rgba(255,195,77,.35);font-size:13.5px}
+.focusbar span{flex:1;min-width:0}
+.focusbar b{color:var(--warn)}
+.focusbar .iconbtn{height:30px;min-width:30px;padding:0 8px}
+#panelPane{overflow-y:auto}
+#panelBody{padding:18px 16px 40px;display:flex;flex-direction:column;gap:16px;max-width:1100px;width:100%;margin:0 auto}
+.phead{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.phead > div{flex:1;min-width:0}
+.phead p{margin:0}
+.phead h2{font:800 18px/1.2 var(--f-tech);letter-spacing:2px;text-transform:uppercase;color:var(--cyan);margin:0 0 4px}
+.phead .btn{width:auto}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:1200px){.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.kpi{all:unset;box-sizing:border-box;cursor:pointer;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.kpi:hover{box-shadow:var(--glow)}
+.kpi:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.kpi[disabled]{cursor:default}
+.kpi.on{border-color:var(--cyan);box-shadow:var(--glow);background:linear-gradient(180deg,#123052,var(--panel))}
+.kl{font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:700}
+.kv{font:800 28px/1.1 var(--f-tech);color:var(--ink)}
+.kv small{font-size:16px;color:var(--muted)}
+.warnk .kv{color:var(--warn)} .badk .kv{color:var(--bad)}
+.ks{font-size:12.5px;color:var(--muted);line-height:1.35}
+.meter{height:6px;border-radius:99px;background:var(--chip);overflow:hidden;margin-top:4px}
+.meter i{display:block;height:100%;border-radius:99px;background:var(--cyan)}
+.meter.ok i{background:linear-gradient(90deg,#0FA86B,#2EE59D)}
+.psec{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.psec h3{margin:0;font:700 14px var(--f-tech);letter-spacing:2px;text-transform:uppercase;color:var(--cyan)}
+.psec .note{margin:0}
+.bars{display:flex;flex-direction:column;gap:4px}
+.bar{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(60px,1fr) 48px 96px;white-space:nowrap;gap:10px;align-items:center;padding:7px 8px;border-radius:10px}
+.bar:hover{background:rgba(25,211,255,.07)}
+.bar:focus-visible{outline:2px solid var(--cyan)}
+.bar.on{background:rgba(25,211,255,.14);box-shadow:inset 0 0 0 1px var(--cyan)}
+.bl{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bt{height:10px;border-radius:0 5px 5px 0;background:var(--chip);overflow:hidden}
+.bt i{display:block;height:100%;background:var(--cyan);border-radius:0 4px 4px 0}
+.bv{text-align:right;font-weight:700}
+.bp{text-align:right;font-size:12.5px;color:var(--warn)}
+.bar.promo .bp{color:var(--ok)}
+@media (max-width:520px){.bar{grid-template-columns:minmax(0,1fr) 44px 64px}.bar .bt{grid-column:1/-1;grid-row:2}}
+.tw{overflow-x:auto;border:1px solid var(--line2);border-radius:12px}
+table.rt{border-collapse:collapse;width:100%;font-size:14px;min-width:640px;font-variant-numeric:tabular-nums}
+table.rt th{color:var(--muted);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line);background:var(--field);white-space:nowrap}
+table.rt td{padding:8px 10px;border-bottom:1px solid var(--line2)}
+table.rt th{text-align:right}
+table.rt th:first-child,table.rt td:first-child{text-align:left}
+table.rt td{text-align:right}
+table.rt tbody tr{cursor:pointer}
+table.rt tbody tr:hover td{background:rgba(25,211,255,.07)}
+.cgroup{border:1px solid var(--line2);border-radius:12px;padding:8px 10px}
+.cgroup.gok{border-color:rgba(46,229,157,.3)}
+.cgh{display:flex;align-items:center;gap:8px;justify-content:space-between;padding:2px 0 4px}
+.cgn{font-weight:700;font-size:15px}
+.cgroup .chk:last-child{border-bottom:0}
+.psec.ev{border-color:rgba(25,211,255,.45)}
+.evhead h3{font:800 16px var(--f-tech)}
+.evhead p{margin:4px 0 0}
+.evk .kv.ok{color:var(--ok)} .evk .kv.warn{color:var(--warn)} .evk .kv.bad{color:var(--bad)}
+table.evt td small{display:block;color:var(--muted);font-size:11.5px;font-weight:500}
+table.evt th{text-align:left!important}
+table.evt th:last-child{text-align:right!important}
+table.evt td.evc{padding:4px 6px;text-align:left;min-width:150px}
+table.evt td.evc.na{color:var(--dim);text-align:center}
+.evc button{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:44px 1fr;gap:2px 8px;align-items:center;width:100%;padding:6px 8px;border-radius:8px}
+.evc button:hover{background:rgba(25,211,255,.08)}
+.evc button:focus-visible{outline:2px solid var(--cyan)}
+.evp{font-weight:800;font-size:14px;text-align:right}
+.evp.ok{color:var(--ok)} .evp.warn{color:var(--warn)} .evp.bad{color:var(--bad)}
+.evm{height:6px;background:var(--chip);border-radius:3px;overflow:hidden}
+.evm i{display:block;height:100%;border-radius:3px;background:var(--bad)}
+.evm i.ok{background:var(--ok)} .evm i.warn{background:var(--warn)}
+.evf{grid-column:1/-1;font-size:12px;color:var(--muted)}
+.evf b{color:var(--ink)}
 .eq{border-top:1px solid var(--line2);padding-top:10px}
 .eq:first-child{border-top:0;padding-top:0}
 .eq h4{margin:0 0 8px;font-size:15px}
@@ -892,7 +968,8 @@ textarea{width:100%;min-height:80px;border:1px solid var(--line);border-radius:1
     <button class="iconbtn" id="btnMenu" title="Más opciones"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
   </header>
   <div class="gpsbar" id="gpsBar" hidden role="status"></div>
-  <nav class="tabs"><button id="tabList" class="on">Filtros y lista</button><button id="tabMap">Mapa</button></nav>
+  <nav class="tabs"><button id="tabList" class="on">Lista</button><button id="tabMap">Mapa</button><button id="tabPanel">Panel</button></nav>
+  <div class="focusbar" id="focusBar" hidden role="status"></div>
   <main>
     <section class="pane" id="listPane">
       <div id="side">
@@ -914,6 +991,7 @@ textarea{width:100%;min-height:80px;border:1px solid var(--line);border-radius:1
         <details class="box" id="fBox" open>
           <summary><h2>Filtros operativos</h2><svg class="car" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></summary>
           <div class="fbody">
+            <div class="field" id="fAgWrap"><span class="lab">Agencia</span><div class="seg" id="fAg"></div></div>
             <div class="field"><label for="fSup">Supervisor</label><select id="fSup"></select></div>
             <div class="field"><span class="lab">Rutas (selección múltiple)</span><div class="multi" id="fRutas" role="group" aria-label="Rutas"></div></div>
             <div class="field"><span class="lab">Frecuencias (selección múltiple)</span><div class="seg" id="fFrs" role="group" aria-label="Frecuencias"></div></div>
@@ -963,6 +1041,7 @@ textarea{width:100%;min-height:80px;border:1px solid var(--line);border-radius:1
       <div class="legend" id="legend"></div>
       <div class="routebar" id="routeBar" hidden role="status"></div>
     </section>
+    <section class="pane" id="panelPane" hidden><div id="panelBody"></div></section>
   </main>
 </div>
 
@@ -974,7 +1053,7 @@ textarea{width:100%;min-height:80px;border:1px solid var(--line);border-radius:1
   <button id="btnExport"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></svg>Exportar visitas (Excel)</button>
   <button id="btnReset"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg>Volver a datos originales</button>
 </div>
-<input type="file" id="fileIn" accept=".xlsx,.xlsm,.xls" hidden>
+<input type="file" id="fileIn" accept=".xlsx,.xlsm,.xls" multiple hidden>
 
 <aside class="drawer" id="dDrawer" hidden aria-label="Ficha del cliente">
   <div class="dh"><h2 id="dTitle"></h2><button class="closeb" data-close>Cerrar</button></div>
@@ -1035,7 +1114,8 @@ const SHEETS = {
   ac:        {names:["AC BASE"],   key:"nombre cliente", also:"sap"},
   rn:        {names:["Base"],      key:"codigo de cliente", also:"necesidad real amarilla"},
   mon:       {names:["MONITOREO"], key:"codigo cliente", also:"status"},
-  vpo:       {names:["VPO"],       key:"cliente_id", also:"meta (cj)"}
+  vpo:       {names:["VPO"],       key:"cliente_id", also:"meta (cj)"},
+  ev:        {names:["EVEREST","Sheet1"], key:"meta pepsi ms"}
 };
 const low = v => str(v).toLowerCase();
 const normFr = v => { const f = str(v).toUpperCase(); return (f === "0" || f === "NONE" || f === "-") ? "" : f; };
@@ -1048,34 +1128,37 @@ function findHeader(rows, key, also){
   }
   return -1;
 }
-function pickSheets(wb){
-  const out = {};
+function pickSheets(wbIn){
+  const wbs = Array.isArray(wbIn) ? wbIn : [wbIn];      // se pueden cargar varios Excel a la vez (listados + Everest)
+  const out = {}, cache = new Map();
+  const rowsOf = (wb, n) => { const k = wb; if (!cache.has(k)) cache.set(k, {}); const c = cache.get(k); if (!(n in c)) c[n] = wb.Sheets[n] ? XLSX.utils.sheet_to_json(wb.Sheets[n], {header:1, raw:true, defval:null, blankrows:false}) : null; return c[n]; };
   for (const [id, cfg] of Object.entries(SHEETS)){
     let best = null;
-    const tryName = n => {
-      const ws = wb.Sheets[n]; if (!ws) return null;
-      const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:null, blankrows:false});
-      const h = findHeader(rows, cfg.key, cfg.also);
-      return h < 0 ? null : rows.slice(h);
-    };
-    for (const n of cfg.names){ best = tryName(n); if (best) break; }
-    if (!best){ // buscar en cualquier hoja: la de más filas con el encabezado
-      for (const n of wb.SheetNames){ const r = tryName(n); if (r && (!best || r.length > best.length)) best = r; }
+    const tryName = (wb, n) => { const rows = rowsOf(wb, n); if (!rows) return null; const h = findHeader(rows, cfg.key, cfg.also); return h < 0 ? null : {rows: rows.slice(h), pre: rows.slice(0, h), wb}; };
+    for (const wb of wbs){ for (const n of cfg.names){ const r = tryName(wb, n); if (r && (!best || r.rows.length > best.rows.length)) best = r; } }
+    if (!best) for (const wb of wbs) for (const n of wb.SheetNames){ const r = tryName(wb, n); if (r && (!best || r.rows.length > best.rows.length)) best = r; }
+    out[id] = best ? best.rows : [];
+    if (id === "ev" && best){
+      // período ("Mes Año") y fecha de corte del archivo Everest
+      let periodo = "", corte = "";
+      for (const r of best.pre) { const i = (r || []).findIndex(x => /mes\s*a[ñn]o/i.test(str(x))); if (i >= 0) periodo = str(r[i + 1]); }
+      for (const n of best.wb.SheetNames){ const rows = rowsOf(best.wb, n) || []; for (const r of rows.slice(0, 8)) for (const x of (r || [])){ const m = str(x).match(/corte\s+(\d{1,2}\/\d{1,2}\/\d{4})(?:\s+(\d{1,2}:\d{2}))?/i); if (m && !corte) corte = m[1] + (m[2] ? " " + m[2] : ""); } }
+      out.evInfo = {periodo, corte};
     }
-    out[id] = best || [];
   }
   return out;
 }
 function fromEmbed(e){
   e = e || {};
-  return {maestra:e["maestra"]||[], listados:e["LISTADOS"]||[], ac:e["AC BASE"]||[], rn:e["Base"]||[], mon:e["MONITOREO"]||[], vpo:e["VPO"]||[]};
+  return {maestra:e["maestra"]||[], listados:e["LISTADOS"]||[], ac:e["AC BASE"]||[], rn:e["Base"]||[], mon:e["MONITOREO"]||[], vpo:e["VPO"]||[], ev:e["EVEREST"]||[], evInfo:e.evInfo||null};
 }
 
 /* ---------- modelo ---------- */
-let DUP_INFO = {merged:0, skipped:0};
-let DB = {pdv:new Map(), covCols:[], acCols:[], sups:[], rutas:[], rutaSup:new Map(), vpoPlan:null};
+let DUP_INFO = {merged:0, skipped:0}, OUT_OF_SCOPE = 0;
+let DB = {pdv:new Map(), covCols:[], acCols:[], sups:[], rutas:[], rutaSup:new Map(), vpoPlan:null, ev:{rutas:new Map(), info:null}};
 function build(S){
   const pdv = new Map();
+  OUT_OF_SCOPE = 0;
   const ALIASC = new Map();   // código duplicado -> código que se conserva
   const get = c => { c = ALIASC.get(c) ?? c; let p = pdv.get(c); if (!p){ p = {c, n:"", sup:"", ruta:"", fr:"", est:"", etq:"", ef:"", lat:null, lng:null, dir:"", cov:null, ac:[], eq:[], rn:[], vpo:null}; pdv.set(c,p);} return p; };
   const idx = h => { const m = {}; (h||[]).forEach((c,i)=>{ if (c!=null) m[low(c)] = i; }); return k => m[k]; };
@@ -1133,7 +1216,8 @@ function build(S){
         const v = num(r[start+j]); const thr = /cerveza/i.test(k) ? 1 : 0.5;
         return {k, v, ok: v != null && Math.round(v*100)/100 >= thr, nd: v == null};
       });
-      p.cov = {prom:num(r[cP]), real:num(r[cT]), items, okN: items.filter(i=>i.ok).length, n: items.length};
+      const groups = COV_GROUPS.map(g => { const its = items.filter(i => covGroupOf(i.k) === g.k); return {k:g.k, label:g.label, items:its, ok:its.some(i => i.ok), nd:its.length > 0 && its.every(i => i.nd)}; }).filter(g => g.items.length);
+      p.cov = {prom:num(r[cP]), real:num(r[cT]), items, groups, okN: groups.filter(g => g.ok).length, n: groups.length, otros: items.filter(i => covGroupOf(i.k) === "otros")};
     }
   }
   // combos AC
@@ -1201,12 +1285,59 @@ function build(S){
       vpoPlan = {title, head, rows, note};
     }
   }
+  // Universo = rutas de preventa que vienen en el archivo de coberturas (LISTADOS).
+  // Rutas de otros canales que aparecen en AC, R+N o la maestra (mayoreo, autoservicio, 200xxx…) quedan fuera.
+  if (S.listados && S.listados.length > 1){
+    const ri = S.listados[0].findIndex(x => low(x) === "ruta");
+    const ok = new Set(S.listados.slice(1).map(r => str(code(r[ri]) ?? r[ri])).filter(Boolean));
+    if (ok.size) for (const [k, p] of pdv) if (!ok.has(p.ruta)){ pdv.delete(k); OUT_OF_SCOPE++; }
+  }
+  for (const p of pdv.values()) p.ag = agenciaDe(p.ruta);
+  // rutas especiales (p. ej. 200xxx) toman la agencia más común de su supervisor
+  const supAg = new Map();
+  for (const p of pdv.values()) if (p.ag !== "Otra" && p.sup){ const m = supAg.get(p.sup) || {}; m[p.ag] = (m[p.ag] || 0) + 1; supAg.set(p.sup, m); }
+  for (const p of pdv.values()) if (p.ag === "Otra" && supAg.has(p.sup)){ const m = supAg.get(p.sup); p.ag = Object.keys(m).sort((a, b) => m[b] - m[a])[0]; }
   const sups = [...new Set([...pdv.values()].map(p=>p.sup).filter(Boolean))].sort();
   const rutaSup = new Map();
   for (const p of pdv.values()){ if (!p.ruta) continue; if (!rutaSup.has(p.ruta)) rutaSup.set(p.ruta, new Map()); const m = rutaSup.get(p.ruta); m.set(p.sup, (m.get(p.sup)||0)+1); }
   const rutas = [...rutaSup.keys()].sort();
-  DB = {pdv, covCols, acCols, sups, rutas, rutaSup, vpoPlan};
+  // Meta Everest por ruta: Multi Serve, Single Serve, Gatorade 600 ML PET y Cerveza (meta y cobertura real)
+  const ev = {rutas:new Map(), info:S.evInfo || null};
+  if (S.ev && S.ev.length > 1){
+    const h = S.ev[0].map(low);
+    const col = re => h.findIndex(x => re.test(x));
+    const ri = col(/^ruta$/), zi = col(/subregion|zona|agencia/);
+    const C = {multi:[col(/meta.*(ms|multi)/), col(/cob.*multi/)], single:[col(/meta.*(ss|single)/), col(/cob.*single/)], gatorade:[col(/meta.*gatorade/), col(/cob.*gatorade/)], cerveza:[col(/meta.*(cvz|cerveza)/), col(/cob.*cerveza/)]};
+    for (const r of S.ev.slice(1)){
+      const ruta = str(code(r[ri]) ?? r[ri]); if (!ruta) continue;
+      const o = {ruta, zona: zi >= 0 ? str(r[zi]) : agenciaDe(ruta)};
+      let any = false;
+      for (const [k, [mi, ci]] of Object.entries(C)){ const meta = mi >= 0 ? num(r[mi]) : null, real = ci >= 0 ? num(r[ci]) : null; o[k] = {meta: meta || 0, real: real || 0}; if (meta) any = true; }
+      if (any) ev.rutas.set(ruta, o);
+    }
+  }
+  DB = {pdv, covCols, acCols, sups, rutas, rutaSup, vpoPlan, ev};
 }
+/* Cobertura por categoría (lo que cuenta): Cerveza, Gatorade (isotónicos), Pepsi multiserve (1 L o más) y Pepsi singleserve (menos de 1 L).
+   Una categoría se cumple si el cliente cumple al menos uno de sus empaques. */
+const COV_GROUPS = [
+  {k:"cerveza", label:"Cerveza"},
+  {k:"gatorade", label:"Gatorade (isotónicos)"},
+  {k:"multi", label:"Pepsi multiserve"},
+  {k:"single", label:"Pepsi singleserve"}
+];
+function covGroupOf(name){
+  const n = String(name).toLowerCase();
+  if (/cerveza|regia|suprema/.test(n)) return "cerveza";
+  if (/isot|gatorade/.test(n)) return "gatorade";
+  if (/1[.,]25\s*l\b/.test(n) || /500\s*ml.*grb/.test(n)) return "otros";   // 1.25L y 500ML GRB no cuentan para cobertura
+  const m = n.match(/(\d+(?:[.,]\d+)?)\s*(ml|l)\b/);
+  if (m){ const v = parseFloat(m[1].replace(",", ".")) * (m[2] === "ml" ? 0.001 : 1); return v >= 1 ? "multi" : "single"; }
+  return "otros";
+}
+// Agencia por prefijo de ruta: 242/243 = San Miguel Norte (SS42, SS43) · 265 = San Miguel Sur (SS65)
+const AGENCIAS = {"242":"San Miguel Norte", "243":"San Miguel Norte", "265":"San Miguel Sur"};
+const agenciaDe = r => AGENCIAS[String(r || "").slice(0, 3)] || "Otra";
 const covPct = p => p.cov ? p.cov.okN / p.cov.n : null;
 const covClass = p => { const v = covPct(p); if (v == null) return "na"; return v >= .8 ? "ok" : v >= .5 ? "warn" : "bad"; };
 
@@ -1239,7 +1370,7 @@ async function decryptPack(buf, code){
 }
 
 const EMBED = /*__DATA__*/null;
-const EMBED_LABEL = EMBED ? "listados.xlsx (laboral)" : "sin datos cargados";
+const EMBED_LABEL = EMBED ? "listados.xlsx + Everest (laboral)" : "sin datos cargados";
 const DEFAULT_SUP = EMBED ? "BRYAN ESCOBAR" : "";
 
 /* ---------- visitas (checks) ---------- */
@@ -1250,18 +1381,43 @@ const saveVis = () => ls.set(VKEY, VIS);
 const visitedToday = c => { const v = VIS[todayKey()]?.[c]; return !!(v && (v.t || Object.values(v.cov).some(Boolean) || Object.values(v.ac).some(Boolean))); };
 
 /* ---------- estado UI ---------- */
-const F = Object.assign({sup:DEFAULT_SUP, rutas:[], frs:[], dias:[], vpo:"", cov:"", vis:"", q:"", sort:"dist", colorBy:"ruta"}, ls.get("rutapdv_filters", {}));
+const F = Object.assign({ag:"", sup:DEFAULT_SUP, rutas:[], frs:[], dias:[], vpo:"", cov:"", vis:"", seg:"", emp:"", promo:"", q:"", sort:"dist", colorBy:"ruta"}, ls.get("rutapdv_filters", {}));
 F.q = ""; delete F.ruta; delete F.fr; delete F.theme;
 if (!Array.isArray(F.dias)) F.dias = []; delete F.dia;
 if (!Array.isArray(F.rutas)) F.rutas = []; if (!Array.isArray(F.frs)) F.frs = [];
 const saveF = () => { const {q, ...rest} = F; ls.set("rutapdv_filters", rest); };
 let ME = null, watchId = null, SHOWN = 150, current = [];
 
-function filtered(){
+/* ---------- indicadores de seguimiento ---------- */
+const rnNec = p => p.rn.reduce((m, r) => Math.max(m, r.nec || 0), 0);
+const wellPend = p => p.eq.filter(e => /no\s*le[ií]do/i.test(e.status));
+const well60 = p => p.eq.some(e => /\+\s*60/.test(e.status));
+const covPend = p => p.cov ? p.cov.groups.filter(g => !g.ok) : [];
+const SEG_LABEL = {covpend:"Con coberturas pendientes", rn:"Clientes con R+N", nec:"Necesidad amarilla", well:"Wellington pendiente", well60:"Wellington +60 días", hoy:"Programados hoy sin visitar"};
+function focusLabel(){
+  const parts = [];
+  if (F.seg) parts.push(SEG_LABEL[F.seg] || F.seg);
+  if (F.emp) parts.push("Cobertura pendiente: " + ((COV_GROUPS.find(g => g.k === F.emp) || {}).label || F.emp));
+  if (F.promo) parts.push("Promoción: " + F.promo);
+  return parts.join(" · ");
+}
+function passFocus(p){
+  if (F.seg === "covpend" && !covPend(p).length) return false;
+  if (F.seg === "rn" && !p.rn.length) return false;
+  if (F.seg === "nec" && !(rnNec(p) > 0)) return false;
+  if (F.seg === "well" && !wellPend(p).length) return false;
+  if (F.seg === "well60" && !well60(p)) return false;
+  if (F.seg === "hoy" && (!frDays(p.fr).includes(todayLetter()) || visitedToday(p.c))) return false;
+  if (F.emp && !(p.cov && p.cov.groups.some(g => g.k === F.emp && !g.ok))) return false;
+  if (F.promo && !p.ac.includes(F.promo)) return false;
+  return true;
+}
+function filtered(noFocus){
   const q = F.q.trim().toLowerCase();
   const dias = F.dias.map(d => d === "HOY" ? todayLetter() : d).filter(Boolean);
   const out = [];
   for (const p of DB.pdv.values()){
+    if (F.ag && p.ag !== F.ag) continue;
     if (F.sup && p.sup !== F.sup) continue;
     if (F.rutas.length && !F.rutas.includes(p.ruta)) continue;
     if (F.frs.length && !F.frs.includes(p.fr || "_none")) continue;
@@ -1275,6 +1431,7 @@ function filtered(){
     if (F.vis === "si" && !visitedToday(p.c)) continue;
     if (F.vis === "no" && visitedToday(p.c)) continue;
     if (q && !(p.n.toLowerCase().includes(q) || String(p.c).includes(q))) continue;
+    if (!noFocus && !passFocus(p)) continue;
     out.push(p);
   }
   for (const p of out) p._d = (ME && p.lat != null) ? haversine(ME.lat, ME.lng, p.lat, p.lng) : null;
@@ -1293,7 +1450,9 @@ function cardHTML(p){
   const cc = covClass(p), pct = covPct(p);
   const covTxt = pct == null ? "Sin cobertura" : `${p.cov.okN}/${p.cov.n} cob.`;
   const dist = p._d != null ? `<span class="dist num">${p._d < 1 ? Math.round(p._d*1000)+" m" : fmt(p._d,1)+" km"}</span>` : "";
-  const acN = (p.ac.length ? `<span class="pill acc">${p.ac.length} AC</span>` : "") + (p.vpo ? `<span class="pill ${p.vpo.pct >= 1 ? "ok" : "warn"}">VPO ${p.vpo.pct != null ? Math.round(p.vpo.pct*100)+"%" : "0%"}</span>` : "");
+  const nec = rnNec(p), wp = wellPend(p).length;
+  const segN = (nec > 0 ? `<span class="pill warn" title="Necesidad real amarilla">Nec ${fmt(nec)}</span>` : "") + (wp ? `<span class="pill bad" title="Equipos sin lectura Wellington">Well ${wp}</span>` : "");
+  const acN = segN + (p.ac.length ? `<span class="pill acc">${p.ac.length} AC</span>` : "") + (p.vpo ? `<span class="pill ${p.vpo.pct >= 1 ? "ok" : "warn"}">VPO ${p.vpo.pct != null ? Math.round(p.vpo.pct*100)+"%" : "0%"}</span>` : "");
   return `<button class="card ${visitedToday(p.c)?"visited":""}" data-pdv="${p.c}">
     <span class="nm">${esc(p.n || "(sin nombre)")}</span>
     <span class="side">${dist}<span class="pill ${cc}">${covTxt}</span>${acN}</span>
@@ -1304,7 +1463,7 @@ function renderList(){
   current = filtered();
   const n = current.length;
   const vis = current.filter(p => visitedToday(p.c)).length;
-  const withCov = current.filter(p => p.cov); const avg = withCov.length ? withCov.reduce((a,p)=>a+p.cov.okN,0)/withCov.length : 0; const nItems = withCov[0]?.cov.n || DB.covCols.length;
+  const withCov = current.filter(p => p.cov); const avg = withCov.length ? withCov.reduce((a,p)=>a+p.cov.okN,0)/withCov.length : 0; const nItems = withCov[0]?.cov.n || COV_GROUPS.length;
   $("#stShown").textContent = fmt(Math.min(n, SHOWN)); $("#stRes").textContent = fmt(n); $("#stBase").textContent = fmt(DB.pdv.size);
   const dupNote = DUP_INFO.merged ? `<span title="Mismo nombre, ruta y ubicación con varios códigos">${fmt(DUP_INFO.merged)} códigos repetidos unificados</span>` : "";
   $("#summary").innerHTML = dupNote + `<span><b class="num">${fmt(current.filter(p=>p.lat!=null).length)}</b> en mapa</span><span><b class="num">${fmt(vis)}</b> visitados hoy</span><span>Cobertura promedio <b class="num">${fmt(avg,1)}/${nItems}</b></span>${F.sort==="dist"&&!ME?`<span>Activa GPS para ordenar por cercanía</span>`:""}`;
@@ -1312,7 +1471,129 @@ function renderList(){
   if (!n){ L.innerHTML = `<div class="empty">No hay puntos de venta con estos filtros.<br>Prueba cambiando supervisor, ruta o frecuencia.</div>`; return; }
   L.innerHTML = current.slice(0, SHOWN).map(cardHTML).join("") + (n > SHOWN ? `<button class="more" id="more">Mostrar ${Math.min(150, n-SHOWN)} más de ${fmt(n-SHOWN)}</button>` : "");
 }
-function renderAll(){ renderList(); renderMap(); saveF(); }
+function renderAll(){ renderList(); renderMap(); renderFocusBar(); if (CUR_TAB === "panel") renderPanel(); saveF(); }
+function renderFocusBar(){
+  const t = focusLabel(), el = $("#focusBar");
+  if (!t){ el.hidden = true; return; }
+  el.hidden = false; el.innerHTML = `<span><b>Seguimiento:</b> ${esc(t)}</span><button class="iconbtn" id="focusClear" aria-label="Quitar filtro de seguimiento">✕</button>`;
+}
+function clearFocus(){ F.seg = ""; F.emp = ""; F.promo = ""; needFit = true; renderAll(); }
+
+/* ---------- panel de seguimiento ---------- */
+function meter(v, cls){ const w = Math.max(0, Math.min(100, Math.round(v * 100))); return `<div class="meter ${cls||""}" aria-hidden="true"><i style="width:${w}%"></i></div>`; }
+function renderPanel(){
+  const L = filtered(true);                // cartera según supervisor/ruta/frecuencia/día, sin el filtro de seguimiento
+  const n = L.length, tl = todayLetter();
+  const hoy = L.filter(p => frDays(p.fr).includes(tl)), hoyVis = hoy.filter(p => visitedToday(p.c)).length;
+  const conCov = L.filter(p => p.cov), covAvg = conCov.length ? conCov.reduce((a, p) => a + p.cov.okN, 0) / conCov.length : 0;
+  const nItems = conCov[0]?.cov.n || COV_GROUPS.length;
+  const covP = conCov.filter(p => covPend(p).length).length, covFull = conCov.length - covP;
+  const rn = L.filter(p => p.rn.length), rnEq = rn.reduce((a, p) => a + p.rn.length, 0);
+  const nec = L.filter(p => rnNec(p) > 0), necSum = nec.reduce((a, p) => a + rnNec(p), 0);
+  const wl = L.filter(p => wellPend(p).length), wlEq = wl.reduce((a, p) => a + wellPend(p).length, 0), w60 = L.filter(well60).length;
+  const vp = L.filter(p => p.vpo), vpPend = vp.filter(p => (p.vpo.pct || 0) < 1).length, vpAvg = vp.length ? vp.reduce((a, p) => a + Math.min(1, p.vpo.pct || 0), 0) / vp.length : 0;
+  const vpReal = vp.reduce((a, p) => a + (p.vpo.real || 0), 0), vpMeta = vp.reduce((a, p) => a + (p.vpo.meta || 0), 0);
+  const acC = L.filter(p => p.ac.length);
+  const soldToday = (() => { const d = VIS[todayKey()] || {}; let c = 0, a = 0; for (const p of L){ const v = d[p.c]; if (!v) continue; c += Object.values(v.cov).filter(Boolean).length; a += Object.values(v.ac).filter(Boolean).length; } return {c, a}; })();
+  const scope = [F.ag || "", F.sup || "Todos los supervisores", F.rutas.length ? (F.rutas.length === 1 ? "Ruta " + F.rutas[0] : F.rutas.length + " rutas") : "todas las rutas", F.frs.length ? "FR " + F.frs.map(f => f === "_none" ? "sin" : f).join("+") : "", F.dias.length ? F.dias.map(d => d === "HOY" ? "hoy" : DAY_NAMES[d]).join("+") : ""].filter(Boolean).join(" · ");
+  const tile = (act, lab, val, sub, m, cls) => `<button class="kpi ${cls||""} ${act && (F.seg === act || (act === "vpopend" && F.vpo === "pend")) ? "on" : ""}" ${act ? `data-seg="${act}"` : "disabled"}><span class="kl">${lab}</span><span class="kv num">${val}</span><span class="ks">${sub}</span>${m || ""}</button>`;
+  let h = `<div class="phead"><div><h2>Panel de seguimiento</h2><p class="note">${esc(scope)} · ${fmt(n)} PDV</p></div>${focusLabel() ? `<button class="btn sm" data-clear>Quitar filtro de seguimiento</button>` : ""}</div>`;
+  h += renderEverest(L);
+  h += `<p class="note">Toca un indicador para ver esos clientes en la lista y el mapa.</p><div class="kpis">`;
+  h += tile("hoy", "Visitas de hoy", `${fmt(hoyVis)}<small>/${fmt(hoy.length)}</small>`, hoy.length ? `${fmt(hoy.length - hoyVis)} pendientes de ${DAY_NAMES[tl] || "hoy"}` : "Hoy no hay clientes programados", meter(hoy.length ? hoyVis / hoy.length : 0, "ok"));
+  h += tile("covpend", "Coberturas pendientes", fmt(covP), `clientes · cobertura prom. ${fmt(covAvg, 1)}/${nItems} · ${fmt(covFull)} con las ${nItems} completas`, meter(conCov.length ? covFull / conCov.length : 0, "ok"), "warnk");
+  h += tile("rn", "Clientes con R+N", fmt(rn.length), `${fmt(rnEq)} equipos registrados`, "");
+  h += tile("nec", "Necesidad amarilla", fmt(nec.length), `clientes · necesidad total ${fmt(necSum)}`, "", "warnk");
+  h += tile("well", "Wellington pendiente", fmt(wl.length), `clientes · ${fmt(wlEq)} equipos sin lectura`, "", "badk");
+  h += tile("well60", "Wellington +60 días", fmt(w60), "clientes con equipos sin leer más de 60 días", "", "badk");
+  h += tile("vpopend", "VPO por cumplir", fmt(vpPend), vp.length ? `de ${fmt(vp.length)} con plan · ${fmt(vpReal, 1)}/${fmt(vpMeta)} CJ` : "Sin clientes con plan VPO", meter(vpAvg, "ok"));
+  h += tile("", "Vendido hoy (checks)", fmt(soldToday.c + soldToday.a), `${fmt(soldToday.c)} empaques cobertura · ${fmt(soldToday.a)} combos AC`, "");
+  h += `</div>`;
+  // cobertura por empaque
+  if (conCov.length){
+    const rows = COV_GROUPS.map(g => {
+      let ok = 0, pend = 0;
+      for (const p of conCov){ const gg = p.cov.groups.find(x => x.k === g.k); if (!gg) continue; if (gg.ok) ok++; else pend++; }
+      return {k:g.k, label:g.label, ok, pend, pct: (ok + pend) ? ok / (ok + pend) : 0};
+    }).filter(r => r.ok + r.pend);
+    h += `<section class="psec"><h3>Cobertura por categoría</h3><p class="note">% de clientes que cumplen cada categoría (basta un empaque de la categoría). Toca una para ver quién la tiene pendiente.</p><div class="bars">` + rows.map(r => `<button class="bar ${F.emp === r.k ? "on" : ""}" data-emp="${esc(r.k)}" title="${esc(r.label)}: ${fmt(r.ok)} cumplen, ${fmt(r.pend)} pendientes"><span class="bl">${esc(r.label)}</span><span class="bt"><i style="width:${Math.round(r.pct * 100)}%"></i></span><span class="bv num">${Math.round(r.pct * 100)}%</span><span class="bp num">${fmt(r.pend)} pend.</span></button>`).join("") + `</div></section>`;
+  }
+  // promociones
+  const promo = new Map();
+  for (const p of L) for (const k of p.ac) promo.set(k, (promo.get(k) || 0) + 1);
+  if (promo.size){
+    const dv = VIS[todayKey()] || {};
+    const sold = k => L.reduce((a, p) => a + (dv[p.c] && dv[p.c].ac[k] ? 1 : 0), 0);
+    const arr = [...promo.entries()].sort((a, b) => b[1] - a[1]);
+    const mx = arr[0][1];
+    h += `<section class="psec"><h3>Promociones (combos AC)</h3><p class="note">${fmt(acC.length)} clientes con al menos un combo activo. Toca una promoción para filtrar sus clientes.</p><div class="bars">` + arr.map(([k, c]) => { const s = sold(k); return `<button class="bar promo ${F.promo === k ? "on" : ""}" data-promo="${esc(k)}" title="${esc(k)}: ${fmt(c)} clientes, ${fmt(s)} vendidos hoy"><span class="bl">${esc(k)}</span><span class="bt"><i style="width:${Math.round(c / mx * 100)}%"></i></span><span class="bv num">${fmt(c)}</span><span class="bp num">${s ? fmt(s) + " vend." : ""}</span></button>`; }).join("") + `</div></section>`;
+  }
+  // por ruta
+  const byR = new Map();
+  for (const p of L){ if (!byR.has(p.ruta)) byR.set(p.ruta, []); byR.get(p.ruta).push(p); }
+  if (byR.size > 1){
+    const rr = [...byR.entries()].sort((a, b) => String(a[0]).localeCompare(String(b[0])));
+    h += `<section class="psec"><h3>Por ruta</h3><p class="note">Toca una ruta para filtrarla.</p><div class="tw"><table class="rt"><thead><tr><th>Ruta</th><th>PDV</th><th>Hoy</th><th>Cob. prom.</th><th>Cob. pend.</th><th>Nec. amarilla</th><th>Wellington</th><th>VPO</th></tr></thead><tbody>` +
+      rr.map(([r, ps]) => { const cc = ps.filter(p => p.cov), hy = ps.filter(p => frDays(p.fr).includes(tl)), v = ps.filter(p => p.vpo);
+        return `<tr data-ruta="${esc(r)}"><td><b>${esc(r || "—")}</b></td><td class="num">${fmt(ps.length)}</td><td class="num">${fmt(hy.filter(p => visitedToday(p.c)).length)}/${fmt(hy.length)}</td><td class="num">${cc.length ? fmt(cc.reduce((a, p) => a + p.cov.okN, 0) / cc.length, 1) : "—"}</td><td class="num">${fmt(cc.filter(p => covPend(p).length).length)}</td><td class="num">${fmt(ps.filter(p => rnNec(p) > 0).length)}</td><td class="num">${fmt(ps.filter(p => wellPend(p).length).length)}</td><td class="num">${v.length ? Math.round(v.reduce((a, p) => a + Math.min(1, p.vpo.pct || 0), 0) / v.length * 100) + "%" : "—"}</td></tr>`; }).join("") + `</tbody></table></div></section>`;
+  }
+  $("#panelBody").innerHTML = h;
+}
+/* ---------- Everest: alcance, faltantes y necesidad diaria por ruta ---------- */
+const EV_CATS = [["multi","Pepsi Multi Serve"],["single","Pepsi Single Serve"],["gatorade","Gatorade 600 ML PET"],["cerveza","Cerveza"]];
+const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+function evDias(){
+  // días hábiles (lunes a sábado) desde hoy hasta fin del mes del período, contando hoy
+  const info = DB.ev.info || {}, hoy = new Date(); hoy.setHours(0,0,0,0);
+  let y = hoy.getFullYear(), m = hoy.getMonth();
+  const pm = String(info.periodo || "").toLowerCase().match(/([a-záéíóú]+)\s+(\d{4})/);
+  if (pm && MESES.indexOf(pm[1]) >= 0){ m = MESES.indexOf(pm[1]); y = +pm[2]; }
+  const fin = new Date(y, m + 1, 0), ini = new Date(Math.max(hoy, new Date(y, m, 1)));
+  let d = 0; for (const t = new Date(ini); t <= fin; t.setDate(t.getDate() + 1)) if (t.getDay() !== 0) d++;
+  return {dias: d, fin, periodo: info.periodo || (MESES[m] + " " + y), corte: info.corte || ""};
+}
+function evCell(o, ruta, k, dias){
+  const pct = o.meta ? o.real / o.meta : 0, falt = Math.max(0, o.meta - o.real), dia = dias ? Math.ceil(falt / dias) : falt;
+  const cls = !o.meta ? "na" : pct >= 1 ? "ok" : pct >= .8 ? "warn" : "bad";
+  if (!o.meta) return `<td class="evc na">—</td>`;
+  return `<td class="evc"><button data-evr="${esc(ruta)}" data-evc="${k}" title="Ver clientes de la ruta ${esc(ruta)} con ${k} pendiente"><span class="evp ${cls}">${Math.round(pct * 100)}%</span><span class="evm"><i class="${cls}" style="width:${Math.min(100, Math.round(pct * 100))}%"></i></span><span class="evf">${falt ? `faltan <b>${fmt(falt)}</b> · <b>${fmt(dia)}</b>/día` : "meta cumplida"}</span></button></td>`;
+}
+function renderEverest(L){
+  if (!DB.ev.rutas.size) return "";
+  const rutas = [...new Set(L.map(p => p.ruta))].filter(r => DB.ev.rutas.has(r)).sort();
+  if (!rutas.length) return "";
+  const {dias, fin, periodo, corte} = evDias();
+  const tot = {}; for (const [k] of EV_CATS) tot[k] = {meta:0, real:0};
+  for (const r of rutas){ const o = DB.ev.rutas.get(r); for (const [k] of EV_CATS){ tot[k].meta += o[k].meta; tot[k].real += o[k].real; } }
+  const supOf = r => { const m = DB.rutaSup.get(r); return m ? [...m.entries()].sort((a, b) => b[1] - a[1])[0][0] : ""; };
+  let h = `<section class="psec ev"><div class="evhead"><div><h3>Everest · ${esc(periodo)}</h3><p class="note">${corte ? "Corte " + esc(corte) + " · " : ""}${dias ? `<b>${dias}</b> días hábiles restantes (lunes a sábado, hasta el ${fin.getDate()}/${fin.getMonth() + 1})` : "Período cerrado"} · ${rutas.length} ruta${rutas.length > 1 ? "s" : ""}</p></div></div>`;
+  h += `<div class="kpis">` + EV_CATS.map(([k, lab]) => { const t = tot[k], pct = t.meta ? t.real / t.meta : 0, falt = Math.max(0, t.meta - t.real), cls = pct >= 1 ? "ok" : pct >= .8 ? "warn" : "bad";
+    return `<button class="kpi evk" data-evc="${k}"><span class="kl">${lab}</span><span class="kv num ${cls}">${Math.round(pct * 100)}%</span><span class="ks">${fmt(t.real)} de ${fmt(t.meta)} coberturas · faltan <b>${fmt(falt)}</b></span><span class="ks">Necesidad diaria: <b class="num">${fmt(dias ? Math.ceil(falt / dias) : falt)}</b> coberturas/día</span>${meter(pct, pct >= 1 ? "ok" : "")}</button>`; }).join("") + `</div>`;
+  h += `<p class="note">Toca una celda para ver los clientes de esa ruta con la categoría pendiente. "/día" = faltantes ÷ días hábiles restantes.</p>`;
+  h += `<div class="tw"><table class="rt evt"><thead><tr><th>Ruta</th>${EV_CATS.map(([, l]) => `<th>${l}</th>`).join("")}<th>Total /día</th></tr></thead><tbody>` + rutas.map(r => {
+    const o = DB.ev.rutas.get(r), totDia = EV_CATS.reduce((a, [k]) => a + (dias ? Math.ceil(Math.max(0, o[k].meta - o[k].real) / dias) : Math.max(0, o[k].meta - o[k].real)), 0);
+    return `<tr><td><b>${esc(r)}</b><small>${esc(supOf(r))}</small></td>${EV_CATS.map(([k]) => evCell(o[k], r, k, dias)).join("")}<td class="num"><b>${fmt(totDia)}</b></td></tr>`; }).join("") + `</tbody></table></div></section>`;
+  return h;
+}
+
+function goFocus(){
+  needFit = true; SHOWN = 150; renderAll();
+  if (window.innerWidth < 900) setTab("list");
+  toast(`${fmt(current.length)} clientes · ${focusLabel() || "sin filtro de seguimiento"}`);
+}
+function onPanelClick(e){
+  if (e.target.closest("[data-clear]")){ clearFocus(); return; }
+  const k = e.target.closest("[data-seg]");
+  if (k){ const v = k.dataset.seg;
+    if (v === "vpopend"){ F.vpo = F.vpo === "pend" ? "" : "pend"; buildFilterUI(); }
+    else F.seg = F.seg === v ? "" : v;
+    goFocus(); return; }
+  const em = e.target.closest("[data-emp]"); if (em){ F.emp = F.emp === em.dataset.emp ? "" : em.dataset.emp; goFocus(); return; }
+  const pr = e.target.closest("[data-promo]"); if (pr){ F.promo = F.promo === pr.dataset.promo ? "" : pr.dataset.promo; goFocus(); return; }
+  const ev = e.target.closest("[data-evc]");
+  if (ev){ if (ev.dataset.evr){ F.rutas = [ev.dataset.evr]; buildFilterUI(); } F.seg = ""; F.emp = ev.dataset.evc; goFocus(); return; }
+  const rt = e.target.closest("[data-ruta]"); if (rt){ F.rutas = [rt.dataset.ruta]; buildFilterUI(); needFit = true; renderAll(); return; }
+}
 
 /* ---------- mapa ---------- */
 let map = null, layer = null, meMarker = null, meCircle = null, needFit = true;
@@ -1395,7 +1676,7 @@ let LEG_OPEN = null;
 function renderLegend(pts, noGps){
   const m = F.colorBy, counts = new Map();
   for (const p of pts){
-    const k = m==="vpo" ? (!p.vpo ? "Sin VPO" : (p.vpo.pct||0) >= 1 ? "VPO cumplido" : (p.vpo.pct||0) >= .5 ? "VPO 50–99%" : "VPO < 50%") : m==="ruta" ? p.ruta : m==="sup" ? p.sup : m==="fr" ? (FRC[p.fr] ? p.fr : p.fr ? "Otra" : "Sin frecuencia") : ({ok:"≥80%",warn:"50–79%",bad:"<50%",na:"Sin dato"})[covClass(p)];
+    const k = m==="vpo" ? (!p.vpo ? "Sin VPO" : (p.vpo.pct||0) >= 1 ? "VPO cumplido" : (p.vpo.pct||0) >= .5 ? "VPO 50–99%" : "VPO < 50%") : m==="ruta" ? p.ruta : m==="sup" ? p.sup : m==="fr" ? (FRC[p.fr] ? p.fr : p.fr ? "Otra" : "Sin frecuencia") : ({ok:"4/4 completa",warn:"2–3 de 4",bad:"0–1 de 4",na:"Sin dato"})[covClass(p)];
     if (!counts.has(k)) counts.set(k, {n:0, col:colorFor(p)}); counts.get(k).n++;
   }
   const title = {ruta:"Rutas", sup:"Supervisores", fr:"Frecuencia", cov:"Cobertura", vpo:"Plan VPO"}[m];
@@ -1593,14 +1874,20 @@ function openPdv(c){
     h += `<div class="sec"><h3>Coberturas<span class="r"><span class="pill ${covClass(p)}">${p.cov.okN}/${p.cov.n} cumplen · ${pct}%</span></span></h3><div class="in">
       <div class="kv2">${kv("PromU3M", `<span class="num">${fmt(p.cov.prom,2)}</span>`, "hi")}${kv("Real TP", `<span class="num">${fmt(p.cov.real,2)}</span>`, "hi")}</div>
       <div class="covbar" aria-hidden="true"><i style="width:${pct}%"></i></div>
-      <p class="note" style="margin:0">Marca con check los empaques vendidos en esta visita (los que ya cumplen no se marcan) · <b id="covSold">${sold}</b> marcados hoy</p>
-      <div class="covgrid">${p.cov.items.map((it,i) => [it,i]).sort((x,y) => x[0].ok - y[0].ok).map(([it,i]) => {
-        const on = !!v.cov[it.k];
-        const st = it.nd ? `<b class="na">Sin dato</b>` : it.ok ? `<b class="ok">Cumple ${fmt(it.v,2)}</b>` : `<b class="bad">Falta ${fmt(it.v,2)}</b>`;
-        if (it.ok) return `<div class="chk ok-item"><span class="okmark" aria-hidden="true">✓</span><span class="t">${esc(it.k)}${st}</span></div>`;
-        return `<label class="chk ${on?"done":""}" for="cv_${i}"><input type="checkbox" id="cv_${i}" data-kind="cov" data-k="${esc(it.k)}" ${on?"checked":""}><span class="t">${esc(it.k)}${st}</span></label>`;
-      }).join("")}</div>
-      <p class="note" style="margin:0">${p.cov.items.some(i=>!i.ok) ? "Acción sugerida: enfoca la visita en los empaques en rojo (Falta)." : "Cobertura completa, sin pendientes."}</p>
+      <p class="note" style="margin:0">Marca con check los empaques vendidos en esta visita (las categorías que ya cumplen no se marcan) · <b id="covSold">${sold}</b> marcados hoy</p>
+      ${p.cov.groups.map(g => {
+        const head = `<div class="cgh"><span class="cgn">${esc(g.label)}</span>${g.ok ? `<span class="pill ok">✓ Cumple</span>` : `<span class="pill bad">Pendiente${g.nd ? " · sin dato" : ""}</span>`}</div>`;
+        const its = g.items.map(it => {
+          const i = p.cov.items.indexOf(it);
+          const on = !!v.cov[it.k];
+          const st = it.nd ? `<b class="na">Sin dato</b>` : it.ok ? `<b class="ok">Cumple ${fmt(it.v,2)}</b>` : `<b class="bad">Falta ${fmt(it.v,2)}</b>`;
+          if (g.ok) return `<div class="chk ok-item"><span class="okmark" aria-hidden="true">${it.ok ? "✓" : "·"}</span><span class="t">${esc(it.k)}${st}</span></div>`;
+          return `<label class="chk ${on?"done":""}" for="cv_${i}"><input type="checkbox" id="cv_${i}" data-kind="cov" data-k="${esc(it.k)}" ${on?"checked":""}><span class="t">${esc(it.k)}${st}</span></label>`;
+        }).join("");
+        return `<div class="cgroup ${g.ok ? "gok" : ""}">${head}<div class="covgrid">${its}</div></div>`;
+      }).join("")}
+      ${p.cov.otros.length ? `<div class="cgroup"><div class="cgh"><span class="cgn">Otros empaques</span><span class="pill na">No cuentan</span></div><div class="covgrid">${p.cov.otros.map(it => `<div class="chk ok-item"><span class="okmark" aria-hidden="true">·</span><span class="t">${esc(it.k)}${it.nd ? `<b class="na">Sin dato</b>` : `<b class="${it.ok ? "ok" : "bad"}">${fmt(it.v,2)}</b>`}</span></div>`).join("")}</div></div>` : ""}
+      <p class="note" style="margin:0">${covPend(p).length ? "Acción sugerida: cubrir " + covPend(p).map(g => g.label).join(", ") + ". Basta vender un empaque de cada categoría pendiente." : "Las " + p.cov.n + " coberturas están cumplidas."}</p>
     </div></div>`;
   } else {
     h += `<div class="sec"><h3>Coberturas</h3><div class="in"><p class="note" style="margin:0">Sin datos de cobertura para este cliente.</p></div></div>`;
@@ -1690,8 +1977,14 @@ function buildFrs(){
   segMulti($("#fFrs"), order.map(k => [k, `${k === "_none" ? "Sin frecuencia" : k} · ${frs.get(k)}`]), "frs");
 }
 function buildFilterUI(){
-  $("#fSup").innerHTML = `<option value="">Todos</option>` + DB.sups.map(s => `<option ${s===F.sup?"selected":""}>${esc(s)}</option>`).join("");
-  const rutas = DB.rutas.filter(r => !F.sup || DB.rutaSup.get(r).has(F.sup));
+  const ags = [...new Set([...DB.pdv.values()].map(p => p.ag))].sort();
+  if (F.ag && !ags.includes(F.ag)) F.ag = "";
+  $("#fAgWrap").hidden = ags.length < 2;
+  segButtons($("#fAg"), [["","Todas"], ...ags.map(a => [a, `${a} · ${fmt([...DB.pdv.values()].filter(p => p.ag === a).length)}`])], "ag");
+  const supsVis = DB.sups.filter(s => !F.ag || [...DB.pdv.values()].some(p => p.sup === s && p.ag === F.ag));
+  if (F.sup && !supsVis.includes(F.sup)) F.sup = "";
+  $("#fSup").innerHTML = `<option value="">Todos</option>` + supsVis.map(s => `<option ${s===F.sup?"selected":""}>${esc(s)}</option>`).join("");
+  const rutas = DB.rutas.filter(r => (!F.sup || DB.rutaSup.get(r).has(F.sup)) && (!F.ag || agenciaDe(r) === F.ag));
   F.rutas = F.rutas.filter(r => rutas.includes(r));
   multiList($("#fRutas"), rutas.map(r => [r, r, F.sup ? (DB.rutaSup.get(r).get(F.sup)||0) : [...DB.rutaSup.get(r).values()].reduce((a,b)=>a+b,0)]), "rutas");
   buildFrs();
@@ -1700,7 +1993,7 @@ function buildFilterUI(){
   const dins = [...new Set(nV.map(p => p.vpo.din).filter(Boolean))].sort();
   const cnt = f => nV.filter(f).length;
   segButtons($("#fVpo"), [["","Todos"],["con",`Con VPO · ${nV.length}`],["pend",`VPO < 100% · ${cnt(p => (p.vpo.pct||0) < 1)}`],["ok",`VPO cumplido · ${cnt(p => (p.vpo.pct||0) >= 1)}`],["sin","Sin VPO"], ...dins.map(d => ["d:"+d, `${d[0]}${d.slice(1).toLowerCase()} · ${cnt(p => p.vpo.din === d)}`])], "vpo");
-  segButtons($("#fCov"), [["","Todas"],["bad","< 50%"],["warn","50–79%"],["ok","≥ 80%"],["na","Sin dato"]], "cov");
+  segButtons($("#fCov"), [["","Todas"],["bad","0–1 de 4"],["warn","2–3 de 4"],["ok","4/4 completa"],["na","Sin dato"]], "cov");
   segButtons($("#fVis"), [["","Todos"],["no","Pendientes"],["si","Visitados"]], "vis");
 }
 
@@ -1716,23 +2009,28 @@ function setSrcInfo(){
   $("#srcInfo").textContent = `Datos: ${SRC.label}${SRC.when ? " · cargado " + new Date(SRC.when).toLocaleString("es-SV",{dateStyle:"short",timeStyle:"short"}) : ""}`;
   $("#hdrInfo").textContent = `Agencia · Clientes · Coberturas · AC · R+N · Equipos de frío  ·  ${SRC.label}`;
 }
-async function handleFile(file){
-  if (!file) return;
+async function handleFile(files){
+  files = [...(files || [])]; if (!files.length) return;
   if (typeof XLSX === "undefined"){ toast("No se pudo cargar el lector de Excel: revisa tu conexión"); return; }
-  toast("Leyendo " + file.name + "…");
+  toast("Leyendo " + files.map(f => f.name).join(" + ") + "…");
   try{
-    const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, {type:"array", dense:false});
-    const S = pickSheets(wb);
-    if (!S.maestra.length && !S.listados.length){ toast("No encontré las hojas maestra ni LISTADOS en ese archivo"); return; }
+    const wbs = [];
+    for (const f of files) wbs.push(XLSX.read(await f.arrayBuffer(), {type:"array", dense:false}));
+    let S = pickSheets(wbs);
+    // si solo se cargó el archivo Everest, conservar los datos que ya estaban y agregarle la meta
+    if (!S.maestra.length && !S.listados.length){
+      const prev = await IDB.get("data");
+      if (S.ev.length && prev && prev.S){ S = Object.assign({}, prev.S, {ev:S.ev, evInfo:S.evInfo}); }
+      else { toast("No encontré las hojas maestra ni LISTADOS en ese archivo"); return; }
+    }
     build(S);
-    SRC = {label:file.name, when:Date.now()};
+    SRC = {label:files.map(f => f.name).join(" + "), when:Date.now()};
     await IDB.set("data", {S, SRC});
-    const found = Object.entries(S).filter(([k,v]) => v.length).map(([k]) => k).length;
+    const found = ["maestra","listados","ac","rn","mon","vpo","ev"].filter(k => S[k] && S[k].length).length;
     buildFilterUI(); needFit = true; renderAll(); setSrcInfo();
     if (F.sup && !DB.sups.includes(F.sup)){ F.sup = ""; buildFilterUI(); renderAll(); }
     showWelcome();
-    toast(`Actualizado: ${fmt(DB.pdv.size)} PDV (${found}/6 hojas leídas)`);
+    toast(`Actualizado: ${fmt(DB.pdv.size)} PDV (${found}/7 hojas${DB.ev.rutas.size ? ` · meta Everest de ${DB.ev.rutas.size} rutas` : ""})`);
   }catch(e){ console.error(e); toast("No se pudo leer el archivo. ¿Es un Excel .xlsx?"); }
 }
 function exportVisits(){
@@ -1754,13 +2052,22 @@ function exportVisits(){
 
 /* ---------- eventos ---------- */
 function setTab(t){
-  $("#tabList").classList.toggle("on", t==="list"); $("#tabMap").classList.toggle("on", t==="map");
-  $("#listPane").hidden = t !== "list"; $("#mapPane").hidden = t !== "map";
+  const desk = window.innerWidth >= 900;
+  if (desk && t === "list") return;                       // en computadora la lista siempre está visible
+  ["list","map","panel"].forEach(k => { const b = $("#tab" + k[0].toUpperCase() + k.slice(1)); if (b) b.classList.toggle("on", k === t); });
+  if (!desk) $("#listPane").hidden = t !== "list";
+  $("#mapPane").hidden = t !== "map"; $("#panelPane").hidden = t !== "panel";
+  CUR_TAB = t;
   if (t === "map"){ initMap(); setTimeout(() => { map && map.invalidateSize(); renderMap(); }, 30); }
+  if (t === "panel") renderPanel();
 }
+let CUR_TAB = "list";
 function wire(){
   $("#tabList").onclick = () => setTab("list");
   $("#tabMap").onclick = () => setTab("map");
+  $("#tabPanel").onclick = () => setTab("panel");
+  $("#panelPane").addEventListener("click", onPanelClick);
+  $("#focusBar").addEventListener("click", e => { if (e.target.closest("#focusClear")) clearFocus(); });
   $("#btnGps").onclick = startGps;
   $("#btnFilters").onclick = () => { setTab("list"); const b = $("#fBox"); b.open = true; $("#side").scrollTo({top:0, behavior:"smooth"}); };
   $("#btnMenu").onclick = e => { e.stopPropagation(); $("#menu").hidden = !$("#menu").hidden; };
@@ -1769,7 +2076,7 @@ function wire(){
   document.querySelectorAll("[data-close]").forEach(b => b.onclick = closeDrawers);
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrawers(); });
   $("#fSup").onchange = e => { F.sup = e.target.value; F.rutas = []; F.frs = []; needFit = true; buildFilterUI(); renderAll(); };
-  $("#fClear").onclick = () => { Object.assign(F, {sup:"", rutas:[], frs:[], dias:[], vpo:"", cov:"", vis:"", q:""}); $("#q").value = ""; needFit = true; buildFilterUI(); renderAll(); };
+  $("#fClear").onclick = () => { Object.assign(F, {ag:"", sup:"", rutas:[], frs:[], dias:[], vpo:"", cov:"", vis:"", seg:"", emp:"", promo:"", q:""}); $("#q").value = ""; needFit = true; buildFilterUI(); renderAll(); };
   $("#fApply").onclick = () => { needFit = true; renderAll(); if (window.innerWidth < 900){ $("#fBox").open = false; setTab("map"); } else { fitPts(current.filter(p => p.lat != null)); } };
   let qt; $("#q").oninput = e => { clearTimeout(qt); qt = setTimeout(() => { F.q = e.target.value; SHOWN = 150; renderList(); renderMap(); }, 150); };
   $("#sort").value = F.sort; $("#sort").onchange = e => { F.sort = e.target.value; if (F.sort === "dist" && !ME) toast("Activa el GPS para ordenar por cercanía"); renderList(); saveF(); };
@@ -1790,7 +2097,7 @@ function wire(){
     if (e.target.id === "vDone"){ const v = visit(openC, true); v.t = v.t || Date.now(); v.note = $("#vNote").value; saveVis(); toast("Visita registrada"); const cc = openC; renderList(); renderMap(); openPdv(cc); }
   });
   $("#dBody").addEventListener("input", e => { if (e.target.id === "vNote" && openC != null){ const v = visit(openC, true); v.note = e.target.value; saveVis(); } });
-  $("#fileIn").onchange = e => { handleFile(e.target.files[0]); e.target.value = ""; $("#menu").hidden = true; };
+  $("#fileIn").onchange = e => { handleFile(e.target.files); e.target.value = ""; $("#menu").hidden = true; };
   $("#btnExport").onclick = () => { $("#menu").hidden = true; exportVisits(); };
   let resetArm = false;
   $("#btnReset").onclick = async e => {
@@ -1877,7 +2184,7 @@ function showWelcome(){
   if (F.sup && !DB.sups.includes(F.sup)) F.sup = "";
   wire(); buildFilterUI(); setSrcInfo(); $("#btnReset").lastChild.textContent = RESET_LBL; showWelcome(); syncMenu();
   if (window.innerWidth < 900) $("#fBox").open = false;
-  if (window.innerWidth >= 900) initMap();
+  if (window.innerWidth >= 900){ initMap(); setTab("map"); }
   renderAll();
   if (SRC.remote) checkUpdate(false);
 })();
