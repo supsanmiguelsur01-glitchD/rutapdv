@@ -925,6 +925,53 @@ table.rt tbody tr:hover td{background:rgba(25,211,255,.07)}
 .cgh{display:flex;align-items:center;gap:8px;justify-content:space-between;padding:2px 0 4px}
 .cgn{font-weight:700;font-size:15px}
 .cgroup .chk:last-child{border-bottom:0}
+
+/* filtro personalizado (panel) */
+.builder{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.builder.act{border-color:var(--cyan);box-shadow:var(--glow)}
+.builder .bh{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.builder h3{font:700 14px var(--f-tech);letter-spacing:2px;text-transform:uppercase;color:var(--cyan);margin:0;flex:1;min-width:160px}
+.builder .chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.fchip{border:1px solid var(--cyan);background:rgba(25,211,255,.12);color:var(--ink);border-radius:999px;padding:6px 10px 6px 12px;font-size:13px;font-weight:600;display:inline-flex;gap:8px;align-items:center;cursor:pointer}
+.fchip span{color:var(--cyan);font-size:12px}
+.fchip:hover{background:rgba(255,92,122,.15);border-color:var(--bad)}
+.builder .op{font:700 12px var(--f-tech);color:var(--warn);text-transform:uppercase}
+.builder .bres{font-size:14px}.builder .bres b{font:800 22px var(--f-tech);color:var(--cyan);margin-right:4px}
+.builder .bact{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:560px){.builder .bact{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.builder .bact .btn{padding:10px 8px;font-size:12.5px}
+.builder .xtra{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.fopt{border:1px solid var(--line);background:var(--field);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer}
+.fopt small{color:var(--dim);margin-left:4px}
+.fopt.on{border-color:var(--cyan);color:var(--ink);background:rgba(25,211,255,.14)}
+.fopt.on::before{content:"✓ ";color:var(--cyan)}
+.pset{display:inline-flex;align-items:center}
+.pset .fopt{border-top-right-radius:0;border-bottom-right-radius:0;color:var(--ink)}
+.pdel{border:1px solid var(--line);border-left:0;background:var(--field);color:var(--dim);border-radius:0 999px 999px 0;padding:6px 10px;font-size:12px;cursor:pointer}
+.pdel:hover{color:var(--bad)}
+.bar.on{border-color:var(--cyan)}
+.bar.on .bl::before,.kpi.on .kl::before{content:"✓ ";color:var(--cyan)}
+/* promociones */
+.plist{display:grid;gap:8px}
+.pcard{border:1px solid var(--line2);border-radius:12px;padding:10px 12px;background:var(--field);display:grid;gap:6px}
+.pcard.done{border-color:rgba(46,229,157,.45);background:var(--ok-soft)}
+.pcard .ph{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start}
+.pcard .vt{font-weight:700}.pcard .vt.ok{color:var(--ok)}.pcard .vt.warn{color:var(--warn)}.pcard .vt.bad{color:var(--bad)}.pcard .vt.na{color:var(--dim)}
+.pcard .ph input{width:22px;height:22px;accent-color:var(--ok);margin:1px 0 0}
+.pcard .pn{font-weight:700;font-size:15px;overflow-wrap:anywhere}
+.pcard .pn small{display:block;font-weight:600;font-size:12px;color:var(--muted);margin-top:2px}
+.pcard .pp{display:flex;flex-wrap:wrap;gap:6px}
+.pcard .pr{display:inline-flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;padding:4px 10px;min-width:92px}
+.pcard .pr span{font-size:11.5px;color:var(--muted)}
+.pcard .pr b{font:800 16px var(--f-tech);color:var(--cyan)}
+.pcard .pr b i{font:600 12px var(--f-body);font-style:normal;color:var(--ok);margin-left:6px}
+.pcard .px{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.pcard .px b{color:var(--ink);font-weight:600}
+.pcard.done .pn::after{content:"Vendido en esta visita";display:block;font-size:12px;color:var(--ok);font-weight:600}
+details.pmore{border:1px solid var(--line2);border-radius:12px;padding:8px 10px}
+details.pmore > summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--cyan)}
+details.pmore[open] > summary{margin-bottom:8px}
+.pcat{font:700 12px var(--f-tech);letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:6px 0 0}
 .psec.ev{border-color:rgba(25,211,255,.45)}
 .evhead h3{font:800 16px var(--f-tech)}
 .evhead p{margin:4px 0 0}
@@ -1115,7 +1162,8 @@ const SHEETS = {
   rn:        {names:["Base"],      key:"codigo de cliente", also:"necesidad real amarilla"},
   mon:       {names:["MONITOREO"], key:"codigo cliente", also:"status"},
   vpo:       {names:["VPO"],       key:"cliente_id", also:"meta (cj)"},
-  ev:        {names:["EVEREST","Sheet1"], key:"meta pepsi ms"}
+  ev:        {names:["EVEREST","Sheet1"], key:"meta pepsi ms"},
+  promos:    {names:["PROMOS"],    key:"promoción", also:"hasta"}
 };
 const low = v => str(v).toLowerCase();
 const normFr = v => { const f = str(v).toUpperCase(); return (f === "0" || f === "NONE" || f === "-") ? "" : f; };
@@ -1150,7 +1198,7 @@ function pickSheets(wbIn){
 }
 function fromEmbed(e){
   e = e || {};
-  return {maestra:e["maestra"]||[], listados:e["LISTADOS"]||[], ac:e["AC BASE"]||[], rn:e["Base"]||[], mon:e["MONITOREO"]||[], vpo:e["VPO"]||[], ev:e["EVEREST"]||[], evInfo:e.evInfo||null};
+  return {maestra:e["maestra"]||[], listados:e["LISTADOS"]||[], ac:e["AC BASE"]||[], rn:e["Base"]||[], mon:e["MONITOREO"]||[], vpo:e["VPO"]||[], ev:e["EVEREST"]||[], evInfo:e.evInfo||null, promos:e["PROMOS"]||[]};
 }
 
 /* ---------- modelo ---------- */
@@ -1316,8 +1364,50 @@ function build(S){
       if (any) ev.rutas.set(ruta, o);
     }
   }
-  DB = {pdv, covCols, acCols, sups, rutas, rutaSup, vpoPlan, ev};
+  DB = {pdv, covCols, acCols, sups, rutas, rutaSup, vpoPlan, ev, promos: parsePromos(S.promos || [])};
 }
+/* ---------- Acciones comerciales: catálogo de promociones (deck) + elegibilidad (AC BASE) ---------- */
+function toDate(v){
+  if (v == null || v === "") return null;
+  if (v instanceof Date) return isNaN(v) ? null : new Date(v.getFullYear(), v.getMonth(), v.getDate());
+  if (typeof v === "number" && isFinite(v)){ const d = new Date(Math.round((v - 25569) * 864e5)); return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()); }
+  const s = str(v); let m;
+  if ((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))) return new Date(+m[1], +m[2] - 1, +m[3]);
+  if ((m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/))) return new Date(+m[3] < 100 ? 2000 + +m[3] : +m[3], +m[2] - 1, +m[1]);
+  return null;
+}
+const pctv = v => { const n = num(v); return n == null ? null : (n > 1 ? n / 100 : n); };
+function parsePromos(rows){
+  if (!rows || rows.length < 2) return [];
+  const h = rows[0].map(low), I = n => h.findIndex(x => x === n || x.startsWith(n));
+  const c = {id:I("id"), n:I("promoción"), cat:I("categoría"), tipo:I("tipo"), col:I("columna ac"), ap:I("aplica a"), pa:I("precio asesor"), da:I("dto asesor"), pp:I("precio pepsi chat"), dp:I("dto pepsi chat"), mon:I("monedero"), esc:I("escalas"), cond:I("condiciones"), d1:I("desde"), d2:I("hasta"), sl:I("diapositiva")};
+  const g = (r, k) => c[k] >= 0 ? r[c[k]] : null;
+  const out = [];
+  rows.slice(1).forEach((r, i) => {
+    const n = str(g(r, "n")); if (!n) return;
+    out.push({id: str(g(r, "id")) || "P" + (i + 1), n, cat: str(g(r, "cat")) || "Otras", tipo: str(g(r, "tipo")), cols: str(g(r, "col")).split("|").map(x => x.trim()).filter(Boolean),
+      ap: low(g(r, "ap")), pa: num(g(r, "pa")), da: pctv(g(r, "da")), pp: num(g(r, "pp")), dp: pctv(g(r, "dp")), mon: str(g(r, "mon")), esc: str(g(r, "esc")), cond: str(g(r, "cond")),
+      d1: toDate(g(r, "d1")), d2: toDate(g(r, "d2")), sl: str(g(r, "sl"))});
+  });
+  return out;
+}
+const today0 = () => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); };
+const promoVigente = (pr, t = today0()) => (!pr.d1 || pr.d1 <= t) && (!pr.d2 || t <= pr.d2);
+const promoDiasRest = (pr, t = today0()) => pr.d2 ? Math.round((pr.d2 - t) / 864e5) : null;
+const promosVig = () => (DB.promos || []).filter(pr => promoVigente(pr));
+/* tipo de alcance: "ac" = según columna de AC BASE, "vpo" = clientes con plan VPO, "gen" = toda la base / según condición */
+const promoScope = pr => pr.cols.length ? "ac" : /vpo/.test(pr.ap) ? "vpo" : "gen";
+const promoElegible = (pr, p) => { const s = promoScope(pr); return s === "ac" ? pr.cols.some(k => p.ac.includes(k)) : s === "vpo" ? !!p.vpo : false; };
+function promosCliente(p){
+  const vig = promosVig();
+  if (!DB.promos || !DB.promos.length) return {catalogo:false, elig:[], gen:[], otras:p.ac.slice()};
+  const elig = vig.filter(pr => promoElegible(pr, p));
+  const gen = vig.filter(pr => promoScope(pr) === "gen");
+  const usadas = new Set(vig.flatMap(pr => pr.cols));
+  const otras = p.ac.filter(k => !usadas.has(k));
+  return {catalogo:true, elig, gen, otras};
+}
+const nPromosCliente = p => DB.promos && DB.promos.length ? promosVig().filter(pr => promoElegible(pr, p)).length : p.ac.length;
 /* Cobertura por categoría (lo que cuenta): Cerveza, Gatorade (isotónicos), Pepsi multiserve (1 L o más) y Pepsi singleserve (menos de 1 L).
    Una categoría se cumple si el cliente cumple al menos uno de sus empaques. */
 const COV_GROUPS = [
@@ -1370,7 +1460,7 @@ async function decryptPack(buf, code){
 }
 
 const EMBED = /*__DATA__*/null;
-const EMBED_LABEL = EMBED ? "listados.xlsx + Everest (laboral)" : "sin datos cargados";
+const EMBED_LABEL = EMBED ? "listados.xlsx + Everest + Promos vigentes (laboral)" : "sin datos cargados";
 const DEFAULT_SUP = EMBED ? "BRYAN ESCOBAR" : "";
 
 /* ---------- visitas (checks) ---------- */
@@ -1381,10 +1471,15 @@ const saveVis = () => ls.set(VKEY, VIS);
 const visitedToday = c => { const v = VIS[todayKey()]?.[c]; return !!(v && (v.t || Object.values(v.cov).some(Boolean) || Object.values(v.ac).some(Boolean))); };
 
 /* ---------- estado UI ---------- */
-const F = Object.assign({ag:"", sup:DEFAULT_SUP, rutas:[], frs:[], dias:[], vpo:"", cov:"", vis:"", seg:"", emp:"", promo:"", q:"", sort:"dist", colorBy:"ruta"}, ls.get("rutapdv_filters", {}));
+const F = Object.assign({ag:"", sup:DEFAULT_SUP, rutas:[], frs:[], dias:[], vpo:"", cov:"", vis:"", segs:[], emps:[], promos:[], modo:"and", q:"", sort:"dist", colorBy:"ruta"}, ls.get("rutapdv_filters", {}));
 F.q = ""; delete F.ruta; delete F.fr; delete F.theme;
 if (!Array.isArray(F.dias)) F.dias = []; delete F.dia;
 if (!Array.isArray(F.rutas)) F.rutas = []; if (!Array.isArray(F.frs)) F.frs = [];
+// filtro personalizado del panel: varias condiciones a la vez (antes era una sola)
+const toArr = v => Array.isArray(v) ? v : (v ? [v] : []);
+F.segs = [...new Set(toArr(F.segs).concat(toArr(F.seg)))]; F.emps = [...new Set(toArr(F.emps).concat(toArr(F.emp)))]; F.promos = [...new Set(toArr(F.promos).concat(toArr(F.promo)))];
+delete F.seg; delete F.emp; delete F.promo;
+if (F.modo !== "or") F.modo = "and";
 const saveF = () => { const {q, ...rest} = F; ls.set("rutapdv_filters", rest); };
 let ME = null, watchId = null, SHOWN = 150, current = [];
 
@@ -1393,24 +1488,59 @@ const rnNec = p => p.rn.reduce((m, r) => Math.max(m, r.nec || 0), 0);
 const wellPend = p => p.eq.filter(e => /no\s*le[ií]do/i.test(e.status));
 const well60 = p => p.eq.some(e => /\+\s*60/.test(e.status));
 const covPend = p => p.cov ? p.cov.groups.filter(g => !g.ok) : [];
-const SEG_LABEL = {covpend:"Con coberturas pendientes", rn:"Clientes con R+N", nec:"Necesidad amarilla", well:"Wellington pendiente", well60:"Wellington +60 días", hoy:"Programados hoy sin visitar"};
-function focusLabel(){
-  const parts = [];
-  if (F.seg) parts.push(SEG_LABEL[F.seg] || F.seg);
-  if (F.emp) parts.push("Cobertura pendiente: " + ((COV_GROUPS.find(g => g.k === F.emp) || {}).label || F.emp));
-  if (F.promo) parts.push("Promoción: " + F.promo);
-  return parts.join(" · ");
+const SEG_LABEL = {covpend:"Con coberturas pendientes", covok:"Coberturas completas", rn:"Con R+N", nec:"Necesidad amarilla", well:"Wellington pendiente", well60:"Wellington +60 días", hoy:"Programados hoy sin visitar", novis:"Sin visitar hoy", visto:"Visitados hoy", vpopend:"VPO por cumplir", vpo:"Con plan VPO", conpromo:"Con promo vigente dirigida"};
+const SEG_FN = {
+  covpend: p => covPend(p).length > 0,
+  covok: p => !!p.cov && !covPend(p).length,
+  rn: p => p.rn.length > 0,
+  nec: p => rnNec(p) > 0,
+  well: p => wellPend(p).length > 0,
+  well60: p => well60(p),
+  hoy: p => frDays(p.fr).includes(todayLetter()) && !visitedToday(p.c),
+  novis: p => !visitedToday(p.c),
+  visto: p => visitedToday(p.c),
+  vpopend: p => !!p.vpo && (p.vpo.pct || 0) < 1,
+  vpo: p => !!p.vpo,
+  conpromo: p => nPromosCliente(p) > 0
+};
+const promoById = id => (DB.promos || []).find(x => x.id === id);
+const promoNombre = id => (promoById(id) || {}).n || id;
+function promoPassK(p, k){ const pr = promoById(k); return pr ? promoElegible(pr, p) : p.ac.includes(k); }
+const money = v => v == null ? "" : "$" + Number(v).toFixed(2);
+const pctTxt = v => v == null ? "" : fmt(v * 100, 1) + "%";
+const fdm = d => d ? d.toLocaleDateString("es-SV", {day:"2-digit", month:"short"}) : "";
+function vigTxt(pr){
+  const r = promoDiasRest(pr);
+  if (r == null) return {t:"Sin fecha de fin", c:"na"};
+  if (r === 0) return {t:"Vence hoy", c:"bad"};
+  if (r === 1) return {t:"Vence mañana", c:"warn"};
+  if (r <= 3) return {t:`Vence en ${r} días`, c:"warn"};
+  return {t:"Hasta " + fdm(pr.d2), c:"ok"};
 }
+function promoCardHTML(pr, v, i, check){
+  const on = !!(v && v.ac[pr.id]), vt = vigTxt(pr);
+  const price = (lab, pv, dv) => pv == null ? "" : `<span class="pr"><span>${lab}</span><b>${money(pv)}${dv != null ? `<i>-${pctTxt(dv)}</i>` : ""}</b></span>`;
+  const pr1 = price(pr.pp != null ? "Asesor" : (pr.tipo === "Precio de lista" ? "Precio caja" : "Precio"), pr.pa, pr.da) + price("Pepsi Chat", pr.pp, pr.dp);
+  return `<div class="pcard ${on ? "done" : ""}"><div class="ph">${check ? `<input type="checkbox" id="pr_${i}" data-kind="ac" data-k="${esc(pr.id)}" ${on ? "checked" : ""} aria-label="Vendida: ${esc(pr.n)}">` : `<span></span>`}
+      <label class="pn" ${check ? `for="pr_${i}"` : ""}>${esc(pr.n)}<small>${esc(pr.cat)}${pr.tipo ? " · " + esc(pr.tipo) : ""} · <span class="vt ${vt.c}">${vt.t}</span></small></label></div>
+    ${pr1 ? `<div class="pp">${pr1}</div>` : ""}
+    ${pr.mon ? `<div class="px"><b>Monedero:</b> ${esc(pr.mon)}</div>` : ""}
+    ${pr.esc ? `<div class="px"><b>Detalle:</b> ${esc(pr.esc)}</div>` : ""}
+    ${pr.cond ? `<div class="px">${esc(pr.cond)}</div>` : ""}</div>`;
+}
+const empLabel = k => (COV_GROUPS.find(g => g.k === k) || {}).label || k;
+const focusN = () => F.segs.length + F.emps.length + F.promos.length;
+function focusParts(){
+  return [...F.segs.map(k => ({t:"seg", k, l:SEG_LABEL[k] || k})), ...F.emps.map(k => ({t:"emp", k, l:"Pendiente " + empLabel(k)})), ...F.promos.map(k => ({t:"promo", k, l:promoNombre(k)}))];
+}
+function focusLabel(){ return focusParts().map(x => x.l).join(F.modo === "or" ? " o " : " y "); }
 function passFocus(p){
-  if (F.seg === "covpend" && !covPend(p).length) return false;
-  if (F.seg === "rn" && !p.rn.length) return false;
-  if (F.seg === "nec" && !(rnNec(p) > 0)) return false;
-  if (F.seg === "well" && !wellPend(p).length) return false;
-  if (F.seg === "well60" && !well60(p)) return false;
-  if (F.seg === "hoy" && (!frDays(p.fr).includes(todayLetter()) || visitedToday(p.c))) return false;
-  if (F.emp && !(p.cov && p.cov.groups.some(g => g.k === F.emp && !g.ok))) return false;
-  if (F.promo && !p.ac.includes(F.promo)) return false;
-  return true;
+  const conds = [];
+  for (const k of F.segs) conds.push(SEG_FN[k] || (() => true));
+  for (const k of F.emps) conds.push(p => !!(p.cov && p.cov.groups.some(g => g.k === k && !g.ok)));
+  for (const k of F.promos) conds.push(p => promoPassK(p, k));
+  if (!conds.length) return true;
+  return F.modo === "or" ? conds.some(f => f(p)) : conds.every(f => f(p));
 }
 function filtered(noFocus){
   const q = F.q.trim().toLowerCase();
@@ -1452,7 +1582,7 @@ function cardHTML(p){
   const dist = p._d != null ? `<span class="dist num">${p._d < 1 ? Math.round(p._d*1000)+" m" : fmt(p._d,1)+" km"}</span>` : "";
   const nec = rnNec(p), wp = wellPend(p).length;
   const segN = (nec > 0 ? `<span class="pill warn" title="Necesidad real amarilla">Nec ${fmt(nec)}</span>` : "") + (wp ? `<span class="pill bad" title="Equipos sin lectura Wellington">Well ${wp}</span>` : "");
-  const acN = segN + (p.ac.length ? `<span class="pill acc">${p.ac.length} AC</span>` : "") + (p.vpo ? `<span class="pill ${p.vpo.pct >= 1 ? "ok" : "warn"}">VPO ${p.vpo.pct != null ? Math.round(p.vpo.pct*100)+"%" : "0%"}</span>` : "");
+  const acN = segN + (nPromosCliente(p) ? `<span class="pill acc" title="Promociones vigentes para este cliente">${nPromosCliente(p)} promo</span>` : "") + (p.vpo ? `<span class="pill ${p.vpo.pct >= 1 ? "ok" : "warn"}">VPO ${p.vpo.pct != null ? Math.round(p.vpo.pct*100)+"%" : "0%"}</span>` : "");
   return `<button class="card ${visitedToday(p.c)?"visited":""}" data-pdv="${p.c}">
     <span class="nm">${esc(p.n || "(sin nombre)")}</span>
     <span class="side">${dist}<span class="pill ${cc}">${covTxt}</span>${acN}</span>
@@ -1475,12 +1605,41 @@ function renderAll(){ renderList(); renderMap(); renderFocusBar(); if (CUR_TAB =
 function renderFocusBar(){
   const t = focusLabel(), el = $("#focusBar");
   if (!t){ el.hidden = true; return; }
-  el.hidden = false; el.innerHTML = `<span><b>Seguimiento:</b> ${esc(t)}</span><button class="iconbtn" id="focusClear" aria-label="Quitar filtro de seguimiento">✕</button>`;
+  el.hidden = false; el.innerHTML = `<span><b>Filtro personalizado (${fmt(current.length)}):</b> ${esc(t)}</span><button class="iconbtn" id="focusClear" aria-label="Quitar filtro de seguimiento">✕</button>`;
 }
-function clearFocus(){ F.seg = ""; F.emp = ""; F.promo = ""; needFit = true; renderAll(); }
+function clearFocus(){ F.segs = []; F.emps = []; F.promos = []; needFit = true; renderAll(); }
 
 /* ---------- panel de seguimiento ---------- */
 function meter(v, cls){ const w = Math.max(0, Math.min(100, Math.round(v * 100))); return `<div class="meter ${cls||""}" aria-hidden="true"><i style="width:${w}%"></i></div>`; }
+function renderPromosPanel(L, acC){
+  const dv = VIS[todayKey()] || {};
+  const sold = k => L.reduce((a, p) => a + (dv[p.c] && dv[p.c].ac[k] ? 1 : 0), 0);
+  let h = "";
+  if (!DB.promos || !DB.promos.length){
+    const promo = new Map();
+    for (const p of L) for (const k of p.ac) promo.set(k, (promo.get(k) || 0) + 1);
+    if (!promo.size) return "";
+    const arr = [...promo.entries()].sort((a, b) => b[1] - a[1]), mx = arr[0][1];
+    return `<section class="psec"><h3>Promociones (combos AC)</h3><p class="note">Sin catálogo de promociones vigentes cargado: se muestran las columnas de AC BASE. ${fmt(acC.length)} clientes con al menos una. Toca para filtrar.</p><div class="bars">` + arr.map(([k, c]) => { const s = sold(k); return `<button class="bar promo ${F.promos.includes(k) ? "on" : ""}" data-promo="${esc(k)}"><span class="bl">${esc(k)}</span><span class="bt"><i style="width:${Math.round(c / mx * 100)}%"></i></span><span class="bv num">${fmt(c)}</span><span class="bp num">${s ? fmt(s) + " vend." : ""}</span></button>`; }).join("") + `</div></section>`;
+  }
+  const vig = promosVig();
+  const seg = vig.filter(pr => promoScope(pr) !== "gen").map(pr => ({pr, c: L.filter(p => promoElegible(pr, p)).length})).filter(x => x.c).sort((a, b) => b.c - a.c);
+  const gen = vig.filter(pr => promoScope(pr) === "gen");
+  const vence = vig.filter(pr => { const r = promoDiasRest(pr); return r != null && r <= 1; });
+  const venc = DB.promos.filter(pr => !promoVigente(pr) && pr.d2 && pr.d2 < today0()).length;
+  h += `<section class="psec"><h3>Promociones vigentes</h3><p class="note">${fmt(vig.length)} vigentes hoy (${new Date().toLocaleDateString("es-SV",{day:"2-digit",month:"long"})})${venc ? ` · ${fmt(venc)} ya vencieron y no se muestran` : ""} · ${fmt(acC.length)} clientes con al menos una promo dirigida. Toca una para ver sus clientes.</p>`;
+  if (vence.length){
+    const hoyN = vence.filter(pr => promoDiasRest(pr) === 0).length, manN = vence.length - hoyN;
+    h += `<p class="note" style="color:var(--warn)">⚠ ${[hoyN ? `${hoyN} vencen hoy` : "", manN ? `${manN} vencen mañana` : ""].filter(Boolean).join(" · ")}${vence.length >= vig.length / 2 ? ". Cuando llegue el nuevo deck, actualiza el catálogo de promociones." : ""}</p>`;
+  }
+  if (!vig.length) h += `<p class="note" style="color:var(--bad)">No hay promociones vigentes en el catálogo cargado. Carga el catálogo del nuevo deck.</p>`;
+  if (seg.length){
+    const mx = seg[0].c;
+    h += `<div class="bars">` + seg.map(({pr, c}) => { const s = sold(pr.id), vt = vigTxt(pr); return `<button class="bar promo ${F.promos.includes(pr.id) ? "on" : ""}" data-promo="${esc(pr.id)}" title="${esc(pr.n)}: ${fmt(c)} clientes elegibles · ${vt.t}"><span class="bl">${esc(pr.n)}</span><span class="bt"><i style="width:${Math.round(c / mx * 100)}%"></i></span><span class="bv num">${fmt(c)}</span><span class="bp num" ${!s && (vt.c === "bad" || vt.c === "warn") ? `style="color:var(--${vt.c})"` : ""}>${s ? fmt(s) + " vend." : vt.c === "ok" || vt.c === "na" ? "" : vt.t}</span></button>`; }).join("") + `</div>`;
+  }
+  if (gen.length) h += `<details class="pmore" style="margin-top:10px"><summary>Precios y promociones para toda la base (${gen.length})</summary><div class="plist">${gen.map((pr, i) => promoCardHTML(pr, null, "g" + i, false)).join("")}</div></details>`;
+  return h + `</section>`;
+}
 function renderPanel(){
   const L = filtered(true);                // cartera según supervisor/ruta/frecuencia/día, sin el filtro de seguimiento
   const n = L.length, tl = todayLetter();
@@ -1493,13 +1652,14 @@ function renderPanel(){
   const wl = L.filter(p => wellPend(p).length), wlEq = wl.reduce((a, p) => a + wellPend(p).length, 0), w60 = L.filter(well60).length;
   const vp = L.filter(p => p.vpo), vpPend = vp.filter(p => (p.vpo.pct || 0) < 1).length, vpAvg = vp.length ? vp.reduce((a, p) => a + Math.min(1, p.vpo.pct || 0), 0) / vp.length : 0;
   const vpReal = vp.reduce((a, p) => a + (p.vpo.real || 0), 0), vpMeta = vp.reduce((a, p) => a + (p.vpo.meta || 0), 0);
-  const acC = L.filter(p => p.ac.length);
+  const acC = L.filter(p => nPromosCliente(p));
   const soldToday = (() => { const d = VIS[todayKey()] || {}; let c = 0, a = 0; for (const p of L){ const v = d[p.c]; if (!v) continue; c += Object.values(v.cov).filter(Boolean).length; a += Object.values(v.ac).filter(Boolean).length; } return {c, a}; })();
   const scope = [F.ag || "", F.sup || "Todos los supervisores", F.rutas.length ? (F.rutas.length === 1 ? "Ruta " + F.rutas[0] : F.rutas.length + " rutas") : "todas las rutas", F.frs.length ? "FR " + F.frs.map(f => f === "_none" ? "sin" : f).join("+") : "", F.dias.length ? F.dias.map(d => d === "HOY" ? "hoy" : DAY_NAMES[d]).join("+") : ""].filter(Boolean).join(" · ");
-  const tile = (act, lab, val, sub, m, cls) => `<button class="kpi ${cls||""} ${act && (F.seg === act || (act === "vpopend" && F.vpo === "pend")) ? "on" : ""}" ${act ? `data-seg="${act}"` : "disabled"}><span class="kl">${lab}</span><span class="kv num">${val}</span><span class="ks">${sub}</span>${m || ""}</button>`;
-  let h = `<div class="phead"><div><h2>Panel de seguimiento</h2><p class="note">${esc(scope)} · ${fmt(n)} PDV</p></div>${focusLabel() ? `<button class="btn sm" data-clear>Quitar filtro de seguimiento</button>` : ""}</div>`;
+  const tile = (act, lab, val, sub, m, cls) => `<button class="kpi ${cls||""} ${act && F.segs.includes(act) ? "on" : ""}" ${act ? `data-seg="${act}"` : "disabled"}><span class="kl">${lab}</span><span class="kv num">${val}</span><span class="ks">${sub}</span>${m || ""}</button>`;
+  let h = `<div class="phead"><div><h2>Panel de seguimiento</h2><p class="note">${esc(scope)} · ${fmt(n)} PDV</p></div></div>`;
+  h += renderBuilder(L);
   h += renderEverest(L);
-  h += `<p class="note">Toca un indicador para ver esos clientes en la lista y el mapa.</p><div class="kpis">`;
+  h += `<p class="note">Toca uno o varios indicadores, categorías o promociones para armar tu filtro personalizado.</p><div class="kpis">`;
   h += tile("hoy", "Visitas de hoy", `${fmt(hoyVis)}<small>/${fmt(hoy.length)}</small>`, hoy.length ? `${fmt(hoy.length - hoyVis)} pendientes de ${DAY_NAMES[tl] || "hoy"}` : "Hoy no hay clientes programados", meter(hoy.length ? hoyVis / hoy.length : 0, "ok"));
   h += tile("covpend", "Coberturas pendientes", fmt(covP), `clientes · cobertura prom. ${fmt(covAvg, 1)}/${nItems} · ${fmt(covFull)} con las ${nItems} completas`, meter(conCov.length ? covFull / conCov.length : 0, "ok"), "warnk");
   h += tile("rn", "Clientes con R+N", fmt(rn.length), `${fmt(rnEq)} equipos registrados`, "");
@@ -1507,7 +1667,7 @@ function renderPanel(){
   h += tile("well", "Wellington pendiente", fmt(wl.length), `clientes · ${fmt(wlEq)} equipos sin lectura`, "", "badk");
   h += tile("well60", "Wellington +60 días", fmt(w60), "clientes con equipos sin leer más de 60 días", "", "badk");
   h += tile("vpopend", "VPO por cumplir", fmt(vpPend), vp.length ? `de ${fmt(vp.length)} con plan · ${fmt(vpReal, 1)}/${fmt(vpMeta)} CJ` : "Sin clientes con plan VPO", meter(vpAvg, "ok"));
-  h += tile("", "Vendido hoy (checks)", fmt(soldToday.c + soldToday.a), `${fmt(soldToday.c)} empaques cobertura · ${fmt(soldToday.a)} combos AC`, "");
+  h += tile("", "Vendido hoy (checks)", fmt(soldToday.c + soldToday.a), `${fmt(soldToday.c)} empaques cobertura · ${fmt(soldToday.a)} promociones`, "");
   h += `</div>`;
   // cobertura por empaque
   if (conCov.length){
@@ -1516,18 +1676,10 @@ function renderPanel(){
       for (const p of conCov){ const gg = p.cov.groups.find(x => x.k === g.k); if (!gg) continue; if (gg.ok) ok++; else pend++; }
       return {k:g.k, label:g.label, ok, pend, pct: (ok + pend) ? ok / (ok + pend) : 0};
     }).filter(r => r.ok + r.pend);
-    h += `<section class="psec"><h3>Cobertura por categoría</h3><p class="note">% de clientes que cumplen cada categoría (basta un empaque de la categoría). Toca una para ver quién la tiene pendiente.</p><div class="bars">` + rows.map(r => `<button class="bar ${F.emp === r.k ? "on" : ""}" data-emp="${esc(r.k)}" title="${esc(r.label)}: ${fmt(r.ok)} cumplen, ${fmt(r.pend)} pendientes"><span class="bl">${esc(r.label)}</span><span class="bt"><i style="width:${Math.round(r.pct * 100)}%"></i></span><span class="bv num">${Math.round(r.pct * 100)}%</span><span class="bp num">${fmt(r.pend)} pend.</span></button>`).join("") + `</div></section>`;
+    h += `<section class="psec"><h3>Cobertura por categoría</h3><p class="note">% de clientes que cumplen cada categoría (basta un empaque de la categoría). Toca una para ver quién la tiene pendiente.</p><div class="bars">` + rows.map(r => `<button class="bar ${F.emps.includes(r.k) ? "on" : ""}" data-emp="${esc(r.k)}" title="${esc(r.label)}: ${fmt(r.ok)} cumplen, ${fmt(r.pend)} pendientes"><span class="bl">${esc(r.label)}</span><span class="bt"><i style="width:${Math.round(r.pct * 100)}%"></i></span><span class="bv num">${Math.round(r.pct * 100)}%</span><span class="bp num">${fmt(r.pend)} pend.</span></button>`).join("") + `</div></section>`;
   }
-  // promociones
-  const promo = new Map();
-  for (const p of L) for (const k of p.ac) promo.set(k, (promo.get(k) || 0) + 1);
-  if (promo.size){
-    const dv = VIS[todayKey()] || {};
-    const sold = k => L.reduce((a, p) => a + (dv[p.c] && dv[p.c].ac[k] ? 1 : 0), 0);
-    const arr = [...promo.entries()].sort((a, b) => b[1] - a[1]);
-    const mx = arr[0][1];
-    h += `<section class="psec"><h3>Promociones (combos AC)</h3><p class="note">${fmt(acC.length)} clientes con al menos un combo activo. Toca una promoción para filtrar sus clientes.</p><div class="bars">` + arr.map(([k, c]) => { const s = sold(k); return `<button class="bar promo ${F.promo === k ? "on" : ""}" data-promo="${esc(k)}" title="${esc(k)}: ${fmt(c)} clientes, ${fmt(s)} vendidos hoy"><span class="bl">${esc(k)}</span><span class="bt"><i style="width:${Math.round(c / mx * 100)}%"></i></span><span class="bv num">${fmt(c)}</span><span class="bp num">${s ? fmt(s) + " vend." : ""}</span></button>`; }).join("") + `</div></section>`;
-  }
+  // promociones vigentes (catálogo del deck + elegibilidad AC BASE / VPO)
+  h += renderPromosPanel(L, acC);
   // por ruta
   const byR = new Map();
   for (const p of L){ if (!byR.has(p.ruta)) byR.set(p.ruta, []); byR.get(p.ruta).push(p); }
@@ -1568,7 +1720,7 @@ function renderEverest(L){
   const supOf = r => { const m = DB.rutaSup.get(r); return m ? [...m.entries()].sort((a, b) => b[1] - a[1])[0][0] : ""; };
   let h = `<section class="psec ev"><div class="evhead"><div><h3>Everest · ${esc(periodo)}</h3><p class="note">${corte ? "Corte " + esc(corte) + " · " : ""}${dias ? `<b>${dias}</b> días hábiles restantes (lunes a sábado, hasta el ${fin.getDate()}/${fin.getMonth() + 1})` : "Período cerrado"} · ${rutas.length} ruta${rutas.length > 1 ? "s" : ""}</p></div></div>`;
   h += `<div class="kpis">` + EV_CATS.map(([k, lab]) => { const t = tot[k], pct = t.meta ? t.real / t.meta : 0, falt = Math.max(0, t.meta - t.real), cls = pct >= 1 ? "ok" : pct >= .8 ? "warn" : "bad";
-    return `<button class="kpi evk" data-evc="${k}"><span class="kl">${lab}</span><span class="kv num ${cls}">${Math.round(pct * 100)}%</span><span class="ks">${fmt(t.real)} de ${fmt(t.meta)} coberturas · faltan <b>${fmt(falt)}</b></span><span class="ks">Necesidad diaria: <b class="num">${fmt(dias ? Math.ceil(falt / dias) : falt)}</b> coberturas/día</span>${meter(pct, pct >= 1 ? "ok" : "")}</button>`; }).join("") + `</div>`;
+    return `<button class="kpi evk ${F.emps.includes(k) ? "on" : ""}" data-evc="${k}"><span class="kl">${lab}</span><span class="kv num ${cls}">${Math.round(pct * 100)}%</span><span class="ks">${fmt(t.real)} de ${fmt(t.meta)} coberturas · faltan <b>${fmt(falt)}</b></span><span class="ks">Necesidad diaria: <b class="num">${fmt(dias ? Math.ceil(falt / dias) : falt)}</b> coberturas/día</span>${meter(pct, pct >= 1 ? "ok" : "")}</button>`; }).join("") + `</div>`;
   h += `<p class="note">Toca una celda para ver los clientes de esa ruta con la categoría pendiente. "/día" = faltantes ÷ días hábiles restantes.</p>`;
   h += `<div class="tw"><table class="rt evt"><thead><tr><th>Ruta</th>${EV_CATS.map(([, l]) => `<th>${l}</th>`).join("")}<th>Total /día</th></tr></thead><tbody>` + rutas.map(r => {
     const o = DB.ev.rutas.get(r), totDia = EV_CATS.reduce((a, [k]) => a + (dias ? Math.ceil(Math.max(0, o[k].meta - o[k].real) / dias) : Math.max(0, o[k].meta - o[k].real)), 0);
@@ -1579,20 +1731,47 @@ function renderEverest(L){
 function goFocus(){
   needFit = true; SHOWN = 150; renderAll();
   if (window.innerWidth < 900) setTab("list");
-  toast(`${fmt(current.length)} clientes · ${focusLabel() || "sin filtro de seguimiento"}`);
+  toast(`${fmt(current.length)} clientes · ${focusLabel() || "sin filtro personalizado"}`);
+}
+const tog = (arr, v) => { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); };
+function focusChanged(){ needFit = true; SHOWN = 150; renderAll(); }
+/* constructor de filtros personalizados (selección múltiple) */
+const PRESETS_KEY = "rutapdv_presets";
+const getPresets = () => { const x = ls.get(PRESETS_KEY, []); return Array.isArray(x) ? x : []; };
+function renderBuilder(L){
+  const parts = focusParts(), n = focusN();
+  const cnt = k => fmt(L.filter(SEG_FN[k]).length);
+  const extra = ["novis", "visto", "vpo", "conpromo", "covok"];
+  const pres = getPresets();
+  let h = `<section class="builder ${n ? "act" : ""}"><div class="bh"><h3>Filtro personalizado</h3>`;
+  h += `<div class="seg mode" role="group" aria-label="Cómo combinar las condiciones"><button class="${F.modo === "and" ? "on" : ""}" data-modo="and" title="El cliente debe cumplir todas las condiciones">Cumple todas (Y)</button><button class="${F.modo === "or" ? "on" : ""}" data-modo="or" title="Basta con cumplir una condición">Cumple alguna (O)</button></div></div>`;
+  if (n){
+    h += `<div class="chips">${parts.map(x => `<button class="fchip" data-rm="${x.t}|${esc(x.k)}" title="Quitar esta condición">${esc(x.l)}<span aria-hidden="true">✕</span></button>`).join(`<span class="op">${F.modo === "or" ? "o" : "y"}</span>`)}</div>`;
+    h += `<div class="bres"><b class="num">${fmt(current.length)}</b> clientes cumplen <span class="note">de ${fmt(L.length)} en tu cartera filtrada</span></div>`;
+    h += `<div class="bact"><button class="btn sm pri" data-go="list">Ver lista</button><button class="btn sm" data-go="map">Ver mapa</button><button class="btn sm" data-save>Guardar filtro</button><button class="btn sm" data-clear>Limpiar</button></div>`;
+  } else h += `<p class="note" style="margin:0">Toca varias condiciones (indicadores, categorías de cobertura, metas Everest, promociones o las de abajo) y se combinan según el modo elegido.</p>`;
+  h += `<div class="xtra"><span class="note">Más condiciones:</span>${extra.map(k => `<button class="fopt ${F.segs.includes(k) ? "on" : ""}" data-seg="${k}">${esc(SEG_LABEL[k])} <small class="num">${cnt(k)}</small></button>`).join("")}</div>`;
+  if (pres.length) h += `<div class="xtra"><span class="note">Mis filtros:</span>${pres.map((p, i) => `<span class="pset"><button class="fopt" data-preset="${i}">${esc(p.name)}</button><button class="pdel" data-pdel="${i}" aria-label="Borrar filtro ${esc(p.name)}">✕</button></span>`).join("")}</div>`;
+  return h + `</section>`;
 }
 function onPanelClick(e){
-  if (e.target.closest("[data-clear]")){ clearFocus(); return; }
-  const k = e.target.closest("[data-seg]");
-  if (k){ const v = k.dataset.seg;
-    if (v === "vpopend"){ F.vpo = F.vpo === "pend" ? "" : "pend"; buildFilterUI(); }
-    else F.seg = F.seg === v ? "" : v;
-    goFocus(); return; }
-  const em = e.target.closest("[data-emp]"); if (em){ F.emp = F.emp === em.dataset.emp ? "" : em.dataset.emp; goFocus(); return; }
-  const pr = e.target.closest("[data-promo]"); if (pr){ F.promo = F.promo === pr.dataset.promo ? "" : pr.dataset.promo; goFocus(); return; }
-  const ev = e.target.closest("[data-evc]");
-  if (ev){ if (ev.dataset.evr){ F.rutas = [ev.dataset.evr]; buildFilterUI(); } F.seg = ""; F.emp = ev.dataset.evc; goFocus(); return; }
-  const rt = e.target.closest("[data-ruta]"); if (rt){ F.rutas = [rt.dataset.ruta]; buildFilterUI(); needFit = true; renderAll(); return; }
+  const q = s => e.target.closest(s);
+  let el;
+  if (q("[data-clear]")){ clearFocus(); return; }
+  if ((el = q("[data-modo]"))){ F.modo = el.dataset.modo; focusChanged(); return; }
+  if ((el = q("[data-go]"))){ setTab(el.dataset.go); toast(`${fmt(current.length)} clientes · ${focusLabel()}`); return; }
+  if ((el = q("[data-rm]"))){ const [t, ...k] = el.dataset.rm.split("|"); tog(t === "seg" ? F.segs : t === "emp" ? F.emps : F.promos, k.join("|")); focusChanged(); return; }
+  if (q("[data-save]")){
+    const name = (prompt("Nombre para este filtro:", focusLabel().slice(0, 40)) || "").trim(); if (!name) return;
+    const pres = getPresets().filter(p => p.name !== name); pres.push({name, segs:[...F.segs], emps:[...F.emps], promos:[...F.promos], modo:F.modo}); ls.set(PRESETS_KEY, pres);
+    toast("Filtro guardado: " + name); renderPanel(); return; }
+  if ((el = q("[data-preset]"))){ const p = getPresets()[+el.dataset.preset]; if (p){ F.segs = [...(p.segs || [])]; F.emps = [...(p.emps || [])]; F.promos = [...(p.promos || [])]; F.modo = p.modo === "or" ? "or" : "and"; focusChanged(); toast(`${p.name}: ${fmt(current.length)} clientes`); } return; }
+  if ((el = q("[data-pdel]"))){ const pres = getPresets(); pres.splice(+el.dataset.pdel, 1); ls.set(PRESETS_KEY, pres); renderPanel(); return; }
+  if ((el = q("[data-seg]"))){ tog(F.segs, el.dataset.seg); focusChanged(); return; }
+  if ((el = q("[data-emp]"))){ tog(F.emps, el.dataset.emp); focusChanged(); return; }
+  if ((el = q("[data-promo]"))){ tog(F.promos, el.dataset.promo); focusChanged(); return; }
+  if ((el = q("[data-evc]"))){ if (el.dataset.evr){ F.rutas = [el.dataset.evr]; buildFilterUI(); } tog(F.emps, el.dataset.evc); focusChanged(); return; }
+  if ((el = q("[data-ruta]"))){ F.rutas = [el.dataset.ruta]; buildFilterUI(); needFit = true; renderAll(); return; }
 }
 
 /* ---------- mapa ---------- */
@@ -1840,6 +2019,25 @@ function routeOnMove(){
 }
 
 /* ---------- ficha del cliente ---------- */
+function fichaPromos(p, v){
+  const P = promosCliente(p);
+  if (!P.catalogo){
+    return `<div class="sec"><h3>Combos AC<span class="r">${p.ac.length}</span></h3><div class="in">${p.ac.length ? `<div class="covgrid">${p.ac.map((k,i) => {
+      const on = !!v.ac[k];
+      return `<label class="chk ${on?"done":""}" for="ac_${i}"><input type="checkbox" id="ac_${i}" data-kind="ac" data-k="${esc(k)}" ${on?"checked":""}><span class="t">${esc(k)}</span></label>`;
+    }).join("")}</div>` : `<p class="note" style="margin:0">Sin combos de Acciones Comerciales para este cliente.</p>`}<p class="note" style="margin:0">Sin catálogo de promociones vigentes cargado (precios y vigencias del deck).</p></div></div>`;
+  }
+  const byCat = arr => { const m = new Map(); arr.forEach(pr => { if (!m.has(pr.cat)) m.set(pr.cat, []); m.get(pr.cat).push(pr); }); return m; };
+  let h = `<div class="sec"><h3>Promociones vigentes para este cliente<span class="r">${P.elig.length}</span></h3><div class="in">`;
+  if (P.elig.length){
+    h += `<p class="note" style="margin:0">Marca las promociones vendidas en esta visita. Precio asesor / precio si el cliente pide por Pepsi Chat.</p>`;
+    let i = 0;
+    for (const [cat, arr] of byCat(P.elig)) h += `<div class="pcat">${esc(cat)}</div><div class="plist">${arr.map(pr => promoCardHTML(pr, v, i++, true)).join("")}</div>`;
+  } else h += `<p class="note" style="margin:0">Este cliente no tiene promociones dirigidas vigentes hoy. Revisa las de toda la base.</p>`;
+  if (P.gen.length) h += `<details class="pmore"><summary>Precios y promos para toda la base (${P.gen.length})</summary><div class="plist">${P.gen.map((pr, j) => promoCardHTML(pr, v, "g" + j, pr.tipo !== "Info" && pr.tipo !== "Incentivo")).join("")}</div></details>`;
+  if (P.otras.length) h += `<details class="pmore"><summary>Otras en base AC (${P.otras.length})</summary><p class="note" style="margin:0 0 6px">Aparecen en AC BASE pero no están en la presentación vigente: confirma precio y vigencia con tu supervisor antes de ofrecerlas.</p><div class="plist">${P.otras.map(k => `<div class="pcard"><div class="pn">${esc(k)}</div></div>`).join("")}</div></details>`;
+  return h + `</div></div>`;
+}
 let openC = null;
 function updateOpenDist(){ if (openC == null) return; const el = $("#dDist"); const p = DB.pdv.get(openC); if (el && p && ME && p.lat != null) el.textContent = fmtDist(haversine(ME.lat,ME.lng,p.lat,p.lng)); }
 const fmtDist = d => d < 1 ? Math.round(d*1000)+" m" : fmt(d,1)+" km";
@@ -1906,11 +2104,8 @@ function openPdv(c){
   } else {
     h += `<div class="sec"><h3>Plan VPO</h3><div class="in"><p class="note" style="margin:0">Cliente sin VPO registrado.</p></div></div>`;
   }
-  // AC
-  h += `<div class="sec"><h3>Combos AC vigentes<span class="r">${p.ac.length}</span></h3><div class="in">${p.ac.length ? `<div class="covgrid">${p.ac.map((k,i) => {
-      const on = !!v.ac[k];
-      return `<label class="chk ${on?"done":""}" for="ac_${i}"><input type="checkbox" id="ac_${i}" data-kind="ac" data-k="${esc(k)}" ${on?"checked":""}><span class="t">${esc(k)}</span></label>`;
-    }).join("")}</div>` : `<p class="note" style="margin:0">Sin combos de Acciones Comerciales para este cliente.</p>`}</div></div>`;
+  // Acciones comerciales vigentes
+  h += fichaPromos(p, v);
   // Equipos de frío
   h += `<div class="sec"><h3>Equipos de frío<span class="r">${p.eq.length}</span></h3><div class="in">${p.eq.length ? p.eq.map((e,i) => `<div class="eq"><h4>Equipo ${i+1} · <span class="num">${esc(e.serie)}</span></h4><div class="kv2">
       ${kv("Modelo", esc(e.modelo||"—"))}${kv("Status", `<span class="pill ${/\+60/.test(e.status)?"bad":/30/.test(e.status)?"warn":"ok"}">${esc(e.status||"—")}</span>`)}
@@ -1934,7 +2129,7 @@ function onCheck(e){
   v[t.dataset.kind][t.dataset.k] = t.checked;
   if (!v.t && t.checked) v.t = Date.now();
   saveVis();
-  t.closest(".chk").classList.toggle("done", t.checked);
+  const box = t.closest(".chk, .pcard"); if (box) box.classList.toggle("done", t.checked);
   const s = $("#covSold"); if (s) s.textContent = Object.values(v.cov).filter(Boolean).length;
   renderList(); renderMap();
 }
@@ -2018,19 +2213,25 @@ async function handleFile(files){
     for (const f of files) wbs.push(XLSX.read(await f.arrayBuffer(), {type:"array", dense:false}));
     let S = pickSheets(wbs);
     // si solo se cargó el archivo Everest, conservar los datos que ya estaban y agregarle la meta
+    // si solo se cargó el archivo Everest y/o el catálogo de promociones, conservar los datos que ya estaban
     if (!S.maestra.length && !S.listados.length){
       const prev = await IDB.get("data");
-      if (S.ev.length && prev && prev.S){ S = Object.assign({}, prev.S, {ev:S.ev, evInfo:S.evInfo}); }
-      else { toast("No encontré las hojas maestra ni LISTADOS en ese archivo"); return; }
+      const base = prev && prev.S ? prev.S : (typeof EMBED !== "undefined" && EMBED ? fromEmbed(EMBED) : null);
+      if ((S.ev.length || S.promos.length) && base && (base.maestra || []).length){
+        S = Object.assign({}, base, S.ev.length ? {ev:S.ev, evInfo:S.evInfo} : {}, S.promos.length ? {promos:S.promos} : {});
+      } else { toast("No encontré las hojas maestra ni LISTADOS en ese archivo"); return; }
+    } else if (!S.promos.length){
+      const prev = await IDB.get("data"); const old = prev && prev.S ? prev.S.promos : (typeof EMBED !== "undefined" && EMBED ? EMBED.PROMOS : null);
+      if (old && old.length) S.promos = old;            // conservar el catálogo de promos al actualizar listados
     }
     build(S);
     SRC = {label:files.map(f => f.name).join(" + "), when:Date.now()};
     await IDB.set("data", {S, SRC});
-    const found = ["maestra","listados","ac","rn","mon","vpo","ev"].filter(k => S[k] && S[k].length).length;
+    const found = ["maestra","listados","ac","rn","mon","vpo","ev","promos"].filter(k => S[k] && S[k].length).length;
     buildFilterUI(); needFit = true; renderAll(); setSrcInfo();
     if (F.sup && !DB.sups.includes(F.sup)){ F.sup = ""; buildFilterUI(); renderAll(); }
     showWelcome();
-    toast(`Actualizado: ${fmt(DB.pdv.size)} PDV (${found}/7 hojas${DB.ev.rutas.size ? ` · meta Everest de ${DB.ev.rutas.size} rutas` : ""})`);
+    toast(`Actualizado: ${fmt(DB.pdv.size)} PDV (${found}/8 hojas${DB.ev.rutas.size ? ` · meta Everest de ${DB.ev.rutas.size} rutas` : ""}${DB.promos.length ? ` · ${promosVig().length} promos vigentes` : ""})`);
   }catch(e){ console.error(e); toast("No se pudo leer el archivo. ¿Es un Excel .xlsx?"); }
 }
 function exportVisits(){
@@ -2039,7 +2240,7 @@ function exportVisits(){
   for (const [d, m] of Object.entries(VIS)) for (const [c, v] of Object.entries(m)){
     const p = DB.pdv.get(Number(c)) || {n:"", ruta:"", sup:"", fr:""};
     const base = {Fecha:d, Hora: v.t ? new Date(v.t).toLocaleTimeString("es-SV",{hour:"2-digit",minute:"2-digit"}) : "", Supervisor:p.sup, Ruta:p.ruta, Frecuencia:p.fr, Codigo:Number(c), Cliente:p.n};
-    const items = [...Object.entries(v.cov).filter(([,x])=>x).map(([k]) => ["Cobertura",k]), ...Object.entries(v.ac).filter(([,x])=>x).map(([k]) => ["Combo AC",k])];
+    const items = [...Object.entries(v.cov).filter(([,x])=>x).map(([k]) => ["Cobertura",k]), ...Object.entries(v.ac).filter(([,x])=>x).map(([k]) => ["Promoción", promoNombre(k)])];
     if (!items.length) rows.push({...base, Tipo:"Visita", Empaque:"", Observaciones:v.note||""});
     items.forEach(([t,k],i) => rows.push({...base, Tipo:t, Empaque:k, Observaciones: i===0 ? (v.note||"") : ""}));
   }
@@ -2076,7 +2277,7 @@ function wire(){
   document.querySelectorAll("[data-close]").forEach(b => b.onclick = closeDrawers);
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrawers(); });
   $("#fSup").onchange = e => { F.sup = e.target.value; F.rutas = []; F.frs = []; needFit = true; buildFilterUI(); renderAll(); };
-  $("#fClear").onclick = () => { Object.assign(F, {ag:"", sup:"", rutas:[], frs:[], dias:[], vpo:"", cov:"", vis:"", seg:"", emp:"", promo:"", q:""}); $("#q").value = ""; needFit = true; buildFilterUI(); renderAll(); };
+  $("#fClear").onclick = () => { Object.assign(F, {ag:"", sup:"", rutas:[], frs:[], dias:[], vpo:"", cov:"", vis:"", segs:[], emps:[], promos:[], q:""}); $("#q").value = ""; needFit = true; buildFilterUI(); renderAll(); };
   $("#fApply").onclick = () => { needFit = true; renderAll(); if (window.innerWidth < 900){ $("#fBox").open = false; setTab("map"); } else { fitPts(current.filter(p => p.lat != null)); } };
   let qt; $("#q").oninput = e => { clearTimeout(qt); qt = setTimeout(() => { F.q = e.target.value; SHOWN = 150; renderList(); renderMap(); }, 150); };
   $("#sort").value = F.sort; $("#sort").onchange = e => { F.sort = e.target.value; if (F.sort === "dist" && !ME) toast("Activa el GPS para ordenar por cercanía"); renderList(); saveF(); };
