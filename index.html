@@ -988,6 +988,17 @@ table.rt tbody tr:hover td{background:rgba(25,211,255,.07)}
 .rncard .rk em{font-style:normal;font-size:11.5px;color:var(--muted)}
 .sgs{display:flex;flex-wrap:wrap;gap:4px 10px}
 .sg{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}.sg i{width:9px;height:9px;border-radius:3px;display:inline-block}.sg b{color:var(--ink)}
+.sgt{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));border:1px solid var(--line2);border-radius:10px;overflow:hidden;text-align:center}
+.sgt .h{display:flex;align-items:center;justify-content:center;gap:3px;font-size:10.5px;overflow:hidden;color:var(--muted);padding:4px 2px;background:rgba(255,255,255,.03);white-space:nowrap}
+.sgt .h i{width:8px;height:8px;border-radius:2px;flex:none}
+.sgt b{font:800 15px/1 var(--f-tech);color:var(--ink);padding:6px 2px;border-top:1px solid var(--line2)}
+.sgt b.z{color:var(--dim);font-weight:500}
+.sgt > *:not(:nth-child(6n+1)){border-left:1px solid var(--line2)}
+.fuentes{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.fu{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line2);border-radius:12px;padding:8px 12px;background:var(--field)}
+.fu.off{opacity:.55}
+.fu .fl{font-weight:700;font-size:14px;min-width:0}.fu .fl small{display:block;font-weight:500;font-size:11.5px;color:var(--muted)}
+.fu .ft{text-align:right;font-size:13px;white-space:nowrap}.fu .ft b{display:block}
 /* promociones */
 .plist{display:grid;gap:8px}
 .pcard{border:1px solid var(--line2);border-radius:12px;padding:10px 12px;background:var(--field);display:grid;gap:6px}
@@ -1214,6 +1225,34 @@ function findHeader(rows, key, also){
   }
   return -1;
 }
+/* Fecha real de actualización de un Excel: la última vez que se refrescaron sus tablas dinámicas / conexiones
+   (refreshedDate, lo escribe Excel al actualizar desde Power BI o Power Query). Si no hay, la fecha en que se guardó el archivo. */
+const two = n => String(n).padStart(2, "0");
+const fmtStamp = d => `${two(d.getDate())}/${two(d.getMonth() + 1)}/${d.getFullYear()} ${two(d.getHours())}:${two(d.getMinutes())}`;
+function wbStamp(wb){
+  if (!wb) return null;
+  if (wb.__stamp !== undefined) return wb.__stamp;
+  let best = null;
+  try{
+    for (const [k, e] of Object.entries(wb.files || {})){
+      if (!/pivotCacheDefinition\d*\.xml$|connections\.xml$/i.test(k)) continue;
+      const c = e && (e.content || e._data); if (!c) continue;
+      const raw = typeof c === "string" ? c : (c.getContent ? c.getContent() : c);
+      const txt = typeof raw === "string" ? raw : new TextDecoder().decode(raw instanceof Uint8Array ? raw : new Uint8Array(raw));
+      for (const m of txt.matchAll(/refreshedDate="([\d.]+)"/g)){
+        const v = parseFloat(m[1]); if (!(v > 30000)) continue;
+        const u = new Date(Math.round((v - 25569) * 864e5));          // serial de Excel (hora local del equipo que actualizó)
+        const d = new Date(u.getUTCFullYear(), u.getUTCMonth(), u.getUTCDate(), u.getUTCHours(), u.getUTCMinutes());
+        if (!best || d > best) best = d;
+      }
+    }
+  }catch(err){}
+  let out = null;
+  if (best) out = {txt: fmtStamp(best), src: "actualización de datos"};
+  else { const md = wb.Props && wb.Props.ModifiedDate; const d = md ? new Date(md) : null; if (d && !isNaN(d)) out = {txt: fmtStamp(d), src: "guardado del archivo"}; }
+  wb.__stamp = out; return out;
+}
+const READ_OPTS = {type:"array", bookFiles:true};
 function pickSheets(wbIn){
   const wbs = Array.isArray(wbIn) ? wbIn : [wbIn];      // se pueden cargar varios Excel a la vez (listados + Everest)
   const out = {}, cache = new Map();
@@ -1224,12 +1263,15 @@ function pickSheets(wbIn){
     for (const wb of wbs){ for (const n of cfg.names){ const r = tryName(wb, n); if (r && (!best || r.rows.length > best.rows.length)) best = r; } }
     if (!best) for (const wb of wbs) for (const n of wb.SheetNames){ const r = tryName(wb, n); if (r && (!best || r.rows.length > best.rows.length)) best = r; }
     out[id] = best ? best.rows : [];
+    if (id === "listados" && best){ const st = wbStamp(best.wb); if (st) out.baseInfo = {act: st.txt, src: st.src}; }
+    if (id === "promos" && best){ const st = wbStamp(best.wb); if (st) out.promosInfo = {act: st.txt, src: st.src}; }
     if (id === "ev" && best){
       // período ("Mes Año") y fecha de corte del archivo Everest
       let periodo = "", corte = "";
       for (const r of best.pre) { const i = (r || []).findIndex(x => /mes\s*a[ñn]o/i.test(str(x))); if (i >= 0) periodo = str(r[i + 1]); }
       for (const n of best.wb.SheetNames){ const rows = rowsOf(best.wb, n) || []; for (const r of rows.slice(0, 8)) for (const x of (r || [])){ const m = str(x).match(/corte\s+(\d{1,2}\/\d{1,2}\/\d{4})(?:\s+(\d{1,2}:\d{2}))?/i); if (m && !corte) corte = m[1] + (m[2] ? " " + m[2] : ""); } }
-      out.evInfo = {periodo, corte};
+      const st = wbStamp(best.wb);
+      out.evInfo = {periodo, corte: st ? st.txt : corte, corteSrc: st ? st.src : (corte ? "digitado en el archivo" : "")};
     }
     if (id === "cp" && best){
       // período ("Periodo: septiembre 2026") y fecha de revisión del archivo de coberturas de pago
@@ -1241,14 +1283,15 @@ function pickSheets(wbIn){
         if (!corte && /fecha de revisi[oó]n|fecha de corte/i.test(x)){ const v = r.slice(i + 1).find(y => y != null && y !== ""); const d = typeof v === "number" ? new Date(Math.round((v - 25569) * 864e5)) : null; corte = d ? `${String(d.getUTCDate()).padStart(2,"0")}/${String(d.getUTCMonth()+1).padStart(2,"0")}/${d.getUTCFullYear()}` : str(v); }
         if (!periodo && /corte de datos/i.test(x)){ const v = r.slice(i + 1).find(y => y != null && y !== ""); if (v && /[a-z]+\s+\d{4}/i.test(str(v))) periodo = str(v).toLowerCase(); }
       }
-      out.cpInfo = {periodo, corte};
+      const st = wbStamp(best.wb);
+      out.cpInfo = {periodo, corte: st ? st.txt : corte, corteSrc: st ? st.src : (corte ? "digitado en el archivo" : "")};
     }
   }
   return out;
 }
 function fromEmbed(e){
   e = e || {};
-  return {maestra:e["maestra"]||[], listados:e["LISTADOS"]||[], ac:e["AC BASE"]||[], rn:e["Base"]||[], mon:e["MONITOREO"]||[], vpo:e["VPO"]||[], ev:e["EVEREST"]||[], evInfo:e.evInfo||null, promos:e["PROMOS"]||[], cp:e["COBPAGO"]||[], cpInfo:e.cpInfo||null};
+  return {maestra:e["maestra"]||[], listados:e["LISTADOS"]||[], ac:e["AC BASE"]||[], rn:e["Base"]||[], mon:e["MONITOREO"]||[], vpo:e["VPO"]||[], ev:e["EVEREST"]||[], evInfo:e.evInfo||null, baseInfo:e.baseInfo||null, promosInfo:e.promosInfo||null, promos:e["PROMOS"]||[], cp:e["COBPAGO"]||[], cpInfo:e.cpInfo||null};
 }
 
 /* ---------- modelo ---------- */
@@ -1429,7 +1472,7 @@ function build(S){
     }
   }
   for (const o of rnRutas.values()){ o.rn = o.rojo + o.negro; }
-  DB = {pdv, covCols, acCols, sups, rutas, rutaSup, vpoPlan, ev, promos: parsePromos(S.promos || []), cp: parseCPago(S.cp || [], S.cpInfo), rn:{sem:rnSem, rutas:rnRutas, meta: Object.assign({}, RN_META_DEF, S.rnMeta || {})}};
+  DB = {pdv, covCols, acCols, sups, rutas, rutaSup, vpoPlan, ev, baseInfo: S.baseInfo || null, promosInfo: S.promosInfo || null, promos: parsePromos(S.promos || []), cp: parseCPago(S.cp || [], S.cpInfo), rn:{sem:rnSem, rutas:rnRutas, meta: Object.assign({}, RN_META_DEF, S.rnMeta || {})}};
 }
 /* ---------- R+N (rojo + negro) ---------- */
 // Meta R+N por agencia: % máximo de equipos fríos en rojo o negro. Norte = la meta que trae la hoja "Resumen Laterales" (5%); Sur = 5%.
@@ -1692,7 +1735,7 @@ function renderList(){
   const withCov = current.filter(p => p.cov); const avg = withCov.length ? withCov.reduce((a,p)=>a+p.cov.okN,0)/withCov.length : 0; const nItems = withCov[0]?.cov.n || COV_GROUPS.length;
   $("#stShown").textContent = fmt(Math.min(n, SHOWN)); $("#stRes").textContent = fmt(n); $("#stBase").textContent = fmt(DB.pdv.size);
   const dupNote = DUP_INFO.merged ? `<span title="Mismo nombre, ruta y ubicación con varios códigos">${fmt(DUP_INFO.merged)} códigos repetidos unificados</span>` : "";
-  $("#summary").innerHTML = dupNote + `<span><b class="num">${fmt(current.filter(p=>p.lat!=null).length)}</b> en mapa</span><span><b class="num">${fmt(vis)}</b> visitados hoy</span><span>Cobertura promedio <b class="num">${fmt(avg,1)}/${nItems}</b></span>${F.sort==="dist"&&!ME?`<span>Activa GPS para ordenar por cercanía</span>`:""}`;
+  $("#summary").innerHTML = `<span>${stampHTML("base")}</span>` + dupNote + `<span><b class="num">${fmt(current.filter(p=>p.lat!=null).length)}</b> en mapa</span><span><b class="num">${fmt(vis)}</b> visitados hoy</span><span>Cobertura promedio <b class="num">${fmt(avg,1)}/${nItems}</b></span>${F.sort==="dist"&&!ME?`<span>Activa GPS para ordenar por cercanía</span>`:""}`;
   const L = $("#list");
   if (!n){ L.innerHTML = `<div class="empty">No hay puntos de venta con estos filtros.<br>Prueba cambiando supervisor, ruta o frecuencia.</div>`; return; }
   L.innerHTML = current.slice(0, SHOWN).map(cardHTML).join("") + (n > SHOWN ? `<button class="more" id="more">Mostrar ${Math.min(150, n-SHOWN)} más de ${fmt(n-SHOWN)}</button>` : "");
@@ -1723,7 +1766,7 @@ function renderPromosPanel(L, acC){
   const gen = vig.filter(pr => promoScope(pr) === "gen");
   const vence = vig.filter(pr => { const r = promoDiasRest(pr); return r != null && r <= 1; });
   const venc = DB.promos.filter(pr => !promoVigente(pr) && pr.d2 && pr.d2 < today0()).length;
-  h += `<section class="psec"><h3>Promociones vigentes</h3><p class="note">${fmt(vig.length)} vigentes hoy (${new Date().toLocaleDateString("es-SV",{day:"2-digit",month:"long"})})${venc ? ` · ${fmt(venc)} ya vencieron y no se muestran` : ""} · ${fmt(acC.length)} clientes con al menos una promo dirigida. Toca una para ver sus clientes.</p>`;
+  h += `<section class="psec"><h3>Promociones vigentes</h3><p class="note">${stampHTML("promos", "Catálogo al")} · ${fmt(vig.length)} vigentes hoy (${new Date().toLocaleDateString("es-SV",{day:"2-digit",month:"long"})})${venc ? ` · ${fmt(venc)} ya vencieron y no se muestran` : ""} · ${fmt(acC.length)} clientes con al menos una promo dirigida. Toca una para ver sus clientes.</p>`;
   if (vence.length){
     const hoyN = vence.filter(pr => promoDiasRest(pr) === 0).length, manN = vence.length - hoyN;
     h += `<p class="note" style="color:var(--warn)">⚠ ${[hoyN ? `${hoyN} vencen hoy` : "", manN ? `${manN} vencen mañana` : ""].filter(Boolean).join(" · ")}${vence.length >= vig.length / 2 ? ". Cuando llegue el nuevo deck, actualiza el catálogo de promociones." : ""}</p>`;
@@ -1753,11 +1796,12 @@ function renderPanel(){
   const scope = [F.ag || "", F.sup || "Todos los supervisores", F.rutas.length ? (F.rutas.length === 1 ? "Ruta " + F.rutas[0] : F.rutas.length + " rutas") : "todas las rutas", F.frs.length ? "FR " + F.frs.map(f => f === "_none" ? "sin" : f).join("+") : "", F.dias.length ? F.dias.map(d => d === "HOY" ? "hoy" : DAY_NAMES[d]).join("+") : ""].filter(Boolean).join(" · ");
   const tile = (act, lab, val, sub, m, cls) => `<button class="kpi ${cls||""} ${act && F.segs.includes(act) ? "on" : ""}" ${act ? `data-seg="${act}"` : "disabled"}><span class="kl">${lab}</span><span class="kv num">${val}</span><span class="ks">${sub}</span>${m || ""}</button>`;
   let h = `<div class="phead"><div><h2>Panel de seguimiento</h2><p class="note">${esc(scope)} · ${fmt(n)} PDV</p></div></div>`;
+  h += `<section class="psec"><h3>Actualización de los datos</h3>${fuentesHTML()}</section>`;
   h += renderBuilder(L);
   h += renderCPago(L);
   h += renderRN(L);
   h += renderEverest(L);
-  h += `<p class="note">Toca uno o varios indicadores, categorías o promociones para armar tu filtro personalizado.</p><div class="kpis">`;
+  h += `<p class="note">${stampHTML("base")} · Toca uno o varios indicadores, categorías o promociones para armar tu filtro personalizado.</p><div class="kpis">`;
   h += tile("hoy", "Visitas de hoy", `${fmt(hoyVis)}<small>/${fmt(hoy.length)}</small>`, hoy.length ? `${fmt(hoy.length - hoyVis)} pendientes de ${DAY_NAMES[tl] || "hoy"}` : "Hoy no hay clientes programados", meter(hoy.length ? hoyVis / hoy.length : 0, "ok"));
   h += tile("covpend", "Coberturas pendientes", fmt(covP), `clientes · cobertura prom. ${fmt(covAvg, 1)}/${nItems} · ${fmt(covFull)} con las ${nItems} completas`, meter(conCov.length ? covFull / conCov.length : 0, "ok"), "warnk");
   h += tile("rn", DB.rn.sem ? "Clientes con R+N (rojo/negro)" : "Clientes con R+N", fmt(rn.length), DB.rn.sem ? `${fmt(rnEqN)} equipos en rojo o negro` : `${fmt(rnEqN)} equipos registrados`, "", DB.rn.sem ? "badk" : "");
@@ -1774,7 +1818,7 @@ function renderPanel(){
       for (const p of conCov){ const gg = p.cov.groups.find(x => x.k === g.k); if (!gg) continue; if (gg.ok) ok++; else pend++; }
       return {k:g.k, label:g.label, ok, pend, pct: (ok + pend) ? ok / (ok + pend) : 0};
     }).filter(r => r.ok + r.pend);
-    h += `<section class="psec"><h3>Cobertura por categoría</h3><p class="note">% de clientes que cumplen cada categoría (basta un empaque de la categoría). Toca una para ver quién la tiene pendiente.</p><div class="bars">` + rows.map(r => `<button class="bar ${F.emps.includes(r.k) ? "on" : ""}" data-emp="${esc(r.k)}" title="${esc(r.label)}: ${fmt(r.ok)} cumplen, ${fmt(r.pend)} pendientes"><span class="bl">${esc(r.label)}</span><span class="bt"><i style="width:${Math.round(r.pct * 100)}%"></i></span><span class="bv num">${Math.round(r.pct * 100)}%</span><span class="bp num">${fmt(r.pend)} pend.</span></button>`).join("") + `</div></section>`;
+    h += `<section class="psec"><h3>Cobertura por categoría</h3><p class="note">${stampHTML("base")} · % de clientes que cumplen cada categoría (basta un empaque de la categoría). Toca una para ver quién la tiene pendiente.</p><div class="bars">` + rows.map(r => `<button class="bar ${F.emps.includes(r.k) ? "on" : ""}" data-emp="${esc(r.k)}" title="${esc(r.label)}: ${fmt(r.ok)} cumplen, ${fmt(r.pend)} pendientes"><span class="bl">${esc(r.label)}</span><span class="bt"><i style="width:${Math.round(r.pct * 100)}%"></i></span><span class="bv num">${Math.round(r.pct * 100)}%</span><span class="bp num">${fmt(r.pend)} pend.</span></button>`).join("") + `</div></section>`;
   }
   // promociones vigentes (catálogo del deck + elegibilidad AC BASE / VPO)
   h += renderPromosPanel(L, acC);
@@ -1800,29 +1844,58 @@ function evDias(infoIn){
   if (pm && MESES.indexOf(pm[1]) >= 0){ m = MESES.indexOf(pm[1]); y = +pm[2]; }
   const fin = new Date(y, m + 1, 0), ini = new Date(Math.max(hoy, new Date(y, m, 1)));
   let d = 0; for (const t = new Date(ini); t <= fin; t.setDate(t.getDate() + 1)) if (t.getDay() !== 0) d++;
-  return {dias: d, fin, periodo: info.periodo || (MESES[m] + " " + y), corte: info.corte || ""};
+  return {dias: d, ini, fin, periodo: info.periodo || (MESES[m] + " " + y), corte: info.corte || ""};
 }
+/* Necesidad diaria = faltantes ÷ días hábiles restantes (lunes a sábado, contando hoy), redondeado hacia arriba.
+   Los totales (agencia, supervisor, todas las rutas) se calculan con la suma de faltantes ÷ días, no sumando redondeos. */
+const needDia = (falt, dias) => dias > 0 ? Math.ceil(falt / dias) : null;
+const diasW = d => d === 1 ? "1 día" : `${d} días`;
+const needFx = (falt, dias) => dias > 0 ? `${fmt(falt)} ÷ ${diasW(dias)} = ${fmt(falt / dias, 1)}` : "";
+const ddm = d => `${d.getDate()}/${d.getMonth() + 1}`;
+/* Indicador de actualización de cada fuente (siempre visible) */
+function fuentes(){
+  return [
+    {k:"base", l:"Listados", d:"coberturas, AC, R+N, Wellington, VPO", t:DB.baseInfo && DB.baseInfo.act, ok:DB.pdv.size > 0},
+    {k:"ev", l:"Everest", d:(DB.ev.info || {}).periodo || "", t:(DB.ev.info || {}).corte, ok:DB.ev.rutas.size > 0},
+    {k:"cp", l:"Coberturas de pago", d:(DB.cp && DB.cp.info || {}).periodo || "", t:DB.cp && (DB.cp.info || {}).corte, ok:DB.cp && DB.cp.rutas.size > 0},
+    {k:"promos", l:"Promociones", d:"catálogo del deck", t:DB.promosInfo && DB.promosInfo.act, ok:(DB.promos || []).length > 0}
+  ];
+}
+const stampOf = k => (fuentes().find(f => f.k === k) || {}).t || "";
+const stampHTML = (k, pre = "Datos al") => { const t = stampOf(k); return t ? `${pre} <b>${esc(t)}</b>${staleTag(t)}` : `<span style="color:var(--warn)">${pre} — sin fecha de actualización</span>`; };
+function fuentesHTML(){
+  return `<div class="fuentes" aria-label="Actualización de los datos">${fuentes().map(f => `<div class="fu ${f.ok ? "" : "off"}"><span class="fl">${esc(f.l)}<small>${esc(f.d)}</small></span><span class="ft">${!f.ok ? `<span class="pill na">sin cargar</span>` : f.t ? `<b class="num">${esc(f.t)}</b>${staleTag(f.t)}` : `<span class="pill warn">sin fecha</span>`}</span></div>`).join("")}</div>`;
+}
+// aviso de antigüedad: "hoy", "ayer" o "hace N días" según la fecha real de actualización del archivo
+function staleTag(txt){
+  const m = String(txt || "").match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if (!m) return "";
+  const d = new Date(+m[3], +m[2] - 1, +m[1]), h = new Date(); h.setHours(0,0,0,0);
+  const n = Math.round((h - d) / 864e5);
+  if (n <= 0) return ` <span class="pill ok">hoy</span>`;
+  return ` <span class="pill ${n === 1 ? "warn" : "bad"}">${n === 1 ? "ayer" : `hace ${n} días`}</span>`;
+}
+const diasNote = (dias, ini, fin) => dias ? (dias === 1 ? `<b>1</b> día hábil restante (hoy ${ddm(ini)}, último del mes)` : `<b>${dias}</b> días hábiles restantes (lunes a sábado, del ${ddm(ini)} al ${ddm(fin)}, contando hoy)`) : `<span style="color:var(--warn)">Período cerrado: ya no quedan días hábiles. Carga el archivo del mes actual para ver la necesidad diaria</span>`;
 function evCell(o, ruta, k, dias){
-  const pct = o.meta ? o.real / o.meta : 0, falt = Math.max(0, o.meta - o.real), dia = dias ? Math.ceil(falt / dias) : falt;
+  const pct = o.meta ? o.real / o.meta : 0, falt = Math.max(0, o.meta - o.real), dia = needDia(falt, dias);
   const cls = !o.meta ? "na" : pct >= 1 ? "ok" : pct >= .8 ? "warn" : "bad";
   if (!o.meta) return `<td class="evc na">—</td>`;
-  return `<td class="evc"><button data-evr="${esc(ruta)}" data-evc="${k}" title="Ver clientes de la ruta ${esc(ruta)} con ${k} pendiente"><span class="evp ${cls}">${Math.round(pct * 100)}%</span><span class="evm"><i class="${cls}" style="width:${Math.min(100, Math.round(pct * 100))}%"></i></span><span class="evf">${falt ? `faltan <b>${fmt(falt)}</b> · <b>${fmt(dia)}</b>/día` : "meta cumplida"}</span></button></td>`;
+  return `<td class="evc"><button data-evr="${esc(ruta)}" data-evc="${k}" title="Ver clientes de la ruta ${esc(ruta)} con ${k} pendiente"><span class="evp ${cls}">${Math.round(pct * 100)}%</span><span class="evm"><i class="${cls}" style="width:${Math.min(100, Math.round(pct * 100))}%"></i></span><span class="evf">${falt ? `faltan <b>${fmt(falt)}</b>${dia != null ? ` · <b>${fmt(dia)}</b>/día` : ""}` : "meta cumplida"}</span></button></td>`;
 }
 function renderEverest(L){
   if (!DB.ev.rutas.size) return "";
   const rutas = [...new Set(L.map(p => p.ruta))].filter(r => DB.ev.rutas.has(r)).sort();
   if (!rutas.length) return "";
-  const {dias, fin, periodo, corte} = evDias();
-  const tot = {}; for (const [k] of EV_CATS) tot[k] = {meta:0, real:0};
-  for (const r of rutas){ const o = DB.ev.rutas.get(r); for (const [k] of EV_CATS){ tot[k].meta += o[k].meta; tot[k].real += o[k].real; } }
+  const {dias, ini, fin, periodo, corte} = evDias();
+  const tot = {}; for (const [k] of EV_CATS) tot[k] = {meta:0, real:0, falt:0};
+  for (const r of rutas){ const o = DB.ev.rutas.get(r); for (const [k] of EV_CATS){ tot[k].meta += o[k].meta; tot[k].real += o[k].real; tot[k].falt += Math.max(0, o[k].meta - o[k].real); } }
   const supOf = r => { const m = DB.rutaSup.get(r); return m ? [...m.entries()].sort((a, b) => b[1] - a[1])[0][0] : ""; };
-  let h = `<section class="psec ev"><div class="evhead"><div><h3>Everest · ${esc(periodo)}</h3><p class="note">${corte ? "Corte " + esc(corte) + " · " : ""}${dias ? `<b>${dias}</b> días hábiles restantes (lunes a sábado, hasta el ${fin.getDate()}/${fin.getMonth() + 1})` : "Período cerrado"} · ${rutas.length} ruta${rutas.length > 1 ? "s" : ""}</p></div></div>`;
-  h += `<div class="kpis">` + EV_CATS.map(([k, lab]) => { const t = tot[k], pct = t.meta ? t.real / t.meta : 0, falt = Math.max(0, t.meta - t.real), cls = pct >= 1 ? "ok" : pct >= .8 ? "warn" : "bad";
-    return `<button class="kpi evk ${F.emps.includes(k) ? "on" : ""}" data-evc="${k}"><span class="kl">${lab}</span><span class="kv num ${cls}">${Math.round(pct * 100)}%</span><span class="ks">${fmt(t.real)} de ${fmt(t.meta)} coberturas · faltan <b>${fmt(falt)}</b></span><span class="ks">Necesidad diaria: <b class="num">${fmt(dias ? Math.ceil(falt / dias) : falt)}</b> coberturas/día</span>${meter(pct, pct >= 1 ? "ok" : "")}</button>`; }).join("") + `</div>`;
-  h += `<p class="note">Toca una celda para ver los clientes de esa ruta con la categoría pendiente. "/día" = faltantes ÷ días hábiles restantes.</p>`;
+  let h = `<section class="psec ev"><div class="evhead"><div><h3>Everest · ${esc(periodo)}</h3><p class="note">${corte ? `Actualizado <b>${esc(corte)}</b>${staleTag(corte)} · ` : ""}${diasNote(dias, ini, fin)} · ${rutas.length} ruta${rutas.length > 1 ? "s" : ""}</p></div></div>`;
+  h += `<div class="kpis">` + EV_CATS.map(([k, lab]) => { const t = tot[k], pct = t.meta ? t.real / t.meta : 0, falt = t.falt, cls = pct >= 1 ? "ok" : pct >= .8 ? "warn" : "bad";
+    return `<button class="kpi evk ${F.emps.includes(k) ? "on" : ""}" data-evc="${k}"><span class="kl">${lab}</span><span class="kv num ${cls}">${Math.round(pct * 100)}%</span><span class="ks">${fmt(t.real)} de ${fmt(t.meta)} coberturas · faltan <b>${fmt(falt)}</b></span><span class="ks">Necesidad diaria: <b class="num">${dias ? fmt(needDia(falt, dias)) : "—"}</b>${dias ? ` coberturas/día <small>(${needFx(falt, dias)})</small>` : ""}</span>${meter(pct, pct >= 1 ? "ok" : "")}</button>`; }).join("") + `</div>`;
+  h += `<p class="note">"Faltan" suma lo pendiente de cada ruta (una ruta que pasa su meta no compensa a otra). "/día" = faltantes ÷ días hábiles restantes, redondeado hacia arriba. Toca una celda para ver los clientes de esa ruta con la categoría pendiente.</p>`;
   h += `<div class="tw"><table class="rt evt"><thead><tr><th>Ruta</th>${EV_CATS.map(([, l]) => `<th>${l}</th>`).join("")}<th>Total /día</th></tr></thead><tbody>` + rutas.map(r => {
-    const o = DB.ev.rutas.get(r), totDia = EV_CATS.reduce((a, [k]) => a + (dias ? Math.ceil(Math.max(0, o[k].meta - o[k].real) / dias) : Math.max(0, o[k].meta - o[k].real)), 0);
-    return `<tr><td><b>${esc(r)}</b><small>${esc(supOf(r))}</small></td>${EV_CATS.map(([k]) => evCell(o[k], r, k, dias)).join("")}<td class="num"><b>${fmt(totDia)}</b></td></tr>`; }).join("") + `</tbody></table></div></section>`;
+    const o = DB.ev.rutas.get(r), totDia = EV_CATS.reduce((a, [k]) => a + (needDia(Math.max(0, o[k].meta - o[k].real), dias) || 0), 0);
+    return `<tr><td><b>${esc(r)}</b><small>${esc(supOf(r))}</small></td>${EV_CATS.map(([k]) => evCell(o[k], r, k, dias)).join("")}<td class="num"><b>${dias ? fmt(totDia) : "—"}</b></td></tr>`; }).join("") + `</tbody></table></div></section>`;
   return h;
 }
 
@@ -1832,32 +1905,33 @@ function renderRN(L){
   if (!DB.rn || !DB.rn.sem || !DB.rn.rutas.size) return "";
   const rutas = [...new Set(L.map(p => p.ruta))].filter(r => DB.rn.rutas.has(r)).sort();
   if (!rutas.length) return "";
-  const hoy = new Date(); const {dias, fin} = evDias({periodo: MESES[hoy.getMonth()] + " " + hoy.getFullYear()});
-  const rowOf = r => { const o = DB.rn.rutas.get(r), pct = rnMetaPct(r), meta = Math.round(o.base * pct), falt = Math.max(0, o.rn - meta); return {...o, pct, meta, falt, dia: dias ? Math.ceil(falt / dias) : falt}; };
-  const sumOf = rs => { const t = {base:0, rn:0, rojo:0, negro:0, meta:0, falt:0, dia:0, b:{}}; for (const r of rs){ const o = rowOf(r); for (const k of ["base","rn","rojo","negro","meta","falt","dia"]) t[k] += o[k]; for (const [k, v] of Object.entries(o.b)) t.b[k] = (t.b[k] || 0) + v; } return t; };
+  const hoy = new Date(); const {dias, ini, fin} = evDias({periodo: MESES[hoy.getMonth()] + " " + hoy.getFullYear()});
+  const rowOf = r => { const o = DB.rn.rutas.get(r), pct = rnMetaPct(r), meta = Math.round(o.base * pct), falt = Math.max(0, o.rn - meta); return {...o, pct, meta, falt, dia: needDia(falt, dias)}; };
+  const sumOf = rs => { const t = {base:0, rn:0, rojo:0, negro:0, meta:0, falt:0, b:{}}; for (const r of rs){ const o = rowOf(r); for (const k of ["base","rn","rojo","negro","meta","falt"]) t[k] += o[k]; for (const [k, v] of Object.entries(o.b)) t.b[k] = (t.b[k] || 0) + v; } t.dia = needDia(t.falt, dias); return t; };
   const tot = sumOf(rutas);
   const pcts = [...new Set(rutas.map(rnMetaPct))].map(x => fmt(x * 100, 1) + "%").join(" / ");
   const cls = o => o.falt === 0 ? "ok" : o.rn <= o.meta * 1.5 ? "warn" : "bad";
   const bk = o => RN_BUCKETS.map(([k]) => o.b[k] || 0).concat([o.negro]);
   const nCli = k => L.filter(SEG_FN[k]).length, nCliSeg = k => SEG_FN[k] ? L.filter(SEG_FN[k]).length : 0;
-  let h = `<section class="psec ev rnp"><div class="evhead"><div><h3>R+N · Rojo y negro · meta ${pcts}</h3><p class="note">${dias ? `<b>${dias}</b> días hábiles restantes (lunes a sábado, hasta el ${fin.getDate()}/${fin.getMonth() + 1})` : "Último día del mes"} · ${rutas.length} ruta${rutas.length > 1 ? "s" : ""} · meta = equipos en rojo + negro que como máximo puede tener cada ruta (base × %)</p></div></div>`;
+  let h = `<section class="psec ev rnp"><div class="evhead"><div><h3>R+N · Rojo y negro · meta ${pcts}</h3><p class="note">${DB.baseInfo ? `Datos al <b>${esc(DB.baseInfo.act)}</b>${staleTag(DB.baseInfo.act)} · ` : ""}${diasNote(dias, ini, fin)} · ${rutas.length} ruta${rutas.length > 1 ? "s" : ""} · meta = equipos en rojo + negro que como máximo puede tener cada ruta (base × %)</p></div></div>`;
   h += `<div class="kpis">`;
   h += `<div class="kpi evk"><span class="kl">R+N actual</span><span class="kv num ${cls(tot)}">${fmt(tot.rn)}</span><span class="ks">${fmt(tot.base ? tot.rn / tot.base * 100 : 0, 1)}% de ${fmt(tot.base)} equipos · ${fmt(tot.rojo)} rojo · ${fmt(tot.negro)} negro</span></div>`;
   h += `<div class="kpi evk"><span class="kl">Meta (máximo)</span><span class="kv num">${fmt(tot.meta)}</span><span class="ks">equipos en R+N permitidos (${pcts} de la base)</span></div>`;
-  h += `<button class="kpi evk ${F.segs.includes("rnrn") ? "on" : ""}" data-seg="rnrn"><span class="kl">Faltan pasar</span><span class="kv num ${tot.falt ? "bad" : "ok"}">${fmt(tot.falt)}</span><span class="ks">equipos a sacar de rojo/negro · ${fmt(nCli("rnrn"))} clientes con equipos en R+N</span><span class="ks">Necesidad diaria: <b class="num">${fmt(tot.dia)}</b> equipos/día</span>${meter(tot.rn ? Math.min(1, tot.meta / tot.rn) : 1, tot.falt ? "" : "ok")}</button>`;
+  h += `<button class="kpi evk ${F.segs.includes("rnrn") ? "on" : ""}" data-seg="rnrn"><span class="kl">Faltan pasar</span><span class="kv num ${tot.falt ? "bad" : "ok"}">${fmt(tot.falt)}</span><span class="ks">equipos a sacar de rojo/negro · ${fmt(nCli("rnrn"))} clientes con equipos en R+N</span><span class="ks">Necesidad diaria: <b class="num">${tot.dia != null ? fmt(tot.dia) : "—"}</b>${tot.dia != null ? ` equipos/día <small>(${needFx(tot.falt, dias)})</small>` : ""}</span>${meter(tot.rn ? Math.min(1, tot.meta / tot.rn) : 1, tot.falt ? "" : "ok")}</button>`;
   h += `</div>`;
   // segmentos de equipos en R+N (de más fácil a más difícil de pasar)
   const SEGS = RN_BUCKETS.map(([k, l], i) => ({k, seg:"rnb:" + k, l:l.replace("Rojo ", ""), c:"s" + i, n:o => o.b[k] || 0})).concat([{k:"negro", seg:"rnneg", l:"Negro", c:"sn", n:o => o.negro}]);
   const bar = (o, big) => { const sc = Math.max(o.rn, o.meta, 1);
     return `<div class="rnbar ${big ? "big" : ""}" role="img" aria-label="${fmt(o.rn)} equipos en R+N, meta ${fmt(o.meta)}">${SEGS.map(s => { const n = s.n(o); return n ? `<i class="${s.c}" style="width:${n / sc * 100}%" title="${esc(s.l)}: ${n}">${big && n / sc > .06 ? n : ""}</i>` : ""; }).join("")}<b class="mk" style="left:${o.meta / sc * 100}%" title="Meta ${fmt(o.meta)}"></b></div>`; };
-  const chips = o => SEGS.filter(s => s.n(o)).map(s => `<span class="sg"><i class="${s.c}"></i>${esc(s.l)} <b>${s.n(o)}</b></span>`).join("") || `<span class="sg">Sin equipos en R+N</span>`;
+  // los 6 segmentos siempre en las mismas columnas (alineados entre tarjetas); los ceros se ven tenues
+  const chips = o => `<div class="sgt">${SEGS.map(s => `<span class="h"><i class="${s.c}"></i>${esc(s.k === "negro" ? "Negro" : s.k.replace(" a ", "-").replace(" +", "+"))}</span>`).join("")}${SEGS.map(s => { const n = s.n(o); return `<b class="${n ? "" : "z"}">${n || "–"}</b>`; }).join("")}</div>`;
   h += `<h4 class="cpt">Equipos en R+N por segmento</h4><p class="note" style="margin:0 0 8px">De izquierda a derecha, de más fácil a más difícil de pasar: el segmento son las cajas que le faltan al equipo para salir de rojo. La línea blanca es la meta. Toca un segmento para ver esos clientes.</p>`;
   h += bar(tot, true);
   h += `<div class="seglist">` + SEGS.map(s => { const n = s.n(tot); return `<button class="segb ${F.segs.includes(s.seg) ? "on" : ""}" data-seg="${s.seg}" ${n ? "" : "disabled"}><i class="${s.c}"></i><span class="sl">${s.k === "negro" ? "Negro" : "Rojo " + esc(s.l)}<small>${s.k === "negro" ? "sin compra" : "cajas faltantes"}</small></span><b class="num">${fmt(n)}</b><small class="num">${fmt(nCliSeg(s.seg))} cli.</small></button>`; }).join("") + `</div>`;
   const card = (lab, sub, o, ruta) => `<div class="rncard ${cls(o)}" ${ruta ? `data-ruta="${esc(ruta)}" role="button" tabindex="0" title="Filtrar la ruta ${esc(ruta)}"` : ""}>
     <div class="rh"><span class="rl"><b>${esc(lab)}</b><small>${esc(sub)}</small></span><span class="rs ${o.falt ? "bad" : "ok"}">${o.falt ? `Faltan <b>${fmt(o.falt)}</b>` : "✓ En meta"}</span></div>
-    <div class="rk"><span><small>R+N</small><b class="${cls(o)}">${fmt(o.rn)}</b><em>${fmt(o.base ? o.rn / o.base * 100 : 0, 1)}% de ${fmt(o.base)}</em></span><span><small>Meta</small><b>${fmt(o.meta)}</b><em>máximo</em></span><span><small>Por día</small><b>${o.falt ? fmt(o.dia) : "—"}</b><em>${o.falt ? "equipos" : "&nbsp;"}</em></span></div>
-    ${bar(o)}<div class="sgs">${chips(o)}</div></div>`;
+    <div class="rk"><span><small>R+N</small><b class="${cls(o)}">${fmt(o.rn)}</b><em>${fmt(o.base ? o.rn / o.base * 100 : 0, 1)}% de ${fmt(o.base)}</em></span><span><small>Meta</small><b>${fmt(o.meta)}</b><em>máximo</em></span><span><small>Por día</small><b>${o.falt && o.dia != null ? fmt(o.dia) : "—"}</b><em>${o.falt && o.dia != null ? `${fmt(o.falt)} ÷ ${diasW(dias)}` : "&nbsp;"}</em></span></div>
+    ${bar(o)}${chips(o)}</div>`;
   const grid = arr => `<div class="rngrid">${arr.join("")}</div>`;
   const byAg = new Map(); for (const r of rutas){ const a = agenciaDe(r); if (!byAg.has(a)) byAg.set(a, []); byAg.get(a).push(r); }
   if (byAg.size > 1) h += `<h4 class="cpt">Por agencia</h4>` + grid([...byAg.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([a, rs]) => card(a, `${rs.length} rutas · meta ${fmt(rnMetaPct(rs[0]) * 100, 1)}%`, sumOf(rs))));
@@ -1880,19 +1954,19 @@ function renderCPago(L){
   if (!DB.cp || !DB.cp.rutas.size) return "";
   const rutas = [...new Set(L.map(p => p.ruta))].filter(r => DB.cp.rutas.has(r)).sort();
   if (!rutas.length) return "";
-  const {dias, fin, periodo, corte} = evDias(DB.cp.info || {});
-  const sumOf = rs => { const t = {}; for (const k of ["ms","sku4","colas","l15","l3"]) t[k] = {meta:0, real:0, falt:0, dia:0}; for (const r of rs){ const o = DB.cp.rutas.get(r); for (const k in t){ const base = (k === "l15" || k === "l3") ? "ms" : k; if (!o[base].meta) continue; const f = Math.max(0, o[k].meta - o[k].real); t[k].meta += o[k].meta; t[k].real += o[k].real; t[k].falt += f; t[k].dia += dias ? Math.ceil(f / dias) : 0; } } if (!dias) for (const k in t) t[k].dia = null; return t; };   // como el resumen del archivo: solo rutas con meta en esa categoría
+  const {dias, ini, fin, periodo, corte} = evDias(DB.cp.info || {});
+  const sumOf = rs => { const t = {}; for (const k of ["ms","sku4","colas","l15","l3"]) t[k] = {meta:0, real:0, falt:0, dia:0}; for (const r of rs){ const o = DB.cp.rutas.get(r); for (const k in t){ const base = (k === "l15" || k === "l3") ? "ms" : k; if (!o[base].meta) continue; const f = Math.max(0, o[k].meta - o[k].real); t[k].meta += o[k].meta; t[k].real += o[k].real; t[k].falt += f; } } for (const k in t) t[k].dia = needDia(t[k].falt, dias); return t; };   // como el resumen del archivo: solo rutas con meta en esa categoría
   const tot = sumOf(rutas);
   const faltOf = c => c.meta ? (c.falt ?? Math.max(0, c.meta - c.real)) : 0;
   const diaTot = o => CP_CATS.reduce((a, [k]) => a + (dias && o[k].meta ? (o[k].dia ?? Math.ceil(faltOf(o[k]) / dias)) : 0), 0);
   const faltTot = o => CP_CATS.reduce((a, [k]) => a + faltOf(o[k]), 0);
   const msSub = o => `1.5L ${fmt(o.l15.real)}/${fmt(o.l15.meta)} · 3L ${fmt(o.l3.real)}/${fmt(o.l3.meta)}`;
-  let h = `<section class="psec ev cp"><div class="evhead"><div><h3>Coberturas de pago · ${esc(periodo)}</h3><p class="note">${corte ? "Revisión " + esc(corte) + " · " : ""}${dias ? `<b>${dias}</b> días hábiles restantes (lunes a sábado, hasta el ${fin.getDate()}/${fin.getMonth() + 1})` : `<span style="color:var(--warn)">Período cerrado: carga el seguimiento del mes actual para ver la necesidad diaria</span>`} · ${rutas.length} ruta${rutas.length > 1 ? "s" : ""}</p></div></div>`;
+  let h = `<section class="psec ev cp"><div class="evhead"><div><h3>Coberturas de pago · ${esc(periodo)}</h3><p class="note">${corte ? `Actualizado <b>${esc(corte)}</b>${staleTag(corte)} · ` : ""}${diasNote(dias, ini, fin)} · ${rutas.length} ruta${rutas.length > 1 ? "s" : ""}</p></div></div>`;
   h += `<div class="kpis">` + CP_CATS.map(([k, lab]) => { const t = tot[k];
     if (!t.meta) return `<div class="kpi evk" aria-disabled="true"><span class="kl">${lab}</span><span class="kv num na">—</span><span class="ks">Sin meta en este alcance${t.real ? ` · real ${fmt(t.real)}` : ""}</span></div>`;
     const pct = t.real / t.meta, falt = t.falt, cls = cpCls(t);
-    return `<div class="kpi evk"><span class="kl">${lab}</span><span class="kv num ${cls}">${Math.round(pct * 100)}%</span><span class="ks">${fmt(t.real)} de ${fmt(t.meta)} coberturas · faltan <b>${fmt(falt)}</b></span><span class="ks">Necesidad del día: <b class="num">${dias ? fmt(t.dia) : "—"}</b>${dias ? " coberturas/día" : ""}</span>${k === "ms" ? `<span class="ks">${msSub(tot)}</span>` : ""}${meter(pct, pct >= 1 ? "ok" : "")}</div>`; }).join("") + `</div>`;
-  h += `<p class="note">"Faltan" suma lo pendiente de cada ruta (una ruta que pasa su meta no compensa a otra). Necesidad del día = faltantes de cada ruta ÷ días hábiles restantes.${dias ? ` Total del alcance: faltan <b>${fmt(faltTot(tot))}</b> · <b>${fmt(diaTot(tot))}</b> por día.` : ""}</p>`;
+    return `<div class="kpi evk"><span class="kl">${lab}</span><span class="kv num ${cls}">${Math.round(pct * 100)}%</span><span class="ks">${fmt(t.real)} de ${fmt(t.meta)} coberturas · faltan <b>${fmt(falt)}</b></span><span class="ks">Necesidad del día: <b class="num">${dias ? fmt(t.dia) : "—"}</b>${dias ? ` coberturas/día <small>(${needFx(falt, dias)})</small>` : ""}</span>${k === "ms" ? `<span class="ks">${msSub(tot)}</span>` : ""}${meter(pct, pct >= 1 ? "ok" : "")}</div>`; }).join("") + `</div>`;
+  h += `<p class="note">"Faltan" suma lo pendiente de cada ruta (una ruta que pasa su meta no compensa a otra). Necesidad del día = faltantes ÷ días hábiles restantes, redondeado hacia arriba (en los totales se divide la suma de faltantes, no se suman redondeos).${dias ? ` Total del alcance: faltan <b>${fmt(faltTot(tot))}</b> · <b>${fmt(diaTot(tot))}</b> por día.` : ""}</p>`;
   const head = first => `<thead><tr><th>${first}</th>${CP_CATS.map(([, l]) => `<th>${l}</th>`).join("")}<th>Faltan</th><th>Total /día</th></tr></thead>`;
   // por supervisor
   const byAg = new Map(); for (const r of rutas){ const a = agenciaDe(r); if (!byAg.has(a)) byAg.set(a, []); byAg.get(a).push(r); }
@@ -2229,7 +2303,7 @@ function openPdv(c){
   openC = p.c;
   const v = visit(p.c, false) || {cov:{}, ac:{}, note:"", t:null};
   $("#dTitle").textContent = p.n || "(sin nombre)";
-  $("#dChips").innerHTML = `<span class="num">${String(p.c).padStart(10,"0")}</span><span>Ruta ${esc(p.ruta||"—")}</span><span>${esc(p.fr||"Sin FR")}</span>${visitedToday(p.c)?`<span style="border-color:var(--ok);color:var(--ok)">Visitado hoy</span>`:""}`;
+  $("#dChips").innerHTML = `<span class="num">${String(p.c).padStart(10,"0")}</span><span>Ruta ${esc(p.ruta||"—")}</span><span>${esc(p.fr||"Sin FR")}</span>${visitedToday(p.c)?`<span style="border-color:var(--ok);color:var(--ok)">Visitado hoy</span>`:""}${stampOf("base") ? `<span title="Fecha de actualización de listados.xlsx">Datos ${esc(stampOf("base"))}</span>` : ""}`;
   const days = frDays(p.fr).map(d => DAY_NAMES[d]).join(" y ");
   const gmaps = p.lat != null ? `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}&travelmode=driving` : null;
   const waze = p.lat != null ? `https://waze.com/ul?ll=${p.lat},${p.lng}&navigate=yes` : null;
@@ -2398,7 +2472,7 @@ async function handleFile(files){
   toast("Leyendo " + files.map(f => f.name).join(" + ") + "…");
   try{
     const wbs = [];
-    for (const f of files) wbs.push(XLSX.read(await f.arrayBuffer(), {type:"array", dense:false}));
+    for (const f of files) wbs.push(XLSX.read(await f.arrayBuffer(), READ_OPTS));
     let S = pickSheets(wbs);
     // si solo se cargó el archivo Everest, conservar los datos que ya estaban y agregarle la meta
     // si solo se cargó el archivo Everest y/o el catálogo de promociones, conservar los datos que ya estaban
