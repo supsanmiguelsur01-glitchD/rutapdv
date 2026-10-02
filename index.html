@@ -957,6 +957,37 @@ table.rt tbody tr:hover td{background:rgba(25,211,255,.07)}
 .kv.na{color:var(--dim)}
 .rnt .rnb{white-space:nowrap;color:var(--muted)} .rnt .rnb b{color:var(--bad)} .rnt td b.bad{color:var(--bad)} .rnt td b.ok{color:var(--ok)}
 .rdet{margin-top:12px}
+/* R+N por segmento */
+.rnp{--s0:#FFD25C;--s1:#FFA94D;--s2:#FF7A45;--s3:#FF4D6D;--s4:#C2185B;--sn:#0B0B0B}
+.rnp i.s0{background:var(--s0)}.rnp i.s1{background:var(--s1)}.rnp i.s2{background:var(--s2)}.rnp i.s3{background:var(--s3)}.rnp i.s4{background:var(--s4)}.rnp i.sn{background:var(--sn);box-shadow:inset 0 0 0 1px #8a8a8a}
+.rnbar{position:relative;display:flex;height:12px;border-radius:999px;background:rgba(255,255,255,.06);overflow:visible;margin:8px 0 6px}
+.rnbar i{display:block;height:100%;font-style:normal}
+.rnbar i:first-child{border-radius:999px 0 0 999px}.rnbar i:last-of-type{border-radius:0 999px 999px 0}
+.rnbar.big{height:26px}.rnbar.big i{font:700 12px/26px var(--f-tech);color:#1a0b10;text-align:center;overflow:hidden}.rnbar.big i.sn,.rnbar.big i.s4{color:#fff}
+.rnbar .mk{position:absolute;top:-4px;bottom:-4px;width:3px;margin-left:-1.5px;background:#fff;border-radius:2px;box-shadow:0 0 6px rgba(255,255,255,.8)}
+.seglist{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0 4px}
+@media (max-width:560px){.seglist{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.segb{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-rows:auto auto;gap:0 8px;align-items:center;border:1px solid var(--line2);background:var(--field);border-radius:12px;padding:8px 10px}
+.segb[disabled]{opacity:.45;cursor:default}
+.segb.on{border-color:var(--cyan);box-shadow:var(--glow)}
+.segb > i{grid-row:1/3;width:12px;height:30px;border-radius:4px}
+.segb .sl{font-weight:700;font-size:13.5px;min-width:0;white-space:nowrap}.segb .sl small{display:block;font-weight:500;font-size:11px;color:var(--muted)}
+.segb > b{font:800 18px var(--f-tech);color:var(--ink);text-align:right}
+.segb > small{grid-column:3;font-size:11px;color:var(--muted);text-align:right}
+.rngrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px}
+.rncard{border:1px solid var(--line2);border-radius:14px;padding:10px 12px;background:var(--field);display:flex;flex-direction:column;gap:6px}
+.rncard[data-ruta]{cursor:pointer}.rncard[data-ruta]:hover{border-color:var(--line);box-shadow:var(--glow)}
+.rncard.bad{border-color:rgba(255,92,122,.35)}.rncard.ok{border-color:rgba(46,229,157,.25)}
+.rncard .rh{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.rncard .rl{min-width:0}.rncard .rl b{display:block;font-size:15px}.rncard .rl small{display:block;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rncard .rs{font-size:12.5px;font-weight:700;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.rncard .rs.bad{background:var(--bad-soft);color:var(--bad)}.rncard .rs.ok{background:var(--ok-soft);color:var(--ok)}
+.rncard .rk{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.rncard .rk span{display:flex;flex-direction:column}.rncard .rk small{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.rncard .rk b{font:800 20px/1.1 var(--f-tech)}.rncard .rk b.ok{color:var(--ok)}.rncard .rk b.warn{color:var(--warn)}.rncard .rk b.bad{color:var(--bad)}
+.rncard .rk em{font-style:normal;font-size:11.5px;color:var(--muted)}
+.sgs{display:flex;flex-wrap:wrap;gap:4px 10px}
+.sg{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}.sg i{width:9px;height:9px;border-radius:3px;display:inline-block}.sg b{color:var(--ink)}
 /* promociones */
 .plist{display:grid;gap:8px}
 .pcard{border:1px solid var(--line2);border-radius:12px;padding:10px 12px;background:var(--field);display:grid;gap:6px}
@@ -1808,22 +1839,33 @@ function renderRN(L){
   const pcts = [...new Set(rutas.map(rnMetaPct))].map(x => fmt(x * 100, 1) + "%").join(" / ");
   const cls = o => o.falt === 0 ? "ok" : o.rn <= o.meta * 1.5 ? "warn" : "bad";
   const bk = o => RN_BUCKETS.map(([k]) => o.b[k] || 0).concat([o.negro]);
-  const nCli = k => L.filter(SEG_FN[k]).length;
+  const nCli = k => L.filter(SEG_FN[k]).length, nCliSeg = k => SEG_FN[k] ? L.filter(SEG_FN[k]).length : 0;
   let h = `<section class="psec ev rnp"><div class="evhead"><div><h3>R+N · Rojo y negro · meta ${pcts}</h3><p class="note">${dias ? `<b>${dias}</b> días hábiles restantes (lunes a sábado, hasta el ${fin.getDate()}/${fin.getMonth() + 1})` : "Último día del mes"} · ${rutas.length} ruta${rutas.length > 1 ? "s" : ""} · meta = equipos en rojo + negro que como máximo puede tener cada ruta (base × %)</p></div></div>`;
   h += `<div class="kpis">`;
   h += `<div class="kpi evk"><span class="kl">R+N actual</span><span class="kv num ${cls(tot)}">${fmt(tot.rn)}</span><span class="ks">${fmt(tot.base ? tot.rn / tot.base * 100 : 0, 1)}% de ${fmt(tot.base)} equipos · ${fmt(tot.rojo)} rojo · ${fmt(tot.negro)} negro</span></div>`;
   h += `<div class="kpi evk"><span class="kl">Meta (máximo)</span><span class="kv num">${fmt(tot.meta)}</span><span class="ks">equipos en R+N permitidos (${pcts} de la base)</span></div>`;
   h += `<button class="kpi evk ${F.segs.includes("rnrn") ? "on" : ""}" data-seg="rnrn"><span class="kl">Faltan pasar</span><span class="kv num ${tot.falt ? "bad" : "ok"}">${fmt(tot.falt)}</span><span class="ks">equipos a sacar de rojo/negro · ${fmt(nCli("rnrn"))} clientes con equipos en R+N</span><span class="ks">Necesidad diaria: <b class="num">${fmt(tot.dia)}</b> equipos/día</span>${meter(tot.rn ? Math.min(1, tot.meta / tot.rn) : 1, tot.falt ? "" : "ok")}</button>`;
   h += `</div>`;
-  h += `<p class="note">Más fáciles primero: el rango indica cuántas cajas le faltan al equipo para salir de rojo. Toca un rango para ver esos clientes.</p><div class="xtra">` + RN_BUCKETS.map(([k, l]) => `<button class="fopt ${F.segs.includes("rnb:" + k) ? "on" : ""}" data-seg="rnb:${k}">${esc(l)} <small class="num">${fmt(tot.b[k] || 0)}</small></button>`).join("") + `<button class="fopt ${F.segs.includes("rnneg") ? "on" : ""}" data-seg="rnneg">Negro <small class="num">${fmt(tot.negro)}</small></button></div>`;
-  const head = first => `<thead><tr><th>${first}</th><th>Base</th><th>R+N</th><th>Meta</th><th>Faltan</th><th>/día</th><th>3-1 · 6-4 · 10-7 · 15-10 · 15+ · N</th></tr></thead>`;
-  const row = (lab, sub, o, ruta) => `<tr ${ruta ? `data-ruta="${esc(ruta)}"` : ""}><td><b>${esc(lab)}</b><small>${esc(sub)}</small></td><td class="num">${fmt(o.base)}</td><td class="num"><span class="evp ${cls(o)}">${fmt(o.rn)}</span><small>${fmt(o.base ? o.rn / o.base * 100 : 0, 1)}%</small></td><td class="num">${fmt(o.meta)}</td><td class="num"><b class="${o.falt ? "bad" : "ok"}">${o.falt ? fmt(o.falt) : "✓"}</b></td><td class="num"><b>${o.falt ? fmt(o.dia) : "—"}</b></td><td class="num rnb">${bk(o).map(x => x ? `<b>${x}</b>` : `<span>0</span>`).join(" · ")}</td></tr>`;
+  // segmentos de equipos en R+N (de más fácil a más difícil de pasar)
+  const SEGS = RN_BUCKETS.map(([k, l], i) => ({k, seg:"rnb:" + k, l:l.replace("Rojo ", ""), c:"s" + i, n:o => o.b[k] || 0})).concat([{k:"negro", seg:"rnneg", l:"Negro", c:"sn", n:o => o.negro}]);
+  const bar = (o, big) => { const sc = Math.max(o.rn, o.meta, 1);
+    return `<div class="rnbar ${big ? "big" : ""}" role="img" aria-label="${fmt(o.rn)} equipos en R+N, meta ${fmt(o.meta)}">${SEGS.map(s => { const n = s.n(o); return n ? `<i class="${s.c}" style="width:${n / sc * 100}%" title="${esc(s.l)}: ${n}">${big && n / sc > .06 ? n : ""}</i>` : ""; }).join("")}<b class="mk" style="left:${o.meta / sc * 100}%" title="Meta ${fmt(o.meta)}"></b></div>`; };
+  const chips = o => SEGS.filter(s => s.n(o)).map(s => `<span class="sg"><i class="${s.c}"></i>${esc(s.l)} <b>${s.n(o)}</b></span>`).join("") || `<span class="sg">Sin equipos en R+N</span>`;
+  h += `<h4 class="cpt">Equipos en R+N por segmento</h4><p class="note" style="margin:0 0 8px">De izquierda a derecha, de más fácil a más difícil de pasar: el segmento son las cajas que le faltan al equipo para salir de rojo. La línea blanca es la meta. Toca un segmento para ver esos clientes.</p>`;
+  h += bar(tot, true);
+  h += `<div class="seglist">` + SEGS.map(s => { const n = s.n(tot); return `<button class="segb ${F.segs.includes(s.seg) ? "on" : ""}" data-seg="${s.seg}" ${n ? "" : "disabled"}><i class="${s.c}"></i><span class="sl">${s.k === "negro" ? "Negro" : "Rojo " + esc(s.l)}<small>${s.k === "negro" ? "sin compra" : "cajas faltantes"}</small></span><b class="num">${fmt(n)}</b><small class="num">${fmt(nCliSeg(s.seg))} cli.</small></button>`; }).join("") + `</div>`;
+  const card = (lab, sub, o, ruta) => `<div class="rncard ${cls(o)}" ${ruta ? `data-ruta="${esc(ruta)}" role="button" tabindex="0" title="Filtrar la ruta ${esc(ruta)}"` : ""}>
+    <div class="rh"><span class="rl"><b>${esc(lab)}</b><small>${esc(sub)}</small></span><span class="rs ${o.falt ? "bad" : "ok"}">${o.falt ? `Faltan <b>${fmt(o.falt)}</b>` : "✓ En meta"}</span></div>
+    <div class="rk"><span><small>R+N</small><b class="${cls(o)}">${fmt(o.rn)}</b><em>${fmt(o.base ? o.rn / o.base * 100 : 0, 1)}% de ${fmt(o.base)}</em></span><span><small>Meta</small><b>${fmt(o.meta)}</b><em>máximo</em></span><span><small>Por día</small><b>${o.falt ? fmt(o.dia) : "—"}</b><em>${o.falt ? "equipos" : "&nbsp;"}</em></span></div>
+    ${bar(o)}<div class="sgs">${chips(o)}</div></div>`;
+  const grid = arr => `<div class="rngrid">${arr.join("")}</div>`;
   const byAg = new Map(); for (const r of rutas){ const a = agenciaDe(r); if (!byAg.has(a)) byAg.set(a, []); byAg.get(a).push(r); }
-  if (byAg.size > 1) h += `<h4 class="cpt">Por agencia</h4><div class="tw"><table class="rt evt rnt">${head("Agencia")}<tbody>` + [...byAg.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([a, rs]) => row(a, `${rs.length} rutas · meta ${fmt(rnMetaPct(rs[0]) * 100, 1)}%`, sumOf(rs))).join("") + `</tbody></table></div>`;
+  if (byAg.size > 1) h += `<h4 class="cpt">Por agencia</h4>` + grid([...byAg.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([a, rs]) => card(a, `${rs.length} rutas · meta ${fmt(rnMetaPct(rs[0]) * 100, 1)}%`, sumOf(rs))));
   const bySup = new Map(); for (const r of rutas){ const s = DB.rn.rutas.get(r).sup || "—"; if (!bySup.has(s)) bySup.set(s, []); bySup.get(s).push(r); }
-  if (bySup.size > 1) h += `<h4 class="cpt">Por supervisor</h4><div class="tw"><table class="rt evt rnt">${head("Supervisor")}<tbody>` + [...bySup.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([s, rs]) => row(s, rs.length + " rutas", sumOf(rs))).join("") + `</tbody></table></div>`;
-  const tR = `<div class="tw"><table class="rt evt rnt">${head("Ruta")}<tbody>` + rutas.map(r => { const o = rowOf(r); return row(r, o.sup, o, r); }).join("") + `</tbody></table></div>`;
-  h += bySup.size > 1 ? `<details class="pmore rdet"><summary>Por vendedor (ruta) · ${rutas.length} rutas</summary>${tR}</details></section>` : `<h4 class="cpt">Por vendedor (ruta)</h4>${tR}</section>`;
+  if (bySup.size > 1) h += `<h4 class="cpt">Por supervisor</h4>` + grid([...bySup.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([s, rs]) => card(s, rs.length + " rutas", sumOf(rs))));
+  const ordR = [...rutas].sort((a, b) => rowOf(b).falt - rowOf(a).falt || a.localeCompare(b));
+  const tR = grid(ordR.map(r => { const o = rowOf(r); return card("Ruta " + r, o.sup, o, r); }));
+  h += bySup.size > 1 ? `<details class="pmore rdet"><summary>Por vendedor (ruta) · ${rutas.length} rutas · las que más faltan primero</summary>${tR}</details></section>` : `<h4 class="cpt">Por vendedor (ruta) · las que más faltan primero</h4>${tR}</section>`;
   return h;
 }
 /* ---------- coberturas de pago: supervisor y vendedor (ruta) ---------- */
