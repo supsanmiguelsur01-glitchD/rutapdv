@@ -951,6 +951,11 @@ table.rt tbody tr:hover td{background:rgba(25,211,255,.07)}
 .pdel:hover{color:var(--bad)}
 .bar.on{border-color:var(--cyan)}
 .bar.on .bl::before,.kpi.on .kl::before{content:"✓ ";color:var(--cyan)}
+/* coberturas de pago */
+.cp .cpt{font:700 12.5px var(--f-tech);letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:12px 0 6px}
+.cp .cpc{display:flex;flex-direction:column;gap:3px;padding:6px 4px}
+.kv.na{color:var(--dim)}
+.rnt .rnb{white-space:nowrap;color:var(--muted)} .rnt .rnb b{color:var(--bad)} .rnt td b.bad{color:var(--bad)} .rnt td b.ok{color:var(--ok)}
 /* promociones */
 .plist{display:grid;gap:8px}
 .pcard{border:1px solid var(--line2);border-radius:12px;padding:10px 12px;background:var(--field);display:grid;gap:6px}
@@ -1163,7 +1168,8 @@ const SHEETS = {
   mon:       {names:["MONITOREO"], key:"codigo cliente", also:"status"},
   vpo:       {names:["VPO"],       key:"cliente_id", also:"meta (cj)"},
   ev:        {names:["EVEREST","Sheet1"], key:"meta pepsi ms"},
-  promos:    {names:["PROMOS"],    key:"promoción", also:"hasta"}
+  promos:    {names:["PROMOS"],    key:"promoción", also:"hasta"},
+  cp:        {names:["Metas Cobertura SM"], key:"meta 1.5l y 3l", also:"ruta"}
 };
 const low = v => str(v).toLowerCase();
 const normFr = v => { const f = str(v).toUpperCase(); return (f === "0" || f === "NONE" || f === "-") ? "" : f; };
@@ -1193,12 +1199,24 @@ function pickSheets(wbIn){
       for (const n of best.wb.SheetNames){ const rows = rowsOf(best.wb, n) || []; for (const r of rows.slice(0, 8)) for (const x of (r || [])){ const m = str(x).match(/corte\s+(\d{1,2}\/\d{1,2}\/\d{4})(?:\s+(\d{1,2}:\d{2}))?/i); if (m && !corte) corte = m[1] + (m[2] ? " " + m[2] : ""); } }
       out.evInfo = {periodo, corte};
     }
+    if (id === "cp" && best){
+      // período ("Periodo: septiembre 2026") y fecha de revisión del archivo de coberturas de pago
+      let periodo = "", corte = "";
+      const all = best.rows;
+      for (const r of [...best.pre, ...all]) for (let i = 0; i < (r || []).length; i++){
+        const x = str(r[i]); let m;
+        if (!periodo && (m = x.match(/periodo:?\s*([a-záéíóú]+\s+\d{4})/i))) periodo = m[1].toLowerCase();
+        if (!corte && /fecha de revisi[oó]n|fecha de corte/i.test(x)){ const v = r.slice(i + 1).find(y => y != null && y !== ""); const d = typeof v === "number" ? new Date(Math.round((v - 25569) * 864e5)) : null; corte = d ? `${String(d.getUTCDate()).padStart(2,"0")}/${String(d.getUTCMonth()+1).padStart(2,"0")}/${d.getUTCFullYear()}` : str(v); }
+        if (!periodo && /corte de datos/i.test(x)){ const v = r.slice(i + 1).find(y => y != null && y !== ""); if (v && /[a-z]+\s+\d{4}/i.test(str(v))) periodo = str(v).toLowerCase(); }
+      }
+      out.cpInfo = {periodo, corte};
+    }
   }
   return out;
 }
 function fromEmbed(e){
   e = e || {};
-  return {maestra:e["maestra"]||[], listados:e["LISTADOS"]||[], ac:e["AC BASE"]||[], rn:e["Base"]||[], mon:e["MONITOREO"]||[], vpo:e["VPO"]||[], ev:e["EVEREST"]||[], evInfo:e.evInfo||null, promos:e["PROMOS"]||[]};
+  return {maestra:e["maestra"]||[], listados:e["LISTADOS"]||[], ac:e["AC BASE"]||[], rn:e["Base"]||[], mon:e["MONITOREO"]||[], vpo:e["VPO"]||[], ev:e["EVEREST"]||[], evInfo:e.evInfo||null, promos:e["PROMOS"]||[], cp:e["COBPAGO"]||[], cpInfo:e.cpInfo||null};
 }
 
 /* ---------- modelo ---------- */
@@ -1288,13 +1306,27 @@ function build(S){
     }
   }
   // R+N
+  let rnSem = false; const rnRutas = new Map();
   if (S.rn.length){
     const I = idx(S.rn[0]);
     const cC=I("codigo de cliente"), cM=I("material"), cSe=I("numero serie"), cNr=I("necesidad real amarilla"), cN=I("establecimiento");
+    const cSem = S.rn[0].findIndex(x => /semaforo real/i.test(str(x))), cRg = S.rn[0].findIndex(x => low(x) === "rango hoy");
+    const cR = I("ruta"), cSup = I("supervisor");
+    rnSem = cSem >= 0;
     for (const r of S.rn.slice(1)){
       const c = code(r[cC]); if (c == null) continue;
+      const sem = cSem >= 0 ? str(r[cSem]).toUpperCase() : "", rango = cRg >= 0 ? str(r[cRg]) : "";
+      const ruta = cR >= 0 ? str(code(r[cR]) ?? r[cR]) : "";
+      // resumen R+N por ruta (como la hoja "Resumen Laterales"): base de equipos, rojo por rango y negro
+      if (rnSem && ruta && !/999$/.test(ruta)){
+        if (!rnRutas.has(ruta)) rnRutas.set(ruta, {ruta, sup:"", base:0, verde:0, amarillo:0, rojo:0, negro:0, b:{}});
+        const o = rnRutas.get(ruta); o.base++; if (!o.sup && cSup >= 0) o.sup = str(r[cSup]);
+        if (sem === "VERDE") o.verde++; else if (sem === "AMARILLO") o.amarillo++;
+        else if (sem === "NEGRO") o.negro++;
+        else if (sem === "ROJO"){ o.rojo++; const k = rnBucket(rango); o.b[k] = (o.b[k] || 0) + 1; }
+      }
       const p = get(c); if (!p.n) p.n = str(r[cN]);
-      p.rn.push({mat:str(r[cM]), serie:str(r[cSe]), nec:num(r[cNr])});
+      p.rn.push({mat:str(r[cM]), serie:str(r[cSe]), nec:num(r[cNr]), sem, rango});
     }
   }
   // Monitoreo equipos de frío
@@ -1364,7 +1396,33 @@ function build(S){
       if (any) ev.rutas.set(ruta, o);
     }
   }
-  DB = {pdv, covCols, acCols, sups, rutas, rutaSup, vpoPlan, ev, promos: parsePromos(S.promos || [])};
+  for (const o of rnRutas.values()){ o.rn = o.rojo + o.negro; }
+  DB = {pdv, covCols, acCols, sups, rutas, rutaSup, vpoPlan, ev, promos: parsePromos(S.promos || []), cp: parseCPago(S.cp || [], S.cpInfo), rn:{sem:rnSem, rutas:rnRutas, meta: Object.assign({}, RN_META_DEF, S.rnMeta || {})}};
+}
+/* ---------- R+N (rojo + negro) ---------- */
+// Meta R+N por agencia: % máximo de equipos fríos en rojo o negro. Norte = la meta que trae la hoja "Resumen Laterales" (5%); Sur = 5%.
+const RN_META_DEF = {"San Miguel Norte": 0.05, "San Miguel Sur": 0.05};
+const RN_BUCKETS = [["3 a 1","Rojo 3 a 1"],["6 a 4","Rojo 6 a 4"],["10 a 7","Rojo 10 a 7"],["15 a 10","Rojo 15 a 10"],["15 +","Rojo 15+"]];
+function rnBucket(r){ r = str(r).replace(/\s+/g, " ").trim(); if (/^15\s*\+/.test(r)) return "15 +"; const b = RN_BUCKETS.find(([k]) => k === r); return b ? b[0] : "otro"; }
+const rnMetaPct = ruta => { const ag = agenciaDe(ruta); const m = DB.rn && DB.rn.meta ? DB.rn.meta[ag] : null; return m != null ? m : 0.05; };
+const isRN = e => e.sem === "ROJO" || e.sem === "NEGRO";
+/* ---------- Coberturas de pago (Seguimiento TU's / Metas Cobertura SM): meta y real por ruta ---------- */
+const CP_CATS = [["ms","1.5L y 3L"],["sku4","4 SKU"],["colas","Colas SV"]];
+function parseCPago(rows, info){
+  const cp = {rutas:new Map(), info: info || null};
+  if (!rows || rows.length < 2) return cp;
+  const h = rows[0].map(low);
+  const col = n => h.indexOf(n);
+  const ri = col("ruta"), si = col("supervisor"), ai = col("agencia");
+  const C = {l15:["meta 1.5l","real 1.5l"], l3:["meta 3l","real 3l"], ms:["meta 1.5l y 3l","real 1.5l y 3l"], sku4:["meta 4 sku","real 4 sku"], colas:["meta colas sv","real colas sv"]};
+  for (const r of rows.slice(1)){
+    const ruta = str(code(r[ri]) ?? r[ri]); if (!ruta || !/^\d+$/.test(ruta)) continue;
+    const o = {ruta, sup: si >= 0 ? str(r[si]) : "", ag: ai >= 0 ? str(r[ai]) : agenciaDe(ruta)};
+    let any = false;
+    for (const [k, [m, re]] of Object.entries(C)){ const mi = col(m), ci = col(re); o[k] = {meta: mi >= 0 ? (num(r[mi]) || 0) : 0, real: ci >= 0 ? (num(r[ci]) || 0) : 0}; if (CP_CATS.some(([x]) => x === k) && o[k].meta) any = true; }
+    if (any) cp.rutas.set(ruta, o);
+  }
+  return cp;
 }
 /* ---------- Acciones comerciales: catálogo de promociones (deck) + elegibilidad (AC BASE) ---------- */
 function toDate(v){
@@ -1460,7 +1518,7 @@ async function decryptPack(buf, code){
 }
 
 const EMBED = /*__DATA__*/null;
-const EMBED_LABEL = EMBED ? "listados.xlsx + Everest + Promos vigentes (laboral)" : "sin datos cargados";
+const EMBED_LABEL = EMBED ? "listados.xlsx + Everest + Cob. de pago + Promos (laboral)" : "sin datos cargados";
 const DEFAULT_SUP = EMBED ? "BRYAN ESCOBAR" : "";
 
 /* ---------- visitas (checks) ---------- */
@@ -1488,11 +1546,13 @@ const rnNec = p => p.rn.reduce((m, r) => Math.max(m, r.nec || 0), 0);
 const wellPend = p => p.eq.filter(e => /no\s*le[ií]do/i.test(e.status));
 const well60 = p => p.eq.some(e => /\+\s*60/.test(e.status));
 const covPend = p => p.cov ? p.cov.groups.filter(g => !g.ok) : [];
-const SEG_LABEL = {covpend:"Con coberturas pendientes", covok:"Coberturas completas", rn:"Con R+N", nec:"Necesidad amarilla", well:"Wellington pendiente", well60:"Wellington +60 días", hoy:"Programados hoy sin visitar", novis:"Sin visitar hoy", visto:"Visitados hoy", vpopend:"VPO por cumplir", vpo:"Con plan VPO", conpromo:"Con promo vigente dirigida"};
+const SEG_LABEL = {covpend:"Con coberturas pendientes", covok:"Coberturas completas", rn:"Con R+N", nec:"Necesidad amarilla", well:"Wellington pendiente", well60:"Wellington +60 días", hoy:"Programados hoy sin visitar", novis:"Sin visitar hoy", visto:"Visitados hoy", vpopend:"VPO por cumplir", vpo:"Con plan VPO", conpromo:"Con promo vigente dirigida", rnrn:"Equipos en rojo o negro", rnneg:"Equipos en negro"};
 const SEG_FN = {
   covpend: p => covPend(p).length > 0,
   covok: p => !!p.cov && !covPend(p).length,
-  rn: p => p.rn.length > 0,
+  rn: p => DB.rn && DB.rn.sem ? p.rn.some(isRN) : p.rn.length > 0,
+  rnrn: p => p.rn.some(isRN),
+  rnneg: p => p.rn.some(e => e.sem === "NEGRO"),
   nec: p => rnNec(p) > 0,
   well: p => wellPend(p).length > 0,
   well60: p => well60(p),
@@ -1502,7 +1562,8 @@ const SEG_FN = {
   vpopend: p => !!p.vpo && (p.vpo.pct || 0) < 1,
   vpo: p => !!p.vpo,
   conpromo: p => nPromosCliente(p) > 0
-};
+};RN_BUCKETS.forEach(([k, l]) => { SEG_LABEL["rnb:" + k] = "Equipos " + l.toLowerCase(); SEG_FN["rnb:" + k] = p => p.rn.some(e => e.sem === "ROJO" && rnBucket(e.rango) === k); });
+
 const promoById = id => (DB.promos || []).find(x => x.id === id);
 const promoNombre = id => (promoById(id) || {}).n || id;
 function promoPassK(p, k){ const pr = promoById(k); return pr ? promoElegible(pr, p) : p.ac.includes(k); }
@@ -1581,7 +1642,7 @@ function cardHTML(p){
   const covTxt = pct == null ? "Sin cobertura" : `${p.cov.okN}/${p.cov.n} cob.`;
   const dist = p._d != null ? `<span class="dist num">${p._d < 1 ? Math.round(p._d*1000)+" m" : fmt(p._d,1)+" km"}</span>` : "";
   const nec = rnNec(p), wp = wellPend(p).length;
-  const segN = (nec > 0 ? `<span class="pill warn" title="Necesidad real amarilla">Nec ${fmt(nec)}</span>` : "") + (wp ? `<span class="pill bad" title="Equipos sin lectura Wellington">Well ${wp}</span>` : "");
+  const segN = (nec > 0 ? `<span class="pill warn" title="Necesidad real amarilla">Nec ${fmt(nec)}</span>` : "") + (wp ? `<span class="pill bad" title="Equipos sin lectura Wellington">Well ${wp}</span>` : "") + (DB.rn && DB.rn.sem && rnEq(p).length ? `<span class="pill bad" title="Equipos fríos en rojo o negro">R+N ${rnEq(p).length}</span>` : "");
   const acN = segN + (nPromosCliente(p) ? `<span class="pill acc" title="Promociones vigentes para este cliente">${nPromosCliente(p)} promo</span>` : "") + (p.vpo ? `<span class="pill ${p.vpo.pct >= 1 ? "ok" : "warn"}">VPO ${p.vpo.pct != null ? Math.round(p.vpo.pct*100)+"%" : "0%"}</span>` : "");
   return `<button class="card ${visitedToday(p.c)?"visited":""}" data-pdv="${p.c}">
     <span class="nm">${esc(p.n || "(sin nombre)")}</span>
@@ -1647,7 +1708,7 @@ function renderPanel(){
   const conCov = L.filter(p => p.cov), covAvg = conCov.length ? conCov.reduce((a, p) => a + p.cov.okN, 0) / conCov.length : 0;
   const nItems = conCov[0]?.cov.n || COV_GROUPS.length;
   const covP = conCov.filter(p => covPend(p).length).length, covFull = conCov.length - covP;
-  const rn = L.filter(p => p.rn.length), rnEq = rn.reduce((a, p) => a + p.rn.length, 0);
+  const rn = L.filter(SEG_FN.rn), rnEqN = rn.reduce((a, p) => a + (DB.rn.sem ? rnEq(p).length : p.rn.length), 0);
   const nec = L.filter(p => rnNec(p) > 0), necSum = nec.reduce((a, p) => a + rnNec(p), 0);
   const wl = L.filter(p => wellPend(p).length), wlEq = wl.reduce((a, p) => a + wellPend(p).length, 0), w60 = L.filter(well60).length;
   const vp = L.filter(p => p.vpo), vpPend = vp.filter(p => (p.vpo.pct || 0) < 1).length, vpAvg = vp.length ? vp.reduce((a, p) => a + Math.min(1, p.vpo.pct || 0), 0) / vp.length : 0;
@@ -1658,11 +1719,13 @@ function renderPanel(){
   const tile = (act, lab, val, sub, m, cls) => `<button class="kpi ${cls||""} ${act && F.segs.includes(act) ? "on" : ""}" ${act ? `data-seg="${act}"` : "disabled"}><span class="kl">${lab}</span><span class="kv num">${val}</span><span class="ks">${sub}</span>${m || ""}</button>`;
   let h = `<div class="phead"><div><h2>Panel de seguimiento</h2><p class="note">${esc(scope)} · ${fmt(n)} PDV</p></div></div>`;
   h += renderBuilder(L);
+  h += renderCPago(L);
+  h += renderRN(L);
   h += renderEverest(L);
   h += `<p class="note">Toca uno o varios indicadores, categorías o promociones para armar tu filtro personalizado.</p><div class="kpis">`;
   h += tile("hoy", "Visitas de hoy", `${fmt(hoyVis)}<small>/${fmt(hoy.length)}</small>`, hoy.length ? `${fmt(hoy.length - hoyVis)} pendientes de ${DAY_NAMES[tl] || "hoy"}` : "Hoy no hay clientes programados", meter(hoy.length ? hoyVis / hoy.length : 0, "ok"));
   h += tile("covpend", "Coberturas pendientes", fmt(covP), `clientes · cobertura prom. ${fmt(covAvg, 1)}/${nItems} · ${fmt(covFull)} con las ${nItems} completas`, meter(conCov.length ? covFull / conCov.length : 0, "ok"), "warnk");
-  h += tile("rn", "Clientes con R+N", fmt(rn.length), `${fmt(rnEq)} equipos registrados`, "");
+  h += tile("rn", DB.rn.sem ? "Clientes con R+N (rojo/negro)" : "Clientes con R+N", fmt(rn.length), DB.rn.sem ? `${fmt(rnEqN)} equipos en rojo o negro` : `${fmt(rnEqN)} equipos registrados`, "", DB.rn.sem ? "badk" : "");
   h += tile("nec", "Necesidad amarilla", fmt(nec.length), `clientes · necesidad total ${fmt(necSum)}`, "", "warnk");
   h += tile("well", "Wellington pendiente", fmt(wl.length), `clientes · ${fmt(wlEq)} equipos sin lectura`, "", "badk");
   h += tile("well60", "Wellington +60 días", fmt(w60), "clientes con equipos sin leer más de 60 días", "", "badk");
@@ -1694,9 +1757,9 @@ function renderPanel(){
 /* ---------- Everest: alcance, faltantes y necesidad diaria por ruta ---------- */
 const EV_CATS = [["multi","Pepsi Multi Serve"],["single","Pepsi Single Serve"],["gatorade","Gatorade 600 ML PET"],["cerveza","Cerveza"]];
 const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
-function evDias(){
+function evDias(infoIn){
   // días hábiles (lunes a sábado) desde hoy hasta fin del mes del período, contando hoy
-  const info = DB.ev.info || {}, hoy = new Date(); hoy.setHours(0,0,0,0);
+  const info = infoIn || DB.ev.info || {}, hoy = new Date(); hoy.setHours(0,0,0,0);
   let y = hoy.getFullYear(), m = hoy.getMonth();
   const pm = String(info.periodo || "").toLowerCase().match(/([a-záéíóú]+)\s+(\d{4})/);
   if (pm && MESES.indexOf(pm[1]) >= 0){ m = MESES.indexOf(pm[1]); y = +pm[2]; }
@@ -1728,6 +1791,71 @@ function renderEverest(L){
   return h;
 }
 
+/* ---------- R+N: equipos fríos en rojo y negro contra la meta ---------- */
+const rnEq = p => p.rn.filter(isRN);
+function renderRN(L){
+  if (!DB.rn || !DB.rn.sem || !DB.rn.rutas.size) return "";
+  const rutas = [...new Set(L.map(p => p.ruta))].filter(r => DB.rn.rutas.has(r)).sort();
+  if (!rutas.length) return "";
+  const hoy = new Date(); const {dias, fin} = evDias({periodo: MESES[hoy.getMonth()] + " " + hoy.getFullYear()});
+  const rowOf = r => { const o = DB.rn.rutas.get(r), pct = rnMetaPct(r), meta = Math.round(o.base * pct), falt = Math.max(0, o.rn - meta); return {...o, pct, meta, falt, dia: dias ? Math.ceil(falt / dias) : falt}; };
+  const sumOf = rs => { const t = {base:0, rn:0, rojo:0, negro:0, meta:0, falt:0, dia:0, b:{}}; for (const r of rs){ const o = rowOf(r); for (const k of ["base","rn","rojo","negro","meta","falt","dia"]) t[k] += o[k]; for (const [k, v] of Object.entries(o.b)) t.b[k] = (t.b[k] || 0) + v; } return t; };
+  const tot = sumOf(rutas);
+  const pcts = [...new Set(rutas.map(rnMetaPct))].map(x => fmt(x * 100, 1) + "%").join(" / ");
+  const cls = o => o.falt === 0 ? "ok" : o.rn <= o.meta * 1.5 ? "warn" : "bad";
+  const bk = o => RN_BUCKETS.map(([k]) => o.b[k] || 0).concat([o.negro]);
+  const nCli = k => L.filter(SEG_FN[k]).length;
+  let h = `<section class="psec ev rnp"><div class="evhead"><div><h3>R+N · Rojo y negro · meta ${pcts}</h3><p class="note">${dias ? `<b>${dias}</b> días hábiles restantes (lunes a sábado, hasta el ${fin.getDate()}/${fin.getMonth() + 1})` : "Último día del mes"} · ${rutas.length} ruta${rutas.length > 1 ? "s" : ""} · meta = equipos en rojo + negro que como máximo puede tener cada ruta (base × %)</p></div></div>`;
+  h += `<div class="kpis">`;
+  h += `<div class="kpi evk"><span class="kl">R+N actual</span><span class="kv num ${cls(tot)}">${fmt(tot.rn)}</span><span class="ks">${fmt(tot.base ? tot.rn / tot.base * 100 : 0, 1)}% de ${fmt(tot.base)} equipos · ${fmt(tot.rojo)} rojo · ${fmt(tot.negro)} negro</span></div>`;
+  h += `<div class="kpi evk"><span class="kl">Meta (máximo)</span><span class="kv num">${fmt(tot.meta)}</span><span class="ks">equipos en R+N permitidos (${pcts} de la base)</span></div>`;
+  h += `<button class="kpi evk ${F.segs.includes("rnrn") ? "on" : ""}" data-seg="rnrn"><span class="kl">Faltan pasar</span><span class="kv num ${tot.falt ? "bad" : "ok"}">${fmt(tot.falt)}</span><span class="ks">equipos a sacar de rojo/negro · ${fmt(nCli("rnrn"))} clientes con equipos en R+N</span><span class="ks">Necesidad diaria: <b class="num">${fmt(tot.dia)}</b> equipos/día</span>${meter(tot.rn ? Math.min(1, tot.meta / tot.rn) : 1, tot.falt ? "" : "ok")}</button>`;
+  h += `</div>`;
+  h += `<p class="note">Más fáciles primero: el rango indica cuántas cajas le faltan al equipo para salir de rojo. Toca un rango para ver esos clientes.</p><div class="xtra">` + RN_BUCKETS.map(([k, l]) => `<button class="fopt ${F.segs.includes("rnb:" + k) ? "on" : ""}" data-seg="rnb:${k}">${esc(l)} <small class="num">${fmt(tot.b[k] || 0)}</small></button>`).join("") + `<button class="fopt ${F.segs.includes("rnneg") ? "on" : ""}" data-seg="rnneg">Negro <small class="num">${fmt(tot.negro)}</small></button></div>`;
+  const head = first => `<thead><tr><th>${first}</th><th>Base</th><th>R+N</th><th>Meta</th><th>Faltan</th><th>/día</th><th>3-1 · 6-4 · 10-7 · 15-10 · 15+ · N</th></tr></thead>`;
+  const row = (lab, sub, o, ruta) => `<tr ${ruta ? `data-ruta="${esc(ruta)}"` : ""}><td><b>${esc(lab)}</b><small>${esc(sub)}</small></td><td class="num">${fmt(o.base)}</td><td class="num"><span class="evp ${cls(o)}">${fmt(o.rn)}</span><small>${fmt(o.base ? o.rn / o.base * 100 : 0, 1)}%</small></td><td class="num">${fmt(o.meta)}</td><td class="num"><b class="${o.falt ? "bad" : "ok"}">${o.falt ? fmt(o.falt) : "✓"}</b></td><td class="num"><b>${o.falt ? fmt(o.dia) : "—"}</b></td><td class="num rnb">${bk(o).map(x => x ? `<b>${x}</b>` : `<span>0</span>`).join(" · ")}</td></tr>`;
+  const bySup = new Map(); for (const r of rutas){ const s = DB.rn.rutas.get(r).sup || "—"; if (!bySup.has(s)) bySup.set(s, []); bySup.get(s).push(r); }
+  if (bySup.size > 1) h += `<h4 class="cpt">Por supervisor</h4><div class="tw"><table class="rt evt rnt">${head("Supervisor")}<tbody>` + [...bySup.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([s, rs]) => row(s, rs.length + " rutas", sumOf(rs))).join("") + `</tbody></table></div>`;
+  h += `<h4 class="cpt">Por vendedor (ruta)</h4><div class="tw"><table class="rt evt rnt">${head("Ruta")}<tbody>` + rutas.map(r => { const o = rowOf(r); return row(r, o.sup, o, r); }).join("") + `</tbody></table></div></section>`;
+  return h;
+}
+/* ---------- coberturas de pago: supervisor y vendedor (ruta) ---------- */
+const cpCls = (o) => !o.meta ? "na" : o.real / o.meta >= 1 ? "ok" : o.real / o.meta >= .8 ? "warn" : "bad";
+const cpDia = (falt, dias) => dias ? Math.ceil(falt / dias) : null;
+function cpCell(o, dias, sub){
+  if (!o || !o.meta) return `<td class="evc na">${o && o.real ? `<span class="evf">sin meta · real ${fmt(o.real)}</span>` : "—"}</td>`;
+  const pct = o.real / o.meta, falt = o.falt ?? Math.max(0, o.meta - o.real), dia = o.dia ?? cpDia(falt, dias), cls = cpCls(o);
+  return `<td class="evc"><div class="cpc"><span class="evp ${cls}">${Math.round(pct * 100)}%</span><span class="evm"><i class="${cls}" style="width:${Math.min(100, Math.round(pct * 100))}%"></i></span><span class="evf">${fmt(o.real)}/${fmt(o.meta)} · ${falt ? `faltan <b>${fmt(falt)}</b>${dia != null ? ` · <b>${fmt(dia)}</b>/día` : ""}` : "meta cumplida"}</span>${sub ? `<span class="evf">${sub}</span>` : ""}</div></td>`;
+}
+function renderCPago(L){
+  if (!DB.cp || !DB.cp.rutas.size) return "";
+  const rutas = [...new Set(L.map(p => p.ruta))].filter(r => DB.cp.rutas.has(r)).sort();
+  if (!rutas.length) return "";
+  const {dias, fin, periodo, corte} = evDias(DB.cp.info || {});
+  const sumOf = rs => { const t = {}; for (const k of ["ms","sku4","colas","l15","l3"]) t[k] = {meta:0, real:0, falt:0, dia:0}; for (const r of rs){ const o = DB.cp.rutas.get(r); for (const k in t){ const base = (k === "l15" || k === "l3") ? "ms" : k; if (!o[base].meta) continue; const f = Math.max(0, o[k].meta - o[k].real); t[k].meta += o[k].meta; t[k].real += o[k].real; t[k].falt += f; t[k].dia += dias ? Math.ceil(f / dias) : 0; } } if (!dias) for (const k in t) t[k].dia = null; return t; };   // como el resumen del archivo: solo rutas con meta en esa categoría
+  const tot = sumOf(rutas);
+  const faltOf = c => c.meta ? (c.falt ?? Math.max(0, c.meta - c.real)) : 0;
+  const diaTot = o => CP_CATS.reduce((a, [k]) => a + (dias && o[k].meta ? (o[k].dia ?? Math.ceil(faltOf(o[k]) / dias)) : 0), 0);
+  const faltTot = o => CP_CATS.reduce((a, [k]) => a + faltOf(o[k]), 0);
+  const msSub = o => `1.5L ${fmt(o.l15.real)}/${fmt(o.l15.meta)} · 3L ${fmt(o.l3.real)}/${fmt(o.l3.meta)}`;
+  let h = `<section class="psec ev cp"><div class="evhead"><div><h3>Coberturas de pago · ${esc(periodo)}</h3><p class="note">${corte ? "Revisión " + esc(corte) + " · " : ""}${dias ? `<b>${dias}</b> días hábiles restantes (lunes a sábado, hasta el ${fin.getDate()}/${fin.getMonth() + 1})` : `<span style="color:var(--warn)">Período cerrado: carga el seguimiento del mes actual para ver la necesidad diaria</span>`} · ${rutas.length} ruta${rutas.length > 1 ? "s" : ""}</p></div></div>`;
+  h += `<div class="kpis">` + CP_CATS.map(([k, lab]) => { const t = tot[k];
+    if (!t.meta) return `<div class="kpi evk" aria-disabled="true"><span class="kl">${lab}</span><span class="kv num na">—</span><span class="ks">Sin meta en este alcance${t.real ? ` · real ${fmt(t.real)}` : ""}</span></div>`;
+    const pct = t.real / t.meta, falt = t.falt, cls = cpCls(t);
+    return `<div class="kpi evk"><span class="kl">${lab}</span><span class="kv num ${cls}">${Math.round(pct * 100)}%</span><span class="ks">${fmt(t.real)} de ${fmt(t.meta)} coberturas · faltan <b>${fmt(falt)}</b></span><span class="ks">Necesidad del día: <b class="num">${dias ? fmt(t.dia) : "—"}</b>${dias ? " coberturas/día" : ""}</span>${k === "ms" ? `<span class="ks">${msSub(tot)}</span>` : ""}${meter(pct, pct >= 1 ? "ok" : "")}</div>`; }).join("") + `</div>`;
+  h += `<p class="note">"Faltan" suma lo pendiente de cada ruta (una ruta que pasa su meta no compensa a otra). Necesidad del día = faltantes de cada ruta ÷ días hábiles restantes.${dias ? ` Total del alcance: faltan <b>${fmt(faltTot(tot))}</b> · <b>${fmt(diaTot(tot))}</b> por día.` : ""}</p>`;
+  const head = first => `<thead><tr><th>${first}</th>${CP_CATS.map(([, l]) => `<th>${l}</th>`).join("")}<th>Faltan</th><th>Total /día</th></tr></thead>`;
+  // por supervisor
+  const bySup = new Map(); for (const r of rutas){ const s = DB.cp.rutas.get(r).sup || "—"; if (!bySup.has(s)) bySup.set(s, []); bySup.get(s).push(r); }
+  if (bySup.size > 1){
+    h += `<h4 class="cpt">Por supervisor</h4><div class="tw"><table class="rt evt">${head("Supervisor")}<tbody>` + [...bySup.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([s, rs]) => { const o = sumOf(rs);
+      return `<tr><td><b>${esc(s)}</b><small>${rs.length} rutas</small></td>${CP_CATS.map(([k]) => cpCell(o[k], dias, k === "ms" ? msSub(o) : "")).join("")}<td class="num"><b>${fmt(faltTot(o))}</b></td><td class="num"><b>${dias ? fmt(diaTot(o)) : "—"}</b></td></tr>`; }).join("") + `</tbody></table></div>`;
+  }
+  // por vendedor (ruta)
+  h += `<h4 class="cpt">Por vendedor (ruta)</h4><div class="tw"><table class="rt evt">${head("Ruta")}<tbody>` + rutas.map(r => { const o = DB.cp.rutas.get(r);
+    return `<tr><td><b>${esc(r)}</b><small>${esc(o.sup)}</small></td>${CP_CATS.map(([k]) => cpCell(o[k], dias, k === "ms" ? msSub(o) : "")).join("")}<td class="num"><b>${fmt(faltTot(o))}</b></td><td class="num"><b>${dias ? fmt(diaTot(o)) : "—"}</b></td></tr>`; }).join("") + `</tbody></table></div></section>`;
+  return h;
+}
 function goFocus(){
   needFit = true; SHOWN = 150; renderAll();
   if (window.innerWidth < 900) setTab("list");
@@ -2111,7 +2239,12 @@ function openPdv(c){
       ${kv("Modelo", esc(e.modelo||"—"))}${kv("Status", `<span class="pill ${/\+60/.test(e.status)?"bad":/30/.test(e.status)?"warn":"ok"}">${esc(e.status||"—")}</span>`)}
       ${kv("Visto por", esc(e.visto||"—"))}${kv("GPS equipo", e.gps?`<a style="color:var(--cyan)" href="https://www.google.com/maps?q=${esc(e.gps)}" target="_blank" rel="noopener">Ver ubicación</a>`:"—")}</div></div>`).join("") : `<p class="note" style="margin:0">Sin equipos de monitoreo registrados.</p>`}</div></div>`;
   // R+N
-  h += `<div class="sec"><h3>R+N · Necesidad real<span class="r">${p.rn.length}</span></h3><div class="in">${p.rn.length ? `<div class="kv2">${p.rn.map(r => kv(`${esc(r.mat||"—")}${r.serie?` · <span class="num">${esc(r.serie)}</span>`:""}`, r.nec ? `<span class="num">${fmt(r.nec,2)}</span>` : "Sin necesidad")).join("")}</div>` : `<p class="note" style="margin:0">Sin registros de R+N.</p>`}</div></div>`;
+  {
+    const sem = DB.rn && DB.rn.sem, nRN = rnEq(p).length;
+    const semPill = e => !e.sem ? "" : `<span class="pill ${e.sem === "VERDE" ? "ok" : e.sem === "AMARILLO" ? "warn" : "bad"}" ${e.sem === "NEGRO" ? `style="background:#000;color:#fff;border-color:#555"` : ""}>${esc(e.sem === "ROJO" && e.rango ? "Rojo " + e.rango : e.sem.charAt(0) + e.sem.slice(1).toLowerCase())}</span>`;
+    const ord = [...p.rn].sort((x, y) => (isRN(y) - isRN(x)) || ((y.nec || 0) - (x.nec || 0)));
+    h += `<div class="sec"><h3>R+N · Equipos fríos<span class="r">${sem ? (nRN ? `<span class="pill bad">${nRN} en rojo/negro</span>` : `<span class="pill ok">Sin R+N</span>`) : p.rn.length}</span></h3><div class="in">${p.rn.length ? `<div class="kv2">${ord.map(r => kv(`${esc(r.mat||"—")}${r.serie?` · <span class="num">${esc(r.serie)}</span>`:""}`, `${semPill(r)} ${r.nec ? `<span class="num">Nec. ${fmt(r.nec,2)} cj</span>` : (isRN(r) ? "" : "Sin necesidad")}`)).join("")}</div>${nRN ? `<p class="note" style="margin:0">Para sacar el equipo de rojo/negro hay que llevarlo a amarillo: "Nec." son las cajas que le faltan.</p>` : ""}` : `<p class="note" style="margin:0">Sin equipos en la base R+N.</p>`}</div></div>`;
+  }
   // visita
   h += `<div class="sec"><h3>Visita de hoy<span class="r">${v.t ? "Registrada "+new Date(v.t).toLocaleTimeString("es-SV",{hour:"2-digit",minute:"2-digit"}) : "Pendiente"}</span></h3><div class="in">
     <label class="note" for="vNote">Observaciones</label>
@@ -2217,21 +2350,25 @@ async function handleFile(files){
     if (!S.maestra.length && !S.listados.length){
       const prev = await IDB.get("data");
       const base = prev && prev.S ? prev.S : (typeof EMBED !== "undefined" && EMBED ? fromEmbed(EMBED) : null);
-      if ((S.ev.length || S.promos.length) && base && (base.maestra || []).length){
-        S = Object.assign({}, base, S.ev.length ? {ev:S.ev, evInfo:S.evInfo} : {}, S.promos.length ? {promos:S.promos} : {});
+      if ((S.ev.length || S.promos.length || S.cp.length) && base && (base.maestra || []).length){
+        S = Object.assign({}, base, S.ev.length ? {ev:S.ev, evInfo:S.evInfo} : {}, S.promos.length ? {promos:S.promos} : {}, S.cp.length ? {cp:S.cp, cpInfo:S.cpInfo} : {});
       } else { toast("No encontré las hojas maestra ni LISTADOS en ese archivo"); return; }
     } else if (!S.promos.length){
       const prev = await IDB.get("data"); const old = prev && prev.S ? prev.S.promos : (typeof EMBED !== "undefined" && EMBED ? EMBED.PROMOS : null);
       if (old && old.length) S.promos = old;            // conservar el catálogo de promos al actualizar listados
     }
+    if (!S.cp.length && (S.maestra.length || S.listados.length)){
+      const prev = await IDB.get("data"); const src = prev && prev.S && prev.S.cp && prev.S.cp.length ? prev.S : (typeof EMBED !== "undefined" && EMBED && EMBED.COBPAGO ? {cp:EMBED.COBPAGO, cpInfo:EMBED.cpInfo} : null);
+      if (src){ S.cp = src.cp; S.cpInfo = src.cpInfo; }   // conservar las metas de coberturas de pago
+    }
     build(S);
     SRC = {label:files.map(f => f.name).join(" + "), when:Date.now()};
     await IDB.set("data", {S, SRC});
-    const found = ["maestra","listados","ac","rn","mon","vpo","ev","promos"].filter(k => S[k] && S[k].length).length;
+    const found = ["maestra","listados","ac","rn","mon","vpo","ev","promos","cp"].filter(k => S[k] && S[k].length).length;
     buildFilterUI(); needFit = true; renderAll(); setSrcInfo();
     if (F.sup && !DB.sups.includes(F.sup)){ F.sup = ""; buildFilterUI(); renderAll(); }
     showWelcome();
-    toast(`Actualizado: ${fmt(DB.pdv.size)} PDV (${found}/8 hojas${DB.ev.rutas.size ? ` · meta Everest de ${DB.ev.rutas.size} rutas` : ""}${DB.promos.length ? ` · ${promosVig().length} promos vigentes` : ""})`);
+    toast(`Actualizado: ${fmt(DB.pdv.size)} PDV (${found}/9 hojas${DB.ev.rutas.size ? ` · meta Everest de ${DB.ev.rutas.size} rutas` : ""}${DB.promos.length ? ` · ${promosVig().length} promos vigentes` : ""}${DB.cp.rutas.size ? ` · coberturas de pago de ${DB.cp.rutas.size} rutas` : ""})`);
   }catch(e){ console.error(e); toast("No se pudo leer el archivo. ¿Es un Excel .xlsx?"); }
 }
 function exportVisits(){
