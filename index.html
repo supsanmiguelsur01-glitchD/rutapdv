@@ -956,6 +956,7 @@ table.rt tbody tr:hover td{background:rgba(25,211,255,.07)}
 .cp .cpc{display:flex;flex-direction:column;gap:3px;padding:6px 4px}
 .kv.na{color:var(--dim)}
 .rnt .rnb{white-space:nowrap;color:var(--muted)} .rnt .rnb b{color:var(--bad)} .rnt td b.bad{color:var(--bad)} .rnt td b.ok{color:var(--ok)}
+.rdet{margin-top:12px}
 /* promociones */
 .plist{display:grid;gap:8px}
 .pcard{border:1px solid var(--line2);border-radius:12px;padding:10px 12px;background:var(--field);display:grid;gap:6px}
@@ -1471,8 +1472,8 @@ const nPromosCliente = p => DB.promos && DB.promos.length ? promosVig().filter(p
 const COV_GROUPS = [
   {k:"cerveza", label:"Cerveza"},
   {k:"gatorade", label:"Gatorade (isotónicos)"},
-  {k:"multi", label:"Pepsi multiserve"},
-  {k:"single", label:"Pepsi singleserve"}
+  {k:"multi", label:"Pepsi multiserve (3L y 1.5L)"},
+  {k:"single", label:"Pepsi singleserve (lata y 600 ML)"}
 ];
 function covGroupOf(name){
   const n = String(name).toLowerCase();
@@ -1480,7 +1481,10 @@ function covGroupOf(name){
   if (/isot|gatorade/.test(n)) return "gatorade";
   if (/1[.,]25\s*l\b/.test(n) || /500\s*ml.*grb/.test(n)) return "otros";   // 1.25L y 500ML GRB no cuentan para cobertura
   const m = n.match(/(\d+(?:[.,]\d+)?)\s*(ml|l)\b/);
-  if (m){ const v = parseFloat(m[1].replace(",", ".")) * (m[2] === "ml" ? 0.001 : 1); return v >= 1 ? "multi" : "single"; }
+  if (m){ const v = parseFloat(m[1].replace(",", ".")) * (m[2] === "ml" ? 0.001 : 1);
+    if (v >= 1) return "multi";
+    return (/lata/.test(n) || /600\s*ml/.test(n)) ? "single" : "otros";   // Everest singleserve: solo Pepsi lata y Pepsi 600 ML
+  }
   return "otros";
 }
 // Agencia por prefijo de ruta: 242/243 = San Miguel Norte (SS42, SS43) · 265 = San Miguel Sur (SS65)
@@ -1814,9 +1818,12 @@ function renderRN(L){
   h += `<p class="note">Más fáciles primero: el rango indica cuántas cajas le faltan al equipo para salir de rojo. Toca un rango para ver esos clientes.</p><div class="xtra">` + RN_BUCKETS.map(([k, l]) => `<button class="fopt ${F.segs.includes("rnb:" + k) ? "on" : ""}" data-seg="rnb:${k}">${esc(l)} <small class="num">${fmt(tot.b[k] || 0)}</small></button>`).join("") + `<button class="fopt ${F.segs.includes("rnneg") ? "on" : ""}" data-seg="rnneg">Negro <small class="num">${fmt(tot.negro)}</small></button></div>`;
   const head = first => `<thead><tr><th>${first}</th><th>Base</th><th>R+N</th><th>Meta</th><th>Faltan</th><th>/día</th><th>3-1 · 6-4 · 10-7 · 15-10 · 15+ · N</th></tr></thead>`;
   const row = (lab, sub, o, ruta) => `<tr ${ruta ? `data-ruta="${esc(ruta)}"` : ""}><td><b>${esc(lab)}</b><small>${esc(sub)}</small></td><td class="num">${fmt(o.base)}</td><td class="num"><span class="evp ${cls(o)}">${fmt(o.rn)}</span><small>${fmt(o.base ? o.rn / o.base * 100 : 0, 1)}%</small></td><td class="num">${fmt(o.meta)}</td><td class="num"><b class="${o.falt ? "bad" : "ok"}">${o.falt ? fmt(o.falt) : "✓"}</b></td><td class="num"><b>${o.falt ? fmt(o.dia) : "—"}</b></td><td class="num rnb">${bk(o).map(x => x ? `<b>${x}</b>` : `<span>0</span>`).join(" · ")}</td></tr>`;
+  const byAg = new Map(); for (const r of rutas){ const a = agenciaDe(r); if (!byAg.has(a)) byAg.set(a, []); byAg.get(a).push(r); }
+  if (byAg.size > 1) h += `<h4 class="cpt">Por agencia</h4><div class="tw"><table class="rt evt rnt">${head("Agencia")}<tbody>` + [...byAg.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([a, rs]) => row(a, `${rs.length} rutas · meta ${fmt(rnMetaPct(rs[0]) * 100, 1)}%`, sumOf(rs))).join("") + `</tbody></table></div>`;
   const bySup = new Map(); for (const r of rutas){ const s = DB.rn.rutas.get(r).sup || "—"; if (!bySup.has(s)) bySup.set(s, []); bySup.get(s).push(r); }
   if (bySup.size > 1) h += `<h4 class="cpt">Por supervisor</h4><div class="tw"><table class="rt evt rnt">${head("Supervisor")}<tbody>` + [...bySup.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([s, rs]) => row(s, rs.length + " rutas", sumOf(rs))).join("") + `</tbody></table></div>`;
-  h += `<h4 class="cpt">Por vendedor (ruta)</h4><div class="tw"><table class="rt evt rnt">${head("Ruta")}<tbody>` + rutas.map(r => { const o = rowOf(r); return row(r, o.sup, o, r); }).join("") + `</tbody></table></div></section>`;
+  const tR = `<div class="tw"><table class="rt evt rnt">${head("Ruta")}<tbody>` + rutas.map(r => { const o = rowOf(r); return row(r, o.sup, o, r); }).join("") + `</tbody></table></div>`;
+  h += bySup.size > 1 ? `<details class="pmore rdet"><summary>Por vendedor (ruta) · ${rutas.length} rutas</summary>${tR}</details></section>` : `<h4 class="cpt">Por vendedor (ruta)</h4>${tR}</section>`;
   return h;
 }
 /* ---------- coberturas de pago: supervisor y vendedor (ruta) ---------- */
@@ -1846,14 +1853,20 @@ function renderCPago(L){
   h += `<p class="note">"Faltan" suma lo pendiente de cada ruta (una ruta que pasa su meta no compensa a otra). Necesidad del día = faltantes de cada ruta ÷ días hábiles restantes.${dias ? ` Total del alcance: faltan <b>${fmt(faltTot(tot))}</b> · <b>${fmt(diaTot(tot))}</b> por día.` : ""}</p>`;
   const head = first => `<thead><tr><th>${first}</th>${CP_CATS.map(([, l]) => `<th>${l}</th>`).join("")}<th>Faltan</th><th>Total /día</th></tr></thead>`;
   // por supervisor
+  const byAg = new Map(); for (const r of rutas){ const a = agenciaDe(r); if (!byAg.has(a)) byAg.set(a, []); byAg.get(a).push(r); }
+  if (byAg.size > 1){
+    h += `<h4 class="cpt">Por agencia</h4><div class="tw"><table class="rt evt">${head("Agencia")}<tbody>` + [...byAg.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([a, rs]) => { const o = sumOf(rs);
+      return `<tr><td><b>${esc(a)}</b><small>${rs.length} rutas</small></td>${CP_CATS.map(([k]) => cpCell(o[k], dias, k === "ms" ? msSub(o) : "")).join("")}<td class="num"><b>${fmt(faltTot(o))}</b></td><td class="num"><b>${dias ? fmt(diaTot(o)) : "—"}</b></td></tr>`; }).join("") + `</tbody></table></div>`;
+  }
   const bySup = new Map(); for (const r of rutas){ const s = DB.cp.rutas.get(r).sup || "—"; if (!bySup.has(s)) bySup.set(s, []); bySup.get(s).push(r); }
   if (bySup.size > 1){
     h += `<h4 class="cpt">Por supervisor</h4><div class="tw"><table class="rt evt">${head("Supervisor")}<tbody>` + [...bySup.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([s, rs]) => { const o = sumOf(rs);
       return `<tr><td><b>${esc(s)}</b><small>${rs.length} rutas</small></td>${CP_CATS.map(([k]) => cpCell(o[k], dias, k === "ms" ? msSub(o) : "")).join("")}<td class="num"><b>${fmt(faltTot(o))}</b></td><td class="num"><b>${dias ? fmt(diaTot(o)) : "—"}</b></td></tr>`; }).join("") + `</tbody></table></div>`;
   }
-  // por vendedor (ruta)
-  h += `<h4 class="cpt">Por vendedor (ruta)</h4><div class="tw"><table class="rt evt">${head("Ruta")}<tbody>` + rutas.map(r => { const o = DB.cp.rutas.get(r);
-    return `<tr><td><b>${esc(r)}</b><small>${esc(o.sup)}</small></td>${CP_CATS.map(([k]) => cpCell(o[k], dias, k === "ms" ? msSub(o) : "")).join("")}<td class="num"><b>${fmt(faltTot(o))}</b></td><td class="num"><b>${dias ? fmt(diaTot(o)) : "—"}</b></td></tr>`; }).join("") + `</tbody></table></div></section>`;
+  // por vendedor (ruta): plegable cuando el alcance es de varios supervisores
+  const tRutas = `<div class="tw"><table class="rt evt">${head("Ruta")}<tbody>` + rutas.map(r => { const o = DB.cp.rutas.get(r);
+    return `<tr><td><b>${esc(r)}</b><small>${esc(o.sup)}</small></td>${CP_CATS.map(([k]) => cpCell(o[k], dias, k === "ms" ? msSub(o) : "")).join("")}<td class="num"><b>${fmt(faltTot(o))}</b></td><td class="num"><b>${dias ? fmt(diaTot(o)) : "—"}</b></td></tr>`; }).join("") + `</tbody></table></div>`;
+  h += bySup.size > 1 ? `<details class="pmore rdet"><summary>Por vendedor (ruta) · ${rutas.length} rutas</summary>${tRutas}</details></section>` : `<h4 class="cpt">Por vendedor (ruta)</h4>${tRutas}</section>`;
   return h;
 }
 function goFocus(){
