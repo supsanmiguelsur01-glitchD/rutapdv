@@ -2597,6 +2597,7 @@ function openPdv(c){
     if (nr) ch.push(`<button class="pill bad" data-jump="R\\+N">R+N ${nr}</button>`);
     if (p.vpo) ch.push(`<button class="pill ${(p.vpo.pct || 0) >= 1 ? "ok" : "warn"}" data-jump="Plan VPO">VPO ${Math.round((p.vpo.pct || 0) * 100)}%</button>`);
     const wp = wellPend(p).length; if (wp) ch.push(`<button class="pill bad" data-jump="Equipos de frío">Well ${wp}</button>`);
+    if (typeof CATALOGO !== "undefined" && CATALOGO) ch.unshift(`<button class="pill ok" data-fcat>🛒 Catálogo y precios</button>`);
     $("#dSum").innerHTML = ch.join(""); $("#dSum").hidden = !ch.length; }
   const days = frDays(p.fr).map(d => DAY_NAMES[d]).join(" y ");
   const gmaps = p.lat != null ? `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}&travelmode=driving` : null;
