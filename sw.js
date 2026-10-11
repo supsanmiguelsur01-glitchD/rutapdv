@@ -1,5 +1,5 @@
 /* RutaPDV · service worker: permite instalar la app y abrirla sin conexión */
-const VERSION = "1791755063333";
+const VERSION = "1791755591668";
 const CACHE = "rutapdv-" + VERSION;
 const CORE = ["./", "index.html", "app.webmanifest", "icon-192.png", "icon-512.png", "icon-maskable-512.png", "apple-touch-icon.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting())); });
