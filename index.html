@@ -1219,6 +1219,24 @@ body.cat-open .toast{bottom:calc(env(safe-area-inset-bottom,0px) + 110px)}
 .dch b{font:800 30px/1.1 var(--f-body);color:var(--ink)}
 .dch span{font-weight:600;font-size:14px}.dch em{font-style:normal;font-size:12px;color:var(--muted)}
 .dch.ok{border-left-color:var(--ok)}.dch.ok b{color:var(--ok)}
+.dmd{display:flex;flex-direction:column;gap:10px}
+.dmdh{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.dmdh h3{margin:0;font:800 16px/1.2 var(--f-body)}
+.dmdt{background:var(--grad);color:#fff;border-radius:14px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.dmdt .dbig{font:800 34px/1 var(--f-body)}.dmdt span{font-size:13.5px;opacity:.92}.dmdt span b{font-weight:800}.dmdt .dmr{text-align:right}
+.dch .dbar{height:6px;border-radius:99px;background:var(--line2);overflow:hidden;margin:6px 0 3px}
+.dch .dbar i{display:block;height:100%;background:var(--cyan)}
+.dch.warn{border-left-color:var(--warn)}.dch.warn .dbar i{background:var(--warn)}
+.dch.bad{border-left-color:var(--bad)}.dch.bad .dbar i{background:var(--bad)}
+.dch.ok .dbar i{background:var(--ok)}
+.dch .dsubs{font-size:12px;color:var(--muted);margin-top:2px}.dch .dsubs b{font:800 12.5px/1.3 var(--f-body);color:var(--ink)}
+.dmdtab{overflow-x:auto;border:1px solid var(--line2);border-radius:12px;background:var(--panel)}
+.dmdtab table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+.dmdtab th,.dmdtab td{padding:7px 9px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line2)}
+.dmdtab th:first-child,.dmdtab td:first-child{text-align:left;position:sticky;left:0;background:var(--panel)}
+.dmdtab thead th{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+.dmdtab td b{font-weight:800}.dmdtab td.ok{color:var(--ok)}
+.dmdtab tr[data-desruta]{cursor:pointer}.dmdtab tfoot td{font-weight:800;border-bottom:0}
 .dt{margin:6px 0 0;font-size:15px;color:var(--cyan)}
 .dvis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .dvis button,.dvis div{all:unset;box-sizing:border-box;cursor:pointer;background:var(--panel);border:1px solid var(--line2);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column}
@@ -1453,7 +1471,8 @@ const SHEETS = {
   promos:    {names:["PROMOS"],    key:"promoción", also:"hasta"},
   cp:        {names:["Metas Cobertura SM"], key:"meta 1.5l y 3l", also:"ruta"},
   em:        {names:["seguimiento emergente"], key:"desafio", also:"rutas"},
-  vp:        {names:["DESCUENTO REGIA 330ML"], key:"drop", also:"precio caja"}
+  vp:        {names:["DESCUENTO REGIA 330ML"], key:"drop", also:"precio caja"},
+  md:        {names:["Est Pago - Abril","Est Pago"], key:"necesidad diaria", also:"meta planilla"}
 };
 const low = v => str(v).toLowerCase();
 const normFr = v => { const f = str(v).toUpperCase(); return (f === "0" || f === "NONE" || f === "-") ? "" : f; };
@@ -1534,6 +1553,41 @@ function pickSheets(wbIn){
       out.em = outR.length > 1 ? outR : [];
       out.emInfo = {periodo, corte: st ? st.txt : "", corteSrc: st ? st.src : ""};
     }
+    if (id === "md" && best){
+      // Metas y necesidades por categoría (ESTATUS DE PAGO EN TIEMPO REAL, tabla dinámica de Power BI):
+      // filas Ruta → Categoría MAB → Categoría Core colas; columnas real (cajas físicas), tendencia, necesidad diaria y meta planilla.
+      // Se normaliza a una fila por ruta / categoría / subcategoría. La subcategoría solo se guarda cuando la categoría se abre en varias.
+      const h = best.rows[0].map(low);
+      const fi = re => h.findIndex((x, k) => k > 0 && re.test(x));
+      let iR = fi(/cajas|real|venta/); if (iR < 0) iR = 1;
+      const iT = fi(/tendencia/), iN = fi(/necesidad/), iM = fi(/meta/);
+      const V = r => ({real: num(r[iR]) || 0, tend: iT >= 0 ? (num(r[iT]) || 0) : 0, nec: iN >= 0 ? (num(r[iN]) || 0) : 0, meta: iM >= 0 ? (num(r[iM]) || 0) : 0});
+      const same = (a, b) => Math.abs(a.meta - b.meta) < 1e-3 * Math.max(1, Math.abs(b.meta)) && Math.abs(a.real - b.real) < 1e-3 * Math.max(1, Math.abs(b.real));
+      let periodo = "", sup = "";
+      for (const r of best.pre){ const l = low(r && r[0]); if (/mes\s*a[ñn]o/.test(l)) periodo = str(r[1]).toLowerCase(); if (l === "supervisor") sup = normSup(r[1]); }
+      const outR = [["ruta", "categoria", "sub", "real", "tendencia", "necesidad", "meta"]];
+      const rows = best.rows.slice(1); let ruta = null, k = 0;
+      const isRuta = r => /^\s*\d{5,7}\s*$/.test(str(r && r[0]));
+      const isTot = r => /^total/i.test(str(r && r[0]));
+      while (k < rows.length){
+        const r = rows[k];
+        if (!r || isTot(r)) { if (isTot(r)) break; k++; continue; }
+        if (isRuta(r)){ ruta = String(code(r[0])); const v = V(r); outR.push([ruta, "TOTAL", "", v.real, v.tend, v.nec, v.meta]); k++; continue; }
+        if (!ruta){ k++; continue; }
+        // categoría + sus hijas (las hijas suman lo de la categoría)
+        const cat = str(r[0]).trim(), cv = V(r); k++;
+        const kids = [], acc = {real:0, tend:0, nec:0, meta:0};
+        while (k < rows.length && kids.length < 8 && !isRuta(rows[k]) && !isTot(rows[k])){
+          const kv = V(rows[k]); kids.push([str(rows[k][0]).trim(), kv]); for (const x in acc) acc[x] += kv[x]; k++;
+          if (same(acc, cv)) break;
+        }
+        outR.push([ruta, cat, "", cv.real, cv.tend, cv.nec, cv.meta]);
+        if (kids.length > 1) for (const [lab, kv] of kids) outR.push([ruta, cat, lab || "OTRAS", kv.real, kv.tend, kv.nec, kv.meta]);
+      }
+      const st = wbStamp(best.wb);
+      out.md = outR.length > 1 ? outR : [];
+      out.mdInfo = {periodo, sup, corte: st ? st.txt : "", corteSrc: st ? st.src : ""};
+    }
     if (id === "vp" && best){
       // Plan VPO cerveza (archivo BASE FINAL VPO): precio por escala (DROP) por producto y cliente, compra mínima y lo facturado en el mes
       const wb = best.wb, MES_RE = /(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\s+(\d{4})/i;
@@ -1593,7 +1647,7 @@ function pickSheets(wbIn){
 }
 function fromEmbed(e){
   e = e || {};
-  return {maestra:e["maestra"]||[], listados:e["LISTADOS"]||[], ac:e["AC BASE"]||[], rn:e["Base"]||[], mon:e["MONITOREO"]||[], vpo:e["VPO"]||[], ev:e["EVEREST"]||[], evInfo:e.evInfo||null, baseInfo:e.baseInfo||null, promosInfo:e.promosInfo||null, promos:e["PROMOS"]||[], cp:e["COBPAGO"]||[], cpInfo:e.cpInfo||null, em:e["EMERGENTE"]||[], emInfo:e.emInfo||null, vp:e["VPOPLAN"]||[], vpInfo:e.vpInfo||null};
+  return {maestra:e["maestra"]||[], listados:e["LISTADOS"]||[], ac:e["AC BASE"]||[], rn:e["Base"]||[], mon:e["MONITOREO"]||[], vpo:e["VPO"]||[], ev:e["EVEREST"]||[], evInfo:e.evInfo||null, baseInfo:e.baseInfo||null, promosInfo:e.promosInfo||null, promos:e["PROMOS"]||[], cp:e["COBPAGO"]||[], cpInfo:e.cpInfo||null, em:e["EMERGENTE"]||[], emInfo:e.emInfo||null, md:e["METAS"]||[], mdInfo:e.mdInfo||null, vp:e["VPOPLAN"]||[], vpInfo:e.vpInfo||null};
 }
 
 /* ---------- modelo ---------- */
@@ -1774,7 +1828,7 @@ function build(S){
     }
   }
   for (const o of rnRutas.values()){ o.rn = o.rojo + o.negro; }
-  DB = {pdv, covCols, acCols, sups, rutas, rutaSup, vpoPlan, ev, baseInfo: S.baseInfo || null, promosInfo: S.promosInfo || null, promos: parsePromos(S.promos || []), cp: parseCPago(S.cp || [], S.cpInfo), em: parseEm(S.em || [], S.emInfo), vp: parseVp(S.vp || [], S.vpInfo), rn:{sem:rnSem, rutas:rnRutas, meta: Object.assign({}, RN_META_DEF, S.rnMeta || {})}};
+  DB = {pdv, covCols, acCols, sups, rutas, rutaSup, vpoPlan, ev, baseInfo: S.baseInfo || null, promosInfo: S.promosInfo || null, promos: parsePromos(S.promos || []), cp: parseCPago(S.cp || [], S.cpInfo), em: parseEm(S.em || [], S.emInfo), md: parseMd(S.md || [], S.mdInfo), vp: parseVp(S.vp || [], S.vpInfo), rn:{sem:rnSem, rutas:rnRutas, meta: Object.assign({}, RN_META_DEF, S.rnMeta || {})}};
 }
 /* ---------- R+N (rojo + negro) ---------- */
 // Meta R+N por agencia: % máximo de equipos fríos en rojo o negro. Norte = la meta que trae la hoja "Resumen Laterales" (5%); Sur = 5%.
@@ -1799,6 +1853,32 @@ function parseVp(rows, info){
     vp.cli.get(cl).prods[str(r[I("producto")])] = {t, v: num(r[I("facturado")]) || 0};
   }
   return vp;
+}
+/* Metas y necesidades por categoría (Power BI, meta planilla): por ruta el total y cada categoría, con la necesidad diaria del cubo */
+const MD_CATS = [["PORTAFOLIO ORO", "Portafolio Oro"], ["VOLUMEN CSD", "Volumen CSD"], ["ISO/ADR", "Iso / ADR"], ["ALCOHOLICAS", "Alcohólicas"]];
+const MD_SUB = {"CORE COLAS": "Core colas", "OTRAS": "Otras CSD"};
+function parseMd(rows, info){
+  const md = {rutas:new Map(), info: info || null};
+  if (!rows || rows.length < 2) return md;
+  const h = rows[0].map(low), I = n => h.indexOf(n);
+  const ri = I("ruta"), ci = I("categoria"), si = I("sub"), vi = {real:I("real"), tend:I("tendencia"), nec:I("necesidad"), meta:I("meta")};
+  const val = r => { const o = {}; for (const k in vi) o[k] = num(r[vi[k]]) || 0; return o; };
+  for (const r of rows.slice(1)){
+    const ru = str(r[ri]); if (!ru) continue;
+    if (!md.rutas.has(ru)) md.rutas.set(ru, {tot:null, cats:new Map()});
+    const R = md.rutas.get(ru), cat = str(r[ci]).toUpperCase(), sub = str(r[si]).toUpperCase(), v = val(r);
+    if (cat === "TOTAL"){ R.tot = v; continue; }
+    const known = MD_CATS.find(x => x[0] === cat), key = known ? cat : "OTROS";
+    if (!R.cats.has(key)) R.cats.set(key, {k:key, lab: known ? known[1] : "Otros productos", real:0, tend:0, nec:0, meta:0, subs:[]});
+    const C = R.cats.get(key);
+    if (sub) { C.subs.push(Object.assign({lab: MD_SUB[sub] || (sub.charAt(0) + sub.slice(1).toLowerCase())}, v)); continue; }
+    for (const k in v) C[k] += v[k];
+  }
+  for (const [ru, R] of [...md.rutas]){
+    if (!R.tot){ R.tot = {real:0, tend:0, nec:0, meta:0}; for (const C of R.cats.values()) for (const k in R.tot) R.tot[k] += C[k]; }
+    if (!(R.tot.meta > 0)) md.rutas.delete(ru);   // rutas sin meta en el mes (p. ej. rutas nuevas o inactivas)
+  }
+  return md;
 }
 /* Emergente: desafío del mes en cajas físicas por ruta (San Miguel Sur) */
 function parseEm(rows, info){
@@ -2466,6 +2546,7 @@ function fuentes(){
     {k:"base", l:"Listados", d:"coberturas, AC, R+N, Wellington, VPO", t:DB.baseInfo && DB.baseInfo.act, ok:DB.pdv.size > 0},
     {k:"ev", l:"Everest", d:(DB.ev.info || {}).periodo || "", t:(DB.ev.info || {}).corte, ok:DB.ev.rutas.size > 0},
     {k:"cp", l:"Coberturas de pago", d:(DB.cp && DB.cp.info || {}).periodo || "", t:DB.cp && (DB.cp.info || {}).corte, ok:DB.cp && DB.cp.rutas.size > 0},
+    ...(DB.md && DB.md.rutas.size ? [{k:"md", l:"Metas por categoría", d:((DB.md.info || {}).periodo || "") + " · Power BI", t:(DB.md.info || {}).corte, ok:true}] : []),
     ...(DB.em && DB.em.rutas.size ? [{k:"em", l:"Emergente", d:((DB.em.info || {}).periodo || "") + " · SM Sur", t:(DB.em.info || {}).corte, ok:true}] : []),
     {k:"promos", l:"Promociones", d:"catálogo del deck", t:DB.promosInfo && DB.promosInfo.act, ok:(DB.promos || []).length > 0}
   ];
@@ -3133,7 +3214,7 @@ async function handleFile(files){
       const prev = await IDB.get("data");
       const base = prev && prev.S ? prev.S : (typeof EMBED !== "undefined" && EMBED ? fromEmbed(EMBED) : null);
       if ((S.ev.length || S.promos.length || S.cp.length || S.em.length || S.vp.length) && base && (base.maestra || []).length){
-        S = Object.assign({}, base, S.ev.length ? {ev:S.ev, evInfo:S.evInfo} : {}, S.promos.length ? {promos:S.promos} : {}, S.cp.length ? {cp:S.cp, cpInfo:S.cpInfo} : {}, S.em.length ? {em:S.em, emInfo:S.emInfo} : {}, S.vp.length ? {vp:S.vp, vpInfo:S.vpInfo} : {});
+        S = Object.assign({}, base, S.ev.length ? {ev:S.ev, evInfo:S.evInfo} : {}, S.promos.length ? {promos:S.promos} : {}, S.cp.length ? {cp:S.cp, cpInfo:S.cpInfo} : {}, S.em.length ? {em:S.em, emInfo:S.emInfo} : {}, S.md && S.md.length ? {md:S.md, mdInfo:S.mdInfo} : {}, S.vp.length ? {vp:S.vp, vpInfo:S.vpInfo} : {});
       } else { toast("No encontré las hojas maestra ni LISTADOS en ese archivo"); return; }
     } else if (!S.promos.length){
       const prev = await IDB.get("data"); const old = prev && prev.S ? prev.S.promos : (typeof EMBED !== "undefined" && EMBED ? EMBED.PROMOS : null);
@@ -3697,6 +3778,41 @@ function desRuta(r, L){
   const tl = todayLetter() || "L", cl = (L || []).filter(p => frDays(p.fr).includes(tl));   // domingo: los clientes del lunes
   return {r, items: out, hoyN: cl.length, cov: cl.filter(p => covPend(p).length).length, promo: cl.filter(p => nPromosCliente(p) > 0).length, rn: cl.filter(SEG_FN.rnrn).length, vpo: cl.filter(p => p.vpo || (DB.vp && DB.vp.cli.has(p.c))).length};
 }
+/* Volumen del día por categoría: necesidad diaria del cubo de Power BI (meta planilla) */
+function mdSum(rs){
+  const T = {tot:{real:0, tend:0, nec:0, meta:0}, cats:new Map()};
+  for (const r of rs){ const R = DB.md.rutas.get(r); if (!R) continue;
+    for (const k in T.tot) T.tot[k] += R.tot[k];
+    for (const C of R.cats.values()){ if (!T.cats.has(C.k)) T.cats.set(C.k, {k:C.k, lab:C.lab, real:0, tend:0, nec:0, meta:0, subs:new Map()}); const X = T.cats.get(C.k);
+      for (const k of ["real","tend","nec","meta"]) X[k] += C[k];
+      for (const s of C.subs){ if (!X.subs.has(s.lab)) X.subs.set(s.lab, {lab:s.lab, real:0, tend:0, nec:0, meta:0}); const Y = X.subs.get(s.lab); for (const k of ["real","tend","nec","meta"]) Y[k] += s[k]; } } }
+  T.cats = [...T.cats.values()].map(x => Object.assign(x, {subs:[...x.subs.values()]}));
+  return T;
+}
+const mdHoy = n => n > 0 ? Math.ceil(n) : 0;
+const mdCls = x => x.meta > 0 && x.tend >= x.meta ? "ok" : x.meta > 0 && x.tend >= x.meta * .9 ? "warn" : "bad";
+function mdHTML(rs, multi){
+  if (!DB.md || !DB.md.rutas.size) return "";
+  rs = rs.filter(r => DB.md.rutas.has(r)); if (!rs.length) return "";
+  const T = mdSum(rs), info = DB.md.info || {}, pc = (a, b) => b > 0 ? Math.round(a / b * 100) + "%" : "—";
+  const ord = MD_CATS.map(x => x[0]).concat(["OTROS"]);
+  const cats = T.cats.filter(c => c.meta > 0).sort((a, b) => ord.indexOf(a.k) - ord.indexOf(b.k));
+  const chip = c => { const cl = c.nec > 0 ? mdCls(c) : "ok", w = Math.max(0, Math.min(100, c.meta > 0 ? c.real / c.meta * 100 : 0));
+    const subs = c.subs.filter(s => s.meta > 0).map(s => `${esc(s.lab)} <b>${s.nec > 0 ? fmt(mdHoy(s.nec)) : "✓"}</b>`).join(" · ");
+    return `<div class="dch ${cl}"><small>${esc(c.lab)}</small><b>${c.nec > 0 ? fmt(mdHoy(c.nec)) : "✓"}</b><span>${c.nec > 0 ? "cajas hoy" : "meta asegurada"}</span><div class="dbar"><i style="width:${w.toFixed(0)}%"></i></div><em>${fmt(c.real)} de ${fmt(c.meta)} CJ · tendencia ${pc(c.tend, c.meta)}</em>${subs ? `<div class="dsubs">${subs}</div>` : ""}</div>`; };
+  let h = `<div class="dmd"><div class="dmdh"><h3>Volumen por categoría · meta planilla</h3><small class="note">${esc(info.periodo || "")}${info.corte ? ` · Power BI al <b>${esc(info.corte)}</b>${typeof staleTag === "function" ? staleTag(info.corte) : ""}` : ""}</small></div>`;
+  h += `<div class="dmdt"><div><span>${multi ? `El equipo necesita vender hoy` : `Necesitas vender hoy`}</span><br><b class="dbig">${fmt(mdHoy(T.tot.nec))} CJ</b></div><div class="dmr"><span>Llevas <b>${fmt(T.tot.real)}</b> de ${fmt(T.tot.meta)} CJ (${pc(T.tot.real, T.tot.meta)})</span><br><span>Tendencia al cierre: <b>${pc(T.tot.tend, T.tot.meta)}</b></span></div></div>`;
+  h += `<div class="dgrid">${cats.map(chip).join("")}</div>`;
+  if (multi){
+    const rows = rs.map(r => DB.md.rutas.get(r) ? [r, DB.md.rutas.get(r)] : null).filter(Boolean).sort((a, b) => (b[1].tot.nec || 0) - (a[1].tot.nec || 0));
+    const cell = C => !C || !(C.meta > 0) ? `<td>—</td>` : C.nec > 0 ? `<td><b>${fmt(mdHoy(C.nec))}</b></td>` : `<td class="ok">✓</td>`;
+    h += `<div class="dmdtab"><table><thead><tr><th>Ruta</th><th>Total hoy</th>${cats.map(c => `<th>${esc(c.lab)}</th>`).join("")}<th>Tend.</th></tr></thead><tbody>` +
+      rows.map(([r, R]) => `<tr data-desruta="${esc(r)}"><td><b>${esc(r)}</b></td>${cell(R.tot)}${cats.map(c => cell(R.cats.get(c.k))).join("")}<td class="${mdCls(R.tot) === "ok" ? "ok" : ""}">${pc(R.tot.tend, R.tot.meta)}</td></tr>`).join("") +
+      `</tbody><tfoot><tr><td>Equipo</td>${cell(T.tot)}${cats.map(c => cell(c)).join("")}<td>${pc(T.tot.tend, T.tot.meta)}</td></tr></tfoot></table></div>`;
+  }
+  h += `<p class="note">Cajas físicas que hay que vender hoy para cerrar la meta planilla del mes (necesidad diaria de Power BI). ✓ = la categoría ya va cumplida.</p></div>`;
+  return h;
+}
 function desHTML(){
   const L = filtered(true);
   const Lby = new Map(); for (const p of L){ if (!Lby.has(p.ruta)) Lby.set(p.ruta, []); Lby.get(p.ruta).push(p); }
@@ -3714,6 +3830,8 @@ function desHTML(){
   if (rutas.length === 1){
     const d = D[0], pend = d.items.filter(x => x.falt), ok = d.items.filter(x => !x.falt);
     h += `<p class="dsub">Ruta <b>${esc(d.r)}</b> · lo que necesitas lograr hoy para ir al día con las metas del mes</p>`;
+    h += mdHTML([d.r], false);
+    if (DB.md && DB.md.rutas.has(d.r) && d.items.length) h += `<h3 class="dt">Coberturas y desafíos</h3>`;
     h += pend.length ? `<div class="dgrid">${pend.sort((a, b) => b.hoy - a.hoy).map(chip).join("")}</div>` : `<p class="dok">Todas tus metas del mes van cumplidas. ¡Bien!</p>`;
     if (ok.length && pend.length) h += `<p class="note">Ya cumplidas: ${ok.map(x => esc(x.grp + " " + x.lab)).join(" · ")}</p>`;
     if (d.hoyN) h += `<h3 class="dt">${domingo ? "Tu visita de mañana (lunes)" : "Tu visita de hoy"}</h3><div class="dvis">
@@ -3727,11 +3845,13 @@ function desHTML(){
     const tot = {}; for (const d of D) for (const it of d.items){ const k = it.grp + "|" + it.lab; tot[k] = tot[k] || {grp:it.grp, lab:it.lab, unit:it.unit, falt:0, dias:it.dias}; tot[k].falt += it.falt; }
     const T = Object.values(tot).map(x => Object.assign(x, {hoy: x.falt && x.dias ? Math.ceil(x.falt / x.dias) : 0}));
     h += `<p class="dsub">${rutas.length} rutas · lo que el equipo necesita lograr hoy (suma de lo que le falta a cada ruta ÷ días hábiles restantes)</p>`;
+    h += mdHTML(rutas, true);
+    if (DB.md && DB.md.rutas.size) h += `<h3 class="dt">Coberturas y desafíos del equipo</h3>`;
     h += `<div class="dgrid">${T.filter(x => x.falt).sort((a, b) => b.hoy - a.hoy).map(chip).join("") || `<p class="dok">Todas las metas van cumplidas.</p>`}</div>`;
     const score = d => d.items.reduce((a, x) => a + (x.meta ? Math.min(1, x.falt / x.meta) : 0), 0);
     h += `<h3 class="dt">Por ruta · la que más necesita primero</h3><div class="drut">` + D.sort((a, b) => score(b) - score(a)).map(d => {
       const pend = d.items.filter(x => x.falt).sort((a, b) => b.hoy - a.hoy);
-      return `<button class="drow" data-desruta="${esc(d.r)}"><span class="drl"><b>Ruta ${esc(d.r)}</b><small>${fmt(d.hoyN)} clientes ${domingo ? "el lunes" : "hoy"}</small></span><span class="drc">${pend.length ? pend.map(x => `<i><b>${fmt(x.hoy)}</b> ${esc(x.grp === "Emergente" ? "CJ emergente" : x.grp === "R+N" ? "R+N" : x.lab)}</i>`).join("") : `<i class="ok">✓ todo cumplido</i>`}</span></button>`;
+      return `<button class="drow" data-desruta="${esc(d.r)}"><span class="drl"><b>Ruta ${esc(d.r)}</b><small>${fmt(d.hoyN)} clientes ${domingo ? "el lunes" : "hoy"}</small></span><span class="drc">${(() => { const M = DB.md && DB.md.rutas.get(d.r); return M && M.tot.nec > 0 ? `<i><b>${fmt(mdHoy(M.tot.nec))}</b> CJ volumen</i>` : ""; })()}${pend.length ? pend.map(x => `<i><b>${fmt(x.hoy)}</b> ${esc(x.grp === "Emergente" ? "CJ emergente" : x.grp === "R+N" ? "R+N" : x.lab)}</i>`).join("") : `<i class="ok">✓ todo cumplido</i>`}</span></button>`;
     }).join("") + `</div>`;
   }
   if (venc.length) h += `<p class="note dv">⏳ Vencen pronto: ${venc.map(pr => `<b>${esc(pr.n)}</b> (${fdate(pr.d2)})`).join(" · ")}</p>`;
