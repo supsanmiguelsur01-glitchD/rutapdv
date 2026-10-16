@@ -1643,6 +1643,32 @@ function pickSheets(wbIn){
       out.cpInfo = {periodo, corte: real ? st.txt : (corte || (st ? st.txt : "")), corteSrc: real ? st.src : (corte ? "fecha de los datos en el archivo" : (st ? st.src : ""))};
     }
   }
+  // Coberturas TU (consulta de Power BI "SeguimientoTUsCoberturasM"): meta y real por ruta y mes.
+  // Rutas normales: meta de 1.5L y 3L. Rutas top: sin meta de 1.5L/3L, solo meta de 4 SKU. Si está, reemplaza a "Metas Cobertura SM".
+  cpbi: for (const wb of wbs) for (const n of wb.SheetNames){
+    const rows = rowsOf(wb, n) || []; const hi = rows.slice(0, 15).findIndex(r => (r || []).some(x => /rutas\[ruta\]/i.test(str(x))) && (r || []).some(x => /sumpepsi_4_sku/i.test(str(x))));
+    if (hi < 0) continue;
+    const h = rows[hi].map(low), I = re => h.findIndex(x => re.test(x));
+    const io = I(/oficina/), is = I(/rutas\[supervisor\]/), ir = I(/rutas\[ruta\]/), iy = I(/\[a(ñ|n)o\]/), im = I(/\[nromes\]/), imn = I(/\[mes\]/),
+          mMs = I(/sumpepsi_1_5l_3_0l/), mSk = I(/sumpepsi_4_sku/), rMs = I(/cobertura_acum.*1_5l_3_0l/), rSk = I(/cobertura_4_sku/);
+    if ([ir, iy, im, mMs, mSk, rMs, rSk].some(x => x < 0)) continue;
+    const data = rows.slice(hi + 1).filter(r => r && r[ir] != null);
+    // mes más reciente con avance (el archivo trae también los meses futuros en cero)
+    const tot = new Map(); for (const r of data){ const k = (num(r[iy]) || 0) * 100 + (num(r[im]) || 0); tot.set(k, (tot.get(k) || 0) + (num(r[rMs]) || 0) + (num(r[rSk]) || 0)); }
+    const per = [...tot.entries()].filter(([, v]) => v > 0).map(([k]) => k).sort((a, b) => b - a)[0]; if (!per) continue;
+    const outR = [["Oficina", "Supervisor", "Ruta", "Meta 1.5L y 3L", "Real 1.5L y 3L", "Meta 4 SKU", "Real 4 SKU", "Tipo de ruta"]]; let mesTxt = "";
+    for (const r of data){
+      if ((num(r[iy]) || 0) * 100 + (num(r[im]) || 0) !== per) continue;
+      const ru = str(code(r[ir]) ?? r[ir]); const a = num(r[mMs]) || 0, b = num(r[mSk]) || 0; if (!/^\d+$/.test(ru) || !(a || b)) continue;
+      if (!mesTxt && imn >= 0) mesTxt = low(r[imn]);
+      outR.push([io >= 0 ? str(r[io]) : "", is >= 0 ? normSup(str(r[is])) : "", ru, a, num(r[rMs]) || 0, b, num(r[rSk]) || 0, a ? "normal" : "top"]);
+    }
+    if (outR.length < 2) continue;
+    const MS = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+    out.cp = outR; const st = wbStamp(wb);
+    out.cpInfo = {periodo: (mesTxt || MS[per % 100 - 1]) + " " + Math.floor(per / 100), corte: st ? st.txt : "", corteSrc: st ? (st.src === "guardado del archivo" ? "descarga de Power BI" : st.src) : "", fuente: "coberturas TU"};
+    break cpbi;
+  }
   return out;
 }
 function fromEmbed(e){
@@ -1838,7 +1864,8 @@ function rnBucket(r){ r = str(r).replace(/\s+/g, " ").trim(); if (/^15\s*\+/.tes
 const rnMetaPct = ruta => { const ag = agenciaDe(ruta); const m = DB.rn && DB.rn.meta ? DB.rn.meta[ag] : null; return m != null ? m : 0.05; };
 const isRN = e => e.sem === "ROJO" || e.sem === "NEGRO";
 /* ---------- Coberturas de pago (Seguimiento TU's / Metas Cobertura SM): meta y real por ruta ---------- */
-const CP_CATS = [["ms","1.5L y 3L"],["sku4","4 SKU"],["colas","Colas SV"]];
+const CP_ALL = [["ms","1.5L y 3L"],["sku4","4 SKU"],["colas","Colas SV"]];
+let CP_CATS = CP_ALL;   // solo las categorías que traen meta en el archivo cargado (coberturas TU no trae Colas SV)
 /* Plan VPO cerveza por cliente: escalas de precio por producto y lo facturado en el mes */
 const VPO_PROD = {R330:"Regia 330 ML VR", S330:"Suprema 330 ML VR (11 oz)", R750:"Regia 750 ML VR"};
 function parseVp(rows, info){
@@ -1900,8 +1927,11 @@ function parseCPago(rows, info){
     const o = {ruta, sup: si >= 0 ? str(r[si]) : "", ag: ai >= 0 ? str(r[ai]) : agenciaDe(ruta)};
     let any = false;
     for (const [k, [m, re]] of Object.entries(C)){ const mi = col(m), ci = col(re); o[k] = {meta: mi >= 0 ? (num(r[mi]) || 0) : 0, real: ci >= 0 ? (num(r[ci]) || 0) : 0}; if (CP_CATS.some(([x]) => x === k) && o[k].meta) any = true; }
+    const ti = col("tipo de ruta"); o.top = ti >= 0 ? low(r[ti]) === "top" : (!o.ms.meta && o.sku4.meta > 0);   // ruta top: solo meta de 4 SKU
     if (any) cp.rutas.set(ruta, o);
   }
+  const cats = CP_ALL.filter(([k]) => [...cp.rutas.values()].some(o => o[k].meta));
+  CP_CATS = cats.length ? cats : CP_ALL;
   return cp;
 }
 /* ---------- Acciones comerciales: catálogo de promociones (deck) + elegibilidad (AC BASE) ---------- */
@@ -2636,9 +2666,9 @@ function renderRN(L){
 const cpCls = (o) => !o.meta ? "na" : o.real / o.meta >= 1 ? "ok" : o.real / o.meta >= .8 ? "warn" : "bad";
 const cpDia = (falt, dias) => dias ? Math.ceil(falt / dias) : null;
 function cpCell(o, dias, sub){
-  if (!o || !o.meta) return `<td class="evc na">${o && o.real ? `<span class="evf">sin meta · real ${fmt(o.real)}</span>` : "—"}</td>`;
+  if (!o || !o.meta) return `<td class="evc na">${sub === "na" ? `<span class="evf">no aplica</span>` : "—"}</td>`;
   const pct = o.real / o.meta, falt = o.falt ?? Math.max(0, o.meta - o.real), dia = o.dia ?? cpDia(falt, dias), cls = cpCls(o);
-  return `<td class="evc"><div class="cpc"><span class="evp ${cls}">${Math.round(pct * 100)}%</span><span class="evm"><i class="${cls}" style="width:${Math.min(100, Math.round(pct * 100))}%"></i></span><span class="evf">${fmt(o.real)}/${fmt(o.meta)} · ${falt ? `faltan <b>${fmt(falt)}</b>${dia != null ? ` · <b>${fmt(dia)}</b>/día` : ""}` : "meta cumplida"}</span>${sub ? `<span class="evf">${sub}</span>` : ""}</div></td>`;
+  return `<td class="evc"><div class="cpc"><span class="evp ${cls}">${Math.round(pct * 100)}%</span><span class="evm"><i class="${cls}" style="width:${Math.min(100, Math.round(pct * 100))}%"></i></span><span class="evf">${fmt(o.real)}/${fmt(o.meta)} · ${falt ? `faltan <b>${fmt(falt)}</b>${dia != null ? ` · <b>${fmt(dia)}</b>/día` : ""}` : "meta cumplida"}</span>${sub && sub !== "na" ? `<span class="evf">${sub}</span>` : ""}</div></td>`;
 }
 function renderCPago(L){
   if (!DB.cp || !DB.cp.rutas.size) return "";
@@ -2650,12 +2680,14 @@ function renderCPago(L){
   const faltOf = c => c.meta ? (c.falt ?? Math.max(0, c.meta - c.real)) : 0;
   const diaTot = o => CP_CATS.reduce((a, [k]) => a + (dias && o[k].meta ? (o[k].dia ?? Math.ceil(faltOf(o[k]) / dias)) : 0), 0);
   const faltTot = o => CP_CATS.reduce((a, [k]) => a + faltOf(o[k]), 0);
-  const msSub = o => `1.5L ${fmt(o.l15.real)}/${fmt(o.l15.meta)} · 3L ${fmt(o.l3.real)}/${fmt(o.l3.meta)}`;
+  const msSub = o => (o.l15.meta || o.l3.meta) ? `1.5L ${fmt(o.l15.real)}/${fmt(o.l15.meta)} · 3L ${fmt(o.l3.real)}/${fmt(o.l3.meta)}` : "";
+  const nTop = rutas.filter(r => DB.cp.rutas.get(r).top).length;
   let h = `<section class="psec ev cp"><div class="evhead"><div><h3>Coberturas de pago · ${esc(periodo)}</h3><p class="note">${corte ? `Actualizado <b>${esc(corte)}</b>${staleTag(corte)} · ` : ""}${diasNote(dias, ini, fin)} · ${rutas.length} ruta${rutas.length > 1 ? "s" : ""}</p></div></div>`;
   h += `<div class="kpis">` + CP_CATS.map(([k, lab]) => { const t = tot[k];
     if (!t.meta) return `<div class="kpi evk" aria-disabled="true"><span class="kl">${lab}</span><span class="kv num na">—</span><span class="ks">Sin meta en este alcance${t.real ? ` · real ${fmt(t.real)}` : ""}</span></div>`;
     const pct = t.real / t.meta, falt = t.falt, cls = cpCls(t);
-    return `<div class="kpi evk"><span class="kl">${lab}</span><span class="kv num ${cls}">${Math.round(pct * 100)}%</span><span class="ks">${fmt(t.real)} de ${fmt(t.meta)} coberturas · faltan <b>${fmt(falt)}</b></span><span class="ks">Necesidad del día: <b class="num">${dias ? fmt(t.dia) : "—"}</b>${dias ? ` coberturas/día <small>(${needFx(falt, dias)})</small>` : ""}</span>${k === "ms" ? `<span class="ks">${msSub(tot)}</span>` : ""}${meter(pct, pct >= 1 ? "ok" : "")}</div>`; }).join("") + `</div>`;
+    return `<div class="kpi evk"><span class="kl">${lab}</span><span class="kv num ${cls}">${Math.round(pct * 100)}%</span><span class="ks">${fmt(t.real)} de ${fmt(t.meta)} coberturas · faltan <b>${fmt(falt)}</b></span><span class="ks">Necesidad del día: <b class="num">${dias ? fmt(t.dia) : "—"}</b>${dias ? ` coberturas/día <small>(${needFx(falt, dias)})</small>` : ""}</span>${k === "ms" && msSub(tot) ? `<span class="ks">${msSub(tot)}</span>` : ""}<span class="ks">${k === "sku4" && nTop ? `${nTop} ruta${nTop > 1 ? "s" : ""} top` : k === "ms" && nTop ? `${rutas.length - nTop} ruta${rutas.length - nTop > 1 ? "s" : ""} normales` : ""}</span>${meter(pct, pct >= 1 ? "ok" : "")}</div>`; }).join("") + `</div>`;
+  if (nTop) h += `<p class="note">Según la estructura de cada ruta: las rutas <b>top</b> solo tienen meta de <b>4 SKU</b>; las demás, meta de <b>1.5L y 3L</b>. El alcance y lo que falta se calculan solo con la meta que le corresponde a cada ruta.</p>`;
   h += `<p class="note">"Faltan" suma lo pendiente de cada ruta (una ruta que pasa su meta no compensa a otra). Necesidad del día = faltantes ÷ días hábiles restantes, redondeado hacia arriba (en los totales se divide la suma de faltantes, no se suman redondeos).${dias ? ` Total del alcance: faltan <b>${fmt(faltTot(tot))}</b> · <b>${fmt(diaTot(tot))}</b> por día.` : ""}</p>`;
   const head = first => `<thead><tr><th>${first}</th>${CP_CATS.map(([, l]) => `<th>${l}</th>`).join("")}<th>Faltan</th><th>Total /día</th></tr></thead>`;
   // por supervisor
@@ -2671,7 +2703,7 @@ function renderCPago(L){
   }
   // por vendedor (ruta): plegable cuando el alcance es de varios supervisores
   const tRutas = `<div class="tw"><table class="rt evt">${head("Ruta")}<tbody>` + rutas.map(r => { const o = DB.cp.rutas.get(r);
-    return `<tr><td><b>${esc(r)}</b><small>${esc(o.sup)}</small></td>${CP_CATS.map(([k]) => cpCell(o[k], dias, k === "ms" ? msSub(o) : "")).join("")}<td class="num"><b>${fmt(faltTot(o))}</b></td><td class="num"><b>${dias ? fmt(diaTot(o)) : "—"}</b></td></tr>`; }).join("") + `</tbody></table></div>`;
+    return `<tr><td><b>${esc(r)}</b><small>${esc(o.sup)}${o.top ? " · ruta top" : ""}</small></td>${CP_CATS.map(([k]) => cpCell(o[k], dias, !o[k].meta ? "na" : k === "ms" ? msSub(o) : "")).join("")}<td class="num"><b>${fmt(faltTot(o))}</b></td><td class="num"><b>${dias ? fmt(diaTot(o)) : "—"}</b></td></tr>`; }).join("") + `</tbody></table></div>`;
   h += bySup.size > 1 ? `<details class="pmore rdet"><summary>Por vendedor (ruta) · ${rutas.length} rutas</summary>${tRutas}</details></section>` : `<h4 class="cpt">Por vendedor (ruta)</h4>${tRutas}</section>`;
   return h;
 }
