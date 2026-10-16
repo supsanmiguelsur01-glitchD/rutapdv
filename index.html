@@ -1669,6 +1669,27 @@ function pickSheets(wbIn){
     out.cpInfo = {periodo: (mesTxt || MS[per % 100 - 1]) + " " + Math.floor(per / 100), corte: st ? st.txt : "", corteSrc: st ? (st.src === "guardado del archivo" ? "descarga de Power BI" : st.src) : "", fuente: "coberturas TU"};
     break cpbi;
   }
+  // Plan VPO cerveza, formato nuevo (BASE FINAL VPO, hoja "Export"): cliente, dinámica, clasificación y lo vendido en el mes por producto.
+  // No trae las escalas de precio: se usan las escalas vigentes del plan (iguales para todos los clientes).
+  // Escalas oficiales del plan VPO (lámina "cerveza - Plan VPO"): precio por caja según las cajas del pedido (1-4.99 / 5-9.99 / 10+)
+  const VPO_ESCALAS = {R750:[[1,19.50],[5,19.00],[10,18.50]], R330:[[1,19.40],[5,18.88],[10,17.84]], S330:[[1,20.36],[5,19.85],[10,18.93]]};
+  if (!(out.vp && out.vp.length)) vpx: for (const wb of wbs) for (const n of wb.SheetNames){
+    const rows = rowsOf(wb, n) || []; const hi = rows.slice(0, 10).findIndex(r => { const l = (r || []).map(low); return l.includes("cliente_id") && l.some(x => /^din[aá]mica$/.test(x)) && l.some(x => /regia\s*330/.test(x)); });
+    if (hi < 0) continue;
+    const h = rows[hi].map(low), I = re => h.findIndex(x => re.test(x));
+    const ic = h.indexOf("cliente_id"), it = I(/^din[aá]mica$/), ik = I(/^clasificaci[oó]n$/), ie = I(/^estrellas$/), is = I(/^supervisor$/),
+          P = {S330: I(/suprema\s*330/), R330: I(/^regia\s*330/), R750: I(/^regia\s*750/)};
+    const outR = [["cliente", "agencia", "producto", "escalas", "facturado", "minimo", "tipo", "clase"]];
+    for (const r of rows.slice(hi + 1)){
+      const cl = code(r && r[ic]); if (!cl) continue;
+      for (const [k, ci] of Object.entries(P)){ if (ci < 0) continue; outR.push([cl, is >= 0 ? str(r[is]) : "", k, VPO_ESCALAS[k].map(t => t.join(":")).join(" "), Math.round((num(r[ci]) || 0) * 100) / 100, 0, it >= 0 ? str(r[it]) : "", ik >= 0 ? str(r[ik]) : ""]); }
+    }
+    if (outR.length < 2) continue;
+    out.vp = outR; const st = wbStamp(wb); let periodo = "";
+    if (st){ const m = st.txt.match(/^\d{2}\/(\d{2})\/(\d{4})/); if (m) periodo = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"][+m[1] - 1] + " " + m[2]; }
+    out.vpInfo = {periodo, corte: st ? st.txt : "", corteSrc: st ? st.src : "", fuente: "BASE FINAL VPO (Export)"};
+    break vpx;
+  }
   return out;
 }
 function fromEmbed(e){
@@ -2359,11 +2380,11 @@ function emSum(L){
 function emCal(){
   const {dias, fin, periodo} = evDias(DB.em.info || {});
   const y = fin.getFullYear(), m = fin.getMonth();
-  let dh = 0; for (let t = new Date(y, m, 1); t <= fin; t.setDate(t.getDate() + 1)) if (t.getDay() !== 0) dh++;
+  let dh = 0; for (let t = new Date(y, m, 1); t <= fin; t.setDate(t.getDate() + 1)) if (esHabil(t)) dh++;
   const cm = String((DB.em.info || {}).corte || "").match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
   let corte = cm ? new Date(+cm[3], +cm[2] - 1, +cm[1]) : new Date(Date.now() - 864e5);
   if (corte > fin) corte = fin;
-  let dl = 0; for (let t = new Date(y, m, 1); t <= corte; t.setDate(t.getDate() + 1)) if (t.getDay() !== 0) dl++;
+  let dl = 0; for (let t = new Date(y, m, 1); t <= corte; t.setDate(t.getDate() + 1)) if (esHabil(t)) dl++;
   dl = Math.max(0, Math.min(dh, dl));
   return {dh, dl, dias, ritmo: dh ? dl / dh : 0, periodo};
 }
@@ -2388,7 +2409,7 @@ function renderEmergente(L){
     + `<div class="emk"><small>${tot.real >= tot.debe ? "Adelanto" : "Atraso vs ritmo"}</small><b class="${tot.real >= tot.debe ? "ok" : cls}">${cj(Math.abs(tot.real - tot.debe))}</b><span>cajas</span></div>`
     + `<div class="emk"><small>Necesidad del día</small><b>${dias ? fmt(tot.dia) : "—"}</b><span>${dias ? `faltan ${cj(tot.falt)} ÷ ${diasW(dias)}` : "período cerrado"}</span></div></div>`;
   h += `<div class="embar" aria-hidden="true"><i class="${cls}" style="width:${Math.min(100, Math.round(tot.a * 100))}%"></i><em style="left:${Math.min(100, Math.round(C.ritmo * 100))}%"></em></div>`;
-  h += `<p class="note">El color compara el avance con el <b>ritmo esperado</b> a la fecha de los datos (días trabajados ÷ días hábiles del mes, la rayita en la barra): verde va al ritmo o adelante, amarillo un poco abajo, rojo atrasado. Necesidad del día = cajas que faltan ÷ días hábiles restantes (lunes a sábado, contando hoy).</p>`;
+  h += `<p class="note">El color compara el avance con el <b>ritmo esperado</b> a la fecha de los datos (días trabajados ÷ días hábiles del mes, la rayita en la barra): verde va al ritmo o adelante, amarillo un poco abajo, rojo atrasado. Necesidad del día = cajas que faltan ÷ días hábiles restantes (lunes a sábado sin feriados, contando hoy).</p>`;
   const bySup = new Map(); for (const r of rutas){ const s = supOf(r) || "—"; if (!bySup.has(s)) bySup.set(s, []); bySup.get(s).push(r); }
   if (bySup.size > 1) h += `<h4 class="cpt">Por supervisor · del más atrasado al más adelantado</h4><div class="eml2">` + [...bySup.entries()].map(([s, rs]) => [s, rs, sumOf(rs)]).sort((a, b) => a[2].a - b[2].a).map(([s, rs, o]) => row(s, rs.length + (rs.length === 1 ? " ruta" : " rutas"), o, `data-segsup="${esc(s)}"`)).join("") + `</div>`;
   if (multi){
@@ -2554,6 +2575,20 @@ function renderPanel(){
 /* ---------- Everest: alcance, faltantes y necesidad diaria por ruta ---------- */
 const EV_CATS = [["multi","Pepsi Multi Serve"],["single","Pepsi Single Serve"],["gatorade","Gatorade 600 ML PET"],["cerveza","Cerveza"]];
 const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+/* Feriados de El Salvador (se descuentan de los días hábiles, igual que la hoja de días restantes del emergente):
+   1 ene, Jueves/Viernes/Sábado Santo, 1 may, 10 may, 17 jun, 6 ago, 15 sep, 2 nov, 25 dic */
+function feriadosDe(y){
+  feriadosDe.c = feriadosDe.c || {}; if (feriadosDe.c[y]) return feriadosDe.c[y];
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3),
+        h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451),
+        mes = Math.floor((h + l - 7 * m + 114) / 31), dia = ((h + l - 7 * m + 114) % 31) + 1;   // domingo de Pascua
+  const pas = new Date(y, mes - 1, dia), S = new Set();
+  for (const off of [-3, -2, -1]){ const t = new Date(pas); t.setDate(t.getDate() + off); S.add(t.getMonth() * 100 + t.getDate()); }
+  for (const [mm, dd] of [[1,1],[5,1],[5,10],[6,17],[8,6],[9,15],[11,2],[12,25]]) S.add((mm - 1) * 100 + dd);
+  return (feriadosDe.c[y] = S);
+}
+function esFeriado(t){ return feriadosDe(t.getFullYear()).has(t.getMonth() * 100 + t.getDate()); }
+function esHabil(t){ return t.getDay() !== 0 && !esFeriado(t); }   // lunes a sábado, sin feriados
 function evDias(infoIn){
   // días hábiles (lunes a sábado) desde hoy hasta fin del mes del período, contando hoy
   const info = infoIn || DB.ev.info || {}, hoy = new Date(); hoy.setHours(0,0,0,0);
@@ -2561,10 +2596,10 @@ function evDias(infoIn){
   const pm = String(info.periodo || "").toLowerCase().match(/([a-záéíóú]+)\s+(\d{4})/);
   if (pm && MESES.indexOf(pm[1]) >= 0){ m = MESES.indexOf(pm[1]); y = +pm[2]; }
   const fin = new Date(y, m + 1, 0), ini = new Date(Math.max(hoy, new Date(y, m, 1)));
-  let d = 0; for (const t = new Date(ini); t <= fin; t.setDate(t.getDate() + 1)) if (t.getDay() !== 0) d++;
+  let d = 0; for (const t = new Date(ini); t <= fin; t.setDate(t.getDate() + 1)) if (esHabil(t)) d++;
   return {dias: d, ini, fin, periodo: info.periodo || (MESES[m] + " " + y), corte: info.corte || ""};
 }
-/* Necesidad diaria = faltantes ÷ días hábiles restantes (lunes a sábado, contando hoy), redondeado hacia arriba.
+/* Necesidad diaria = faltantes ÷ días hábiles restantes (lunes a sábado sin feriados, contando hoy), redondeado hacia arriba.
    Los totales (agencia, supervisor, todas las rutas) se calculan con la suma de faltantes ÷ días, no sumando redondeos. */
 const needDia = (falt, dias) => dias > 0 ? Math.ceil(falt / dias) : null;
 const diasW = d => d === 1 ? "1 día" : `${d} días`;
@@ -2594,7 +2629,7 @@ function staleTag(txt){
   if (n <= 0) return ` <span class="pill ok">hoy</span>`;
   return ` <span class="pill ${n === 1 ? "warn" : "bad"}">${n === 1 ? "ayer" : `hace ${n} días`}</span>`;
 }
-const diasNote = (dias, ini, fin) => dias ? (dias === 1 ? `<b>1</b> día hábil restante (hoy ${ddm(ini)}, último del mes)` : `<b>${dias}</b> días hábiles restantes (lunes a sábado, del ${ddm(ini)} al ${ddm(fin)}, contando hoy)`) : `<span style="color:var(--warn)">Período cerrado: ya no quedan días hábiles. Carga el archivo del mes actual para ver la necesidad diaria</span>`;
+const diasNote = (dias, ini, fin) => dias ? (dias === 1 ? `<b>1</b> día hábil restante (hoy ${ddm(ini)}, último del mes)` : `<b>${dias}</b> días hábiles restantes (lunes a sábado sin feriados, del ${ddm(ini)} al ${ddm(fin)}, contando hoy)`) : `<span style="color:var(--warn)">Período cerrado: ya no quedan días hábiles. Carga el archivo del mes actual para ver la necesidad diaria</span>`;
 function evCell(o, ruta, k, dias){
   const pct = o.meta ? o.real / o.meta : 0, falt = Math.max(0, o.meta - o.real), dia = needDia(falt, dias);
   const cls = !o.meta ? "na" : pct >= 1 ? "ok" : pct >= .8 ? "warn" : "bad";
@@ -3098,7 +3133,7 @@ function openPdv(c){
   const vpoEsc = vpc ? (() => { const I = DB.vp.info || {};
     const rows = Object.entries(vpc.prods).map(([k, x]) => { const T = vpoTier({t:x.t, v:x.v || 0, min:vpc.min || 0, tot:Object.values(vpc.prods).reduce((a, y) => a + (y.v || 0), 0)}, 0);
       return `<div class="vrow"><div class="vh"><b>${esc(VPO_PROD[k] || k)}</b><span>facturado <b>${fmt(x.v, 1)} CJ</b></span></div><div class="vtiers">${x.t.map((t, i) => `<span class="vtier ${i === T.i ? "on" : ""}">${fmt(t[0])}+ CJ <b>$${t[1].toFixed(2)}</b></span>`).join("")}</div></div>`; }).join("");
-    return `<div class="vbox"><div class="vcap">Plan VPO ${esc(I.periodo || "")} · precio por caja según escala <small>(facturado al ${esc(I.corte || "—")})</small></div>${rows}</div><p class="note" style="margin:0">${vpc.tipo ? `Tipo <b>${esc(vpc.tipo)}</b> · ` : ""}${vpc.min ? `compra mínima <b>${fmt(vpc.min)} CJ</b> de cerveza VPO en el mes · ` : ""}la escala se calcula con lo facturado en el mes + el pedido. Calcula el precio en <b>Catálogo</b>.</p><button class="btn cat" data-fcat>Ver precio VPO en el catálogo</button>`; })() : "";
+    return `<div class="vbox"><div class="vcap">Plan VPO ${esc(I.periodo || "")} · precio por caja según escala <small>(facturado al ${esc(I.corte || "—")})</small></div>${rows}</div><p class="note" style="margin:0">${vpc.tipo ? `Tipo <b>${esc(vpc.tipo)}</b> · ` : ""}${vpc.min ? `compra mínima <b>${fmt(vpc.min)} CJ</b> de cerveza VPO por pedido · ` : ""}la escala se calcula con las cajas de cada pedido (no es acumulado del mes). Calcula el precio en <b>Catálogo</b>.</p><button class="btn cat" data-fcat>Ver precio VPO en el catálogo</button>`; })() : "";
   if (p.vpo || vpc){
     const V = p.vpo || {din:vpc.tipo, clas:vpc.clase, real:Object.values(vpc.prods).reduce((a, y) => a + (y.v || 0), 0), meta:vpc.min || null, pct:vpc.min ? Object.values(vpc.prods).reduce((a, y) => a + (y.v || 0), 0) / vpc.min : 0, resp:""}, pc = Math.round((V.pct || 0) * 100), falta = V.meta != null ? Math.max(0, V.meta - (V.real || 0)) : null;
     const P = vpc ? null : DB.vpoPlan;
@@ -3582,7 +3617,7 @@ function catInfo(it, p, V){
 const VPO_ITEM = {"REG-V355":"R330", "SUP-V11":"S330", "REG-V750":"R750"};
 /* escala VPO alcanzada con lo facturado del mes + lo que se pide (y la compra mínima del cliente, sobre el total de cerveza VPO) */
 function vpoTier(V, qty){
-  const acum = V.v + qty, tot = V.tot + qty, minEff = Math.max(V.t[0][0], 0);
+  const acum = qty, tot = qty, minEff = Math.max(V.t[0][0], 0);
   let i = -1; for (let k = 0; k < V.t.length; k++) if (acum >= V.t[k][0] - 1e-9) i = k;
   const okMin = !V.min || tot >= V.min - 1e-9;
   const next = V.t[i + 1] || null;
@@ -3594,14 +3629,14 @@ function catLine(it, ci, q, canal){
   q = q || {};
   const qty = (q.cj || 0) + (q.un || 0) / it.u;          // en cajas
   const cands = ci.opts.filter(o => o.st === "si" || q.cond || ci.base == null).map(o => {
-    if (o.pr.vpo){ const T = vpoTier(o.pr.vpo, qty), Tq = qty ? T : vpoTier(o.pr.vpo, Math.max(0, Math.max(o.pr.vpo.t[0][0], o.pr.vpo.min - o.pr.vpo.tot) - o.pr.vpo.v));
+    if (o.pr.vpo){ const T = vpoTier(o.pr.vpo, qty), Tq = qty ? T : vpoTier(o.pr.vpo, Math.max(o.pr.vpo.t[0][0], o.pr.vpo.min || 0));
       return {o, precio: T.precio ?? Tq.precio ?? o.pr.vpo.t[0][1], min:0, max:null, vpoT:T}; }
     return {o, precio:precioCanal(o.pr, canal), min:condMin(o.pr), max:condMax(o.pr)}; });
   const refBase = c => ci.base != null ? ci.base : c.precio / (1 - (dtoCanal(c.o.pr, canal) || 0));
   // con varias promos para el mismo producto se usa la que deja el menor total para la cantidad elegida
   const calc = c => {
     const base = refBase(c);
-    if (c.vpoT && qty && c.vpoT.precio == null) return {tot:qty * base, base, aviso: c.vpoT.faltaMin ? `Plan VPO: compra mínima ${qtxt(c.o.pr.vpo.min)} CJ de cerveza VPO en el mes (con este pedido lleva ${qtxt(c.vpoT.tot)})` : `Plan VPO: escala desde ${qtxt(c.o.pr.vpo.t[0][0])} CJ`, conPromo:false};
+    if (c.vpoT && qty && c.vpoT.precio == null) return {tot:qty * base, base, aviso: c.vpoT.faltaMin ? `Plan VPO: compra mínima ${qtxt(c.o.pr.vpo.min)} CJ de cerveza VPO por pedido (lleva ${qtxt(c.vpoT.tot)})` : `Plan VPO: escala desde ${qtxt(c.o.pr.vpo.t[0][0])} CJ`, conPromo:false};
     if (qty && qty < c.min - 1e-9) return {tot:qty * base, base, aviso:`La promo aplica desde ${qtxt(c.min)} CJ`, conPromo:false};
     const qp = c.max != null ? Math.min(qty, c.max) : qty;
     return {tot:qp * c.precio + (qty - qp) * base, base, conPromo:qp > 0, aviso: qty > qp ? `Promo hasta ${qtxt(c.max)} ${it.u === 1 ? "combos" : "CJ"}; el resto a precio normal` : ""};
@@ -3677,11 +3712,11 @@ function catPriceHTML(it, ci, L){
 function vpoHTML(V, qty){
   const T = vpoTier(V, qty), info = (DB.vp && DB.vp.info) || {};
   const chips = V.t.map((t, k) => `<span class="vtier ${k === T.i ? "on" : ""}">${qtxt(t[0])}+ CJ <b>${cmoney(t[1])}</b></span>`).join("");
-  let msg = `Facturado en el mes: <b>${qtxt(V.v)} CJ</b>${qty ? ` · con este pedido: <b>${qtxt(T.acum)} CJ</b>` : ""}`;
-  if (V.min) msg += `<br>Compra mínima del cliente: <b>${qtxt(V.min)} CJ</b> de cerveza VPO en el mes (lleva ${qtxt(T.tot)})${T.faltaMin ? ` · <b class="bad">faltan ${qtxt(T.faltaMin)} CJ</b>` : ` <b class="ok">✓</b>`}`;
+  let msg = `Cajas en este pedido: <b>${qtxt(qty)} CJ</b> · facturado en el mes: ${qtxt(V.v)} CJ (no suma para la escala)`;
+  if (V.min) msg += `<br>Compra mínima del cliente: <b>${qtxt(V.min)} CJ</b> de cerveza VPO por pedido (lleva ${qtxt(T.tot)})${T.faltaMin ? ` · <b class="bad">faltan ${qtxt(T.faltaMin)} CJ</b>` : ` <b class="ok">✓</b>`}`;
   if (T.precio != null) msg += `<br>Precio que le sale: <b class="ok">${cmoney(T.precio)}</b> por caja${T.next ? ` · con <b>${qtxt(T.faltaNext)} CJ</b> más baja a <b>${cmoney(T.next[1])}</b>` : " (escala más baja)"}`;
   else if (T.faltaDrop > 0 && !T.faltaMin) msg += `<br>La escala empieza en ${qtxt(V.t[0][0])} CJ`;
-  return `<span class="pill acc">Plan VPO${V.tipo ? " · " + esc(V.tipo.toLowerCase()) : ""}</span> <span>Precio por escala según lo facturado en el mes + este pedido</span><div class="vtiers">${chips}</div><small>${msg}${info.corte ? `<br>Facturado al ${esc(info.corte)}` : ""}</small>`;
+  return `<span class="pill acc">Plan VPO${V.tipo ? " · " + esc(V.tipo.toLowerCase()) : ""}</span> <span>Precio por escala según las cajas de este pedido</span><div class="vtiers">${chips}</div><small>${msg}${info.corte ? `<br>Facturado al ${esc(info.corte)}` : ""}</small>`;
 }
 function catCard({it, ci}){
   const q = CATV.cart[it.id] || {}, L = catLine(it, ci, q, CATV.canal);
@@ -3887,7 +3922,7 @@ function desHTML(){
     }).join("") + `</div>`;
   }
   if (venc.length) h += `<p class="note dv">⏳ Vencen pronto: ${venc.map(pr => `<b>${esc(pr.n)}</b> (${fdate(pr.d2)})`).join(" · ")}</p>`;
-  h += `<p class="note">Necesidad de hoy = lo que falta del mes ÷ días hábiles restantes (lunes a sábado, contando hoy). ${stampHTML("base")}</p>`;
+  h += `<p class="note">Necesidad de hoy = lo que falta del mes ÷ días hábiles restantes (lunes a sábado sin feriados, contando hoy). ${stampHTML("base")}</p>`;
   h += `<button class="btn pri" data-desclose>Empezar el día</button>`;
   return h;
 }
