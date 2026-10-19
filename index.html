@@ -829,6 +829,42 @@ select.sm{height:38px;border:1px solid var(--line);border-radius:10px;background
 .popbtn.alt{margin-top:0;text-align:left;text-transform:none;letter-spacing:0;font:600 13.5px var(--f-body);background:var(--field);border:1px solid var(--line);color:var(--ink)}
 .popbtn.alt small{display:block;color:var(--muted);font-weight:500;font-size:12px}
 .popbtn{margin-top:10px;width:100%;border:0;border-radius:10px;background:var(--grad);color:#fff;padding:8px 10px;font:700 12px var(--f-tech);letter-spacing:0.36px;text-transform:uppercase}
+.mdcard{display:flex;flex-direction:column;gap:8px;border:1px solid var(--cyan);border-radius:16px;padding:12px;background:var(--panel);margin-bottom:6px}.mdcard h4{margin:4px 0 0;font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}.mdcard .avg{grid-template-columns:repeat(3,1fr);gap:6px}.mdcard .avt{padding:8px 10px}.mdcard .avt .avv{font-size:19px}
+.mdcard h4 small{text-transform:none;letter-spacing:0;font-weight:500}
+.repov{position:fixed;inset:0;z-index:3000;background:rgba(10,20,30,.45);display:flex;align-items:flex-end;justify-content:center}
+.repov[hidden]{display:none}
+.repbox{background:var(--panel);width:100%;max-width:620px;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:16px;display:flex;flex-direction:column;gap:10px}
+.repbox h4{margin:6px 0 0;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.repg{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.repg label{display:flex;flex-direction:column;gap:3px;font-size:12px;font-weight:600;color:var(--muted)}
+.repg input{border:1px solid var(--line);border-radius:10px;padding:9px 10px;font:600 16px/1.2 inherit;color:var(--ink);background:var(--field,#F8FAFC)}
+.avtab tr.norep td{color:var(--dim)}.avtab tr.tot td{background:rgba(242,201,76,.12)}
+.avh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.avh b{font-size:14.5px}.avh span{font-size:12px;color:var(--muted);flex:1}
+.avg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.avt{border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:var(--panel);display:flex;flex-direction:column;gap:3px}
+.avt .avl{font-size:11.5px;font-weight:700;color:var(--muted)}.avt .avv{font-size:22px;font-weight:800}.avt .avs{font-size:11.5px;color:var(--dim)}
+.avt.ok .avv{color:var(--ok)}.avt.warn .avv{color:var(--warn)}.avt.bad .avv{color:var(--bad)}
+.avm{height:6px;background:var(--chip);border-radius:3px;overflow:hidden;margin-top:3px}.avm i{display:block;height:100%;background:var(--cyan)}
+.avt.ok .avm i{background:var(--ok)}.avt.warn .avm i{background:var(--warn)}.avt.bad .avm i{background:var(--bad)}
+.avtab td,.avtab th{text-align:center}.avtab td:first-child,.avtab th:first-child{text-align:left}
+.itabs{display:flex;gap:6px;flex-wrap:wrap}
+.itab{all:unset;cursor:pointer;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);font-weight:700;font-size:13px;color:var(--muted)}
+.itab.on{background:var(--cyan);border-color:var(--cyan);color:#fff}
+.icard{display:flex;flex-direction:column;gap:8px}
+.ihd{display:flex;flex-direction:column;gap:2px}.ihd b{font-size:16px}.ihd span{font-size:12.5px;color:var(--muted)}.ihd small{font-size:11.5px;color:var(--dim)}
+.irow{border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:var(--panel);display:flex;flex-direction:column;gap:7px}
+.ih{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.ih small{display:block;font-size:11.5px;color:var(--dim);font-weight:500}
+.ist{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.ipos{text-align:right;line-height:1.1;white-space:nowrap}
+.ichip{font-size:12px;font-weight:800;padding:4px 9px;border-radius:999px;white-space:nowrap}.ichip.ok{background:rgba(23,128,61,.12);color:var(--ok)}.ichip.bad{background:rgba(192,53,47,.1);color:var(--bad)}
+.ipos{font-weight:800;font-size:15px;color:var(--ink)}.ipos small{font-size:11px;color:var(--dim);font-weight:600}
+.ibar{display:grid;grid-template-columns:1fr;gap:3px}.ibar .il{font-size:11.5px;color:var(--muted);font-weight:600}.ibar .iv{font-size:12.5px}.ibar.na .iv{color:var(--dim)}
+.ibar .it{position:relative;height:8px;background:var(--chip);border-radius:4px;overflow:visible}.ibar .it i{display:block;height:100%;border-radius:4px;background:var(--bad)}
+.ibar.ok .it i{background:var(--ok)}.ibar.warn .it i{background:var(--warn)}.ibar.ok .iv b{color:var(--ok)}.ibar.warn .iv b{color:var(--warn)}.ibar.bad .iv b{color:var(--bad)}
+.ibar .it em{position:absolute;top:-3px;width:2px;height:14px;background:var(--ink);opacity:.55}
+.itend{margin:0;font-size:12px;color:var(--muted)}
+.me-arrow{width:44px;height:44px;transition:transform .3s linear;filter:drop-shadow(0 2px 5px rgba(0,0,0,.35));transform-origin:50% 50%}
+.navcenter{position:absolute;z-index:650;left:50%;transform:translateX(-50%);bottom:150px;background:var(--cyan);color:#fff;border:0;border-radius:999px;padding:10px 16px;font:700 14px/1 var(--f-body,inherit);box-shadow:0 4px 14px rgba(0,0,0,.25)}
 .me-dot{width:18px;height:18px;border-radius:50%;background:var(--cyan);border:3px solid #fff;box-shadow:0 0 0 7px rgba(31,78,140,.25),0 0 18px rgba(31,78,140,.8)}
 
 /* ficha */
@@ -1370,6 +1406,7 @@ h1,h2,h3,h4,.at,.acch .at,.cvt b,.phead h2,.psec h3,.sec h3,.evhead h3,.cpt,.lh,
         </select>
         <button class="iconbtn" id="btnFit" title="Ajustar a los puntos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
         <button class="iconbtn" id="btnCompass" title="Girar el mapa con la brújula" aria-label="Brújula"><svg viewBox="0 0 24 24" width="20" height="20" style="transition:transform .15s linear"><path d="M12 2 8 12h8z" fill="#C0352F"/><path d="M12 22 8 12h8z" fill="currentColor" opacity=".55"/></svg></button>
+        <button class="iconbtn" id="btnOneway" title="Sentido de las calles" aria-label="Sentido de las calles"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13M13 4l4 4-4 4"/><path d="M20 16H7M11 12l-4 4 4 4"/></svg></button>
         <button class="iconbtn" id="btnMe" title="Centrar en mí"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 21l8-4 8 4z"/></svg></button>
       </div>
       <div class="legend" id="legend"></div>
@@ -1516,7 +1553,8 @@ const READ_OPTS = {type:"array", bookFiles:true};
 function pickSheets(wbIn){
   const wbs = Array.isArray(wbIn) ? wbIn : [wbIn];      // se pueden cargar varios Excel a la vez (listados + Everest)
   const out = {}, cache = new Map();
-  const rowsOf = (wb, n) => { const k = wb; if (!cache.has(k)) cache.set(k, {}); const c = cache.get(k); if (!(n in c)) c[n] = wb.Sheets[n] ? XLSX.utils.sheet_to_json(wb.Sheets[n], {header:1, raw:true, defval:null, blankrows:false}) : null; return c[n]; };
+  const trimRef = ws => { try{ const r = XLSX.utils.decode_range(ws["!ref"] || "A1"); if (r.e.r - r.s.r < 100000) return; let mr = r.s.r, mc = r.s.c; for (const key of Object.keys(ws)){ if (key[0] === "!") continue; const a = XLSX.utils.decode_cell(key); if (a.r > mr) mr = a.r; if (a.c > mc) mc = a.c; } r.e.r = mr; r.e.c = Math.max(r.e.c, mc); ws["!ref"] = XLSX.utils.encode_range(r); }catch(e){} };   // hojas con formato hasta la fila 1,048,575
+  const rowsOf = (wb, n) => { const k = wb; if (!cache.has(k)) cache.set(k, {}); const c = cache.get(k); if (!(n in c)){ if (wb.Sheets[n]) trimRef(wb.Sheets[n]); c[n] = wb.Sheets[n] ? XLSX.utils.sheet_to_json(wb.Sheets[n], {header:1, raw:true, defval:null, blankrows:false}) : null; } return c[n]; };
   for (const [id, cfg] of Object.entries(SHEETS)){
     let best = null;
     const tryName = (wb, n) => { const rows = rowsOf(wb, n); if (!rows) return null; const h = findHeader(rows, cfg.key, cfg.also); return h < 0 ? null : {rows: rows.slice(h), pre: rows.slice(0, h), wb}; };
@@ -1669,6 +1707,115 @@ function pickSheets(wbIn){
     out.cpInfo = {periodo: (mesTxt || MS[per % 100 - 1]) + " " + Math.floor(per / 100), corte: st ? st.txt : "", corteSrc: st ? (st.src === "guardado del archivo" ? "descarga de Power BI" : st.src) : "", fuente: "coberturas TU"};
     break cpbi;
   }
+  // Plan Gambito (BASE TRADICIONAL- PLAN GAMBITO.xlsx): un plan por cliente y empaque, con sus escalas por pedido.
+  // Hojas VPO 750ML / VPO 330ML / VPO SUPREMA 330ML (escalas), NUNCA COMPRA 750/330 (primera compra), COMPRA 0 750ML y CAIDOS 750ML.
+  const GAMB = [[/^vpo\s*750/i, "R750", "VPO"], [/^vpo\s*330/i, "R330", "VPO"], [/^vpo\s*suprema/i, "S330", "VPO"], [/^nunca\s*compra\s*750/i, "R750", "Nunca compra"], [/^nunca\s*compra\s*330/i, "R330", "Nunca compra"], [/^compra\s*0\s*750/i, "R750", "Compra 0"], [/^ca[ií]dos\s*750/i, "R750", "Caídos"]];
+  gamb: for (const wb of wbs){
+    const hits = wb.SheetNames.map(n => [n, GAMB.find(g => g[0].test(String(n).trim()))]).filter(x => x[1]);
+    if (hits.length < 2) continue;
+    const outR = [["cliente", "agencia", "producto", "escalas", "facturado", "minimo", "tipo", "clase", "plan", "nota", "maximo"]]; let fechaTxt = "";
+    for (const [n, [, k, plan]] of hits){
+      const rows = rowsOf(wb, n) || []; const hi = rows.slice(0, 8).findIndex(r => (r || []).some(x => /^c[oó]digo cliente$/i.test(str(x))));
+      if (hi < 0) continue;
+      const h = rows[hi].map(low), ci = h.findIndex(x => /^c[oó]digo cliente$/.test(x)), ai = h.indexOf("agencia"), fi = h.indexOf("fecha");
+      const pi = h.reduce((a, x, i) => x === "precio caja" ? a.concat(i) : a, []), di = h.reduce((a, x, i) => /^drop/.test(x) ? a.concat(i) : a, []);
+      for (const r of rows.slice(hi + 1)){
+        const cl = code(r && r[ci]); if (!cl) continue;
+        const t = di.map((d, j) => [num(r[d]), num(r[pi[j]])]).filter(x => x[0] != null && x[1] != null).map(([d, p]) => [d, Math.round(p * 100) / 100]);
+        if (!t.length) continue;
+        const f = fi >= 0 ? str(r[fi]) : "", mx = (f.match(/m[aá]ximo\s+(\d+)\s*caja/i) || [])[1];
+        if (!fechaTxt && /\d+\s+de\s+[a-záéíóú]+\s+al\s+\d+/i.test(f)) fechaTxt = f.toLowerCase();
+        outR.push([cl, ai >= 0 ? str(r[ai]) : "", k, t.map(x => x.join(":")).join(" "), 0, 0, "", "", plan, f, mx ? +mx : 0]);
+      }
+    }
+    if (outR.length < 2) continue;
+    out.vp = outR; const md = wb.Props && wb.Props.ModifiedDate ? new Date(wb.Props.ModifiedDate) : null;   // las tablas dinámicas viejas del archivo no indican la fecha del plan
+    out.vpInfo = {periodo: fechaTxt, corte: md && !isNaN(md) ? fmtStamp(md) : "", corteSrc: "guardado del archivo", fuente: "Plan Gambito"};
+    break gamb;
+  }
+  // BASE FINAL VPO (hoja BASE TOTAL): tipo (actuales / nuevos) y clase de cada cliente del plan
+  for (const wb of wbs) for (const n of wb.SheetNames){
+    const rows = rowsOf(wb, n) || []; const hi = rows.slice(0, 5).findIndex(r => { const l = (r || []).map(low); return l.includes("cliente") && l.includes("clase") && l.some(x => /plan nunca compra/.test(x)); });
+    if (hi < 0) continue;
+    const h = rows[hi].map(low), ci = h.indexOf("cliente"), ki = h.indexOf("clase"), ti = h.indexOf("tipo"), M = new Map();
+    for (const r of rows.slice(hi + 1)){ const cl = code(r && r[ci]); if (cl) M.set(String(cl), [ti >= 0 ? str(r[ti]) : "", ki >= 0 ? str(r[ki]) : ""]); }
+    if (out.vp && out.vp.length){ const tc = out.vp[0].indexOf("tipo"), kc = out.vp[0].indexOf("clase"); for (const r of out.vp.slice(1)){ const m = M.get(String(r[0])); if (m){ r[tc] = m[0]; r[kc] = m[1]; } } delete out.vpb; }
+    else out.vpb = [["cliente", "tipo", "clase"], ...[...M].map(([c, [t, k]]) => [c, t, k])];
+  }
+  // ---- Incentivos del mes (carpeta incentivos): Top Regiero, Top Cervecero SV, Pary "Pique en corto", Forza Lata Petit ----
+  // Una fila por ruta o supervisor: [inc, nivel, ruta, sup, agencia, grupo, meta, real, tend, mcob, rcob, pcob, pcob3, gana, premio, rank, nrank]
+  {
+    const INC = [], info = {};
+    const stamp = wb => { const md = wb.Props && wb.Props.ModifiedDate ? new Date(wb.Props.ModifiedDate) : null; return md && !isNaN(md) ? fmtStamp(md) : ""; };
+    const hdr = (rows, need) => rows.slice(0, 15).findIndex(r => { const l = (r || []).map(x => low(x).replace(/\s+/g, " ")); return need.every(k => l.includes(k)); });
+    const alc = r => r[6] > 0 ? r[7] / r[6] : null, alcT = r => r[6] > 0 ? (r[8] != null ? r[8] : r[7]) / r[6] : null;
+    const rankBy = (R, keyFn, valFn) => { const G = new Map(); for (const r of R){ const k = keyFn(r); if (!G.has(k)) G.set(k, []); G.get(k).push(r); } for (const g of G.values()){ const s = g.filter(r => valFn(r) != null).sort((a, b) => valFn(b) - valFn(a)); s.forEach((r, i) => { r[15] = i + 1; r[16] = s.length; }); } return G; };
+    const supAgg = (R, inc, grpFn) => { const M = new Map(); for (const r of R){ if (!M.has(r[3])) M.set(r[3], [inc, "sup", "", r[3], r[4], "", 0, 0, 0, 0, 0, null, null, "", "", 0, 0]); const s = M.get(r[3]); s[6] += r[6] || 0; s[7] += r[7] || 0; s[8] += r[8] || 0; s[9] += r[9] || 0; s[10] += r[10] || 0; } const out = [...M.values()]; if (grpFn) out.forEach(s => s[5] = grpFn(s)); return out; };
+    for (const wb of wbs) for (const n of wb.SheetNames){
+      const rows = rowsOf(wb, n) || [];
+      // Top Regiero: hoja "Seguimiento tradicional" (rutas por cluster)
+      if (/seguimiento tradicional/i.test(n)){
+        const R = []; let premio = "";
+        for (const r of rows){
+          if (!r) continue; let m;
+          if ((m = str(r[1]).match(/premio\s+(\d+)\s*cajas?\s*(\$[\d.,]+)?/i))) premio = m[1] + " CJ" + (m[2] ? " (" + m[2] + ")" : "");
+          const ru = code(r[1]); if (!ru || !/^\d{6}$/.test(String(ru)) || !str(r[0]) || num(r[3]) == null) continue;
+          R.push(["regiero", "ruta", String(ru), normSup(r[0]), "", num(r[2]) || 0, num(r[3]) || 0, num(r[4]) || 0, null, num(r[6]) || 0, num(r[7]) || 0, null, null, /^s/i.test(str(r[9])) ? "SI" : "NO", premio, 0, 0]);
+        }
+        if (R.length){ rankBy(R, r => r[5], alc); INC.push(...R); info.regiero = {corte: stamp(wb)}; }
+        continue;
+      }
+      // Top Cervecero SV: hoja de alcance por supervisor + base de clientes para el detalle por ruta
+      let hi = hdr(rows, ["supervisor", "rango de cajas", "% clientes coberturados"]);
+      if (hi >= 0){
+        const R = [];
+        for (const r of rows.slice(hi)){ if (!r || !str(r[0]) || num(r[1]) == null || num(r[2]) == null || /supervisor/i.test(str(r[0]))) continue;
+          const o = ["cervecero", "sup", "", normSup(r[0]), "", num(r[1]), num(r[2]) || 0, num(r[3]) || 0, null, null, null, num(r[5]), num(r[6]), "", "", 0, 0];
+          o[13] = o[6] && o[7] / o[6] >= 1 && (o[11] || 0) >= 0.5 && (o[12] || 0) >= 0.25 ? "SI" : "NO"; R.push(o); }
+        if (R.length){ rankBy(R, r => r[5], alc); INC.push(...R); info.cervecero = Object.assign(info.cervecero || {}, {corte: stamp(wb)}); }
+        continue;
+      }
+      hi = hdr(rows, ["ruta", "cliente", "meta octubre", "coberturas >=3"]);
+      if (hi >= 0){
+        const h = rows[hi].map(x => low(x).replace(/\s+/g, " ")), I = k => h.indexOf(k), M = new Map();
+        for (const r of rows.slice(hi + 1)){ const ru = code(r && r[I("ruta")]); if (!ru) continue; const k = String(ru);
+          if (!M.has(k)) M.set(k, ["cervecero", "ruta", k, normSup(r[I("supervisor")]), str(r[I("agencia")]), "", 0, 0, null, 0, 0, 0, 0, "", "", 0, 0]);
+          const o = M.get(k); o[6] += num(r[I("meta octubre")]) || 0; o[7] += num(r[I("real octubre ttal cza")]) || 0; o[9]++; if ((num(r[I("real octubre ttal cza")]) || 0) > 0) o[10]++; if (str(r[I("coberturas >=3")]) === "1") o[12]++; }
+        const R = [...M.values()]; R.forEach(o => { o[11] = o[9] ? o[10] / o[9] : null; o[12] = o[9] ? o[12] / o[9] : null; });
+        if (R.length){ rankBy(R, r => r[3], alc); INC.push(...R); info.cervecero = Object.assign(info.cervecero || {}, {corteRutas: stamp(wb)}); }
+        continue;
+      }
+      // Pary "Pique en corto": rutas (meta de volumen y 30 coberturas)
+      hi = hdr(rows, ["ruta", "meta vol", "meta coberturas"]);
+      if (hi >= 0){
+        const h = rows[hi].map(x => low(x).replace(/\s+/g, " ")), I = k => h.indexOf(k), R = [], MS = new Map();
+        for (const r of rows.slice(hi + 1)){ const ru = code(r && r[I("ruta")]); if (!ru || !/^\d{6}$/.test(String(ru))) continue;
+          const sp = normSup(r[I("supervisor")]); MS.set(sp, (MS.get(sp) || 0) + (num(r[I("meta vol")]) || 0));   // la meta de volumen es del supervisor (viene en una sola fila)
+          R.push(["pary", "ruta", String(ru), sp, str(r[I("agencia")]), sp, 0, num(r[I("vol")]) || 0, num(r[I("tendencia")]), num(r[I("meta coberturas")]) || 30, num(r[I("coberturas")]) || 0, null, null, "NO", "$60", 0, 0]); }
+        if (R.length){
+          const cobA = r => r[9] ? r[10] / r[9] : null;
+          const G = rankBy(R, r => r[5], cobA);   // la ruta con mayor alcance de la mesa
+          for (const g of G.values()){ const w = g.filter(r => r[10] >= r[9]).sort((a, b) => cobA(b) - cobA(a) || b[7] - a[7])[0]; if (w) w[13] = "SI"; }   // top 1 de la mesa con la llave de 30 coberturas
+          const S = supAgg(R, "pary", s => s[4]); S.forEach(s => { s[6] = MS.get(s[3]) || 0; s[9] = 0; s[10] = 0; s[14] = "$250"; s[13] = "NO"; });
+          const GS = rankBy(S, s => s[5], alc); for (const g of GS.values()){ const w = g.filter(s => alc(s) >= 1).sort((a, b) => alc(b) - alc(a))[0]; if (w) w[13] = "SI"; }   // top 1 de la agencia con 100% de la meta
+          INC.push(...R, ...S); info.pary = {corte: stamp(wb)};
+        }
+        continue;
+      }
+      // Forza Lata Petit: volumen (néctar + fresh) y coberturas por ruta
+      hi = hdr(rows, ["ruta", "meta volumen octubre", "meta cob octubre"]);
+      if (hi < 0) hi = rows.slice(0, 15).findIndex(r => { const l = (r || []).map(x => low(x)); return l.includes("ruta") && l.some(x => /^meta volumen/.test(x)) && l.some(x => /^meta cob/.test(x)); });
+      if (hi >= 0){
+        const h = rows[hi].map(x => low(x).replace(/\s+/g, " ")), F = re => h.findIndex(x => re.test(x)), R = [];
+        const iR = F(/^ruta$/), iS = F(/^supervisor$/), iA = F(/^agencia$/), iM = F(/^meta volumen/), iV = F(/^vol octubre/), iT = F(/^tendencia/), iMc = F(/^meta cob/), iC = F(/^cob total/);
+        for (const r of rows.slice(hi + 1)){ const ru = code(r && r[iR]); if (!ru || !/^\d{6}$/.test(String(ru))) continue;
+          R.push(["forza", "ruta", String(ru), normSup(r[iS]), str(r[iA]), str(r[iA]), num(r[iM]) || 0, num(r[iV]) || 0, num(r[iT]), Math.round(num(r[iMc]) || 0), num(r[iC]) || 0, null, null, "", "", 0, 0]); }
+        if (R.length){ rankBy(R, r => r[5], alcT); const S = supAgg(R, "forza", () => "todos"); rankBy(S, s => s[5], alcT); INC.push(...R, ...S); info.forza = {corte: stamp(wb)}; }
+        continue;
+      }
+    }
+    if (INC.length){ out.inc = [["inc", "nivel", "ruta", "sup", "agencia", "grupo", "meta", "real", "tend", "mcob", "rcob", "pcob", "pcob3", "gana", "premio", "rank", "nrank"], ...INC]; out.incInfo = info; }
+  }
   // Plan VPO cerveza, formato nuevo (BASE FINAL VPO, hoja "Export"): cliente, dinámica, clasificación y lo vendido en el mes por producto.
   // No trae las escalas de precio: se usan las escalas vigentes del plan (iguales para todos los clientes).
   // Escalas oficiales del plan VPO (lámina "cerveza - Plan VPO"): precio por caja según las cajas del pedido (1-4.99 / 5-9.99 / 10+)
@@ -1694,7 +1841,7 @@ function pickSheets(wbIn){
 }
 function fromEmbed(e){
   e = e || {};
-  return {maestra:e["maestra"]||[], listados:e["LISTADOS"]||[], ac:e["AC BASE"]||[], rn:e["Base"]||[], mon:e["MONITOREO"]||[], vpo:e["VPO"]||[], ev:e["EVEREST"]||[], evInfo:e.evInfo||null, baseInfo:e.baseInfo||null, promosInfo:e.promosInfo||null, promos:e["PROMOS"]||[], cp:e["COBPAGO"]||[], cpInfo:e.cpInfo||null, em:e["EMERGENTE"]||[], emInfo:e.emInfo||null, md:e["METAS"]||[], mdInfo:e.mdInfo||null, vp:e["VPOPLAN"]||[], vpInfo:e.vpInfo||null};
+  return {inc:e["INCENT"]||[], incInfo:e.incInfo||null, maestra:e["maestra"]||[], listados:e["LISTADOS"]||[], ac:e["AC BASE"]||[], rn:e["Base"]||[], mon:e["MONITOREO"]||[], vpo:e["VPO"]||[], ev:e["EVEREST"]||[], evInfo:e.evInfo||null, baseInfo:e.baseInfo||null, promosInfo:e.promosInfo||null, promos:e["PROMOS"]||[], cp:e["COBPAGO"]||[], cpInfo:e.cpInfo||null, em:e["EMERGENTE"]||[], emInfo:e.emInfo||null, md:e["METAS"]||[], mdInfo:e.mdInfo||null, vp:e["VPOPLAN"]||[], vpInfo:e.vpInfo||null};
 }
 
 /* ---------- modelo ---------- */
@@ -1875,7 +2022,8 @@ function build(S){
     }
   }
   for (const o of rnRutas.values()){ o.rn = o.rojo + o.negro; }
-  DB = {pdv, covCols, acCols, sups, rutas, rutaSup, vpoPlan, ev, baseInfo: S.baseInfo || null, promosInfo: S.promosInfo || null, promos: parsePromos(S.promos || []), cp: parseCPago(S.cp || [], S.cpInfo), em: parseEm(S.em || [], S.emInfo), md: parseMd(S.md || [], S.mdInfo), vp: parseVp(S.vp || [], S.vpInfo), rn:{sem:rnSem, rutas:rnRutas, meta: Object.assign({}, RN_META_DEF, S.rnMeta || {})}};
+  DB = {live: S.live || null, inc: parseInc(S.inc || [], S.incInfo), pdv, covCols, acCols, sups, rutas, rutaSup, vpoPlan, ev, baseInfo: S.baseInfo || null, promosInfo: S.promosInfo || null, promos: parsePromos(S.promos || []), cp: parseCPago(S.cp || [], S.cpInfo), em: parseEm(S.em || [], S.emInfo), md: parseMd(S.md || [], S.mdInfo), vp: parseVp(S.vp || [], S.vpInfo), rn:{sem:rnSem, rutas:rnRutas, meta: Object.assign({}, RN_META_DEF, S.rnMeta || {})}};
+  if (typeof logGuardar === "function") setTimeout(() => logGuardar(S), 0);   // foto del avance para "Avance del día"
 }
 /* ---------- R+N (rojo + negro) ---------- */
 // Meta R+N por agencia: % máximo de equipos fríos en rojo o negro. Norte = la meta que trae la hoja "Resumen Laterales" (5%); Sur = 5%.
@@ -1887,6 +2035,26 @@ const isRN = e => e.sem === "ROJO" || e.sem === "NEGRO";
 /* ---------- Coberturas de pago (Seguimiento TU's / Metas Cobertura SM): meta y real por ruta ---------- */
 const CP_ALL = [["ms","1.5L y 3L"],["sku4","4 SKU"],["colas","Colas SV"]];
 let CP_CATS = CP_ALL;   // solo las categorías que traen meta en el archivo cargado (coberturas TU no trae Colas SV)
+/* Incentivos: filas por ruta o supervisor, con su posición calculada sobre todo el país */
+const INC_DEF = {
+  regiero:  {t:"Top Regiero", d:"Volumen Regia VR + coberturas Regia · premio en latas según cluster · top 3 del cluster: kit", vol:"Regia VR (CJ)", cob:"Coberturas Regia"},
+  pary:     {t:"Pary · Pique en corto", d:"Preventa: top 1 de la mesa con 30 coberturas, $60 · Supervisor: top 1 de la agencia con 100% de la meta, $250", vol:"Volumen Pary (CJ)", cob:"Coberturas"},
+  cervecero:{t:"Top Cervecero SV", d:"Supervisor: alcance de la meta de cerveza con mínimo 50% de clientes coberturados y 25% con 3 o más empaques", vol:"Cerveza (CJ)", cob:"Clientes"},
+  forza:    {t:"Forza Lata Petit", d:"Volumen Petit (néctar + fresh) y coberturas · tendencia al cierre", vol:"Volumen Petit (CJ)", cob:"Coberturas Petit"}
+};
+function parseInc(rows, info){
+  const inc = {rows:[], info: info || {}, ruta:new Map(), sup:new Map()};
+  if (!rows || rows.length < 2) return inc;
+  const h = rows[0].map(low), I = n => h.indexOf(n);
+  for (const r of rows.slice(1)){
+    const o = {inc:str(r[I("inc")]), nivel:str(r[I("nivel")]), ruta:str(r[I("ruta")]), sup:normSup(r[I("sup")]), ag:str(r[I("agencia")]), grupo:r[I("grupo")], meta:num(r[I("meta")]) || 0, real:num(r[I("real")]) || 0, tend:num(r[I("tend")]), mcob:num(r[I("mcob")]), rcob:num(r[I("rcob")]), pcob:num(r[I("pcob")]), pcob3:num(r[I("pcob3")]), gana:str(r[I("gana")]), premio:str(r[I("premio")]), rank:num(r[I("rank")]) || 0, nrank:num(r[I("nrank")]) || 0};
+    inc.rows.push(o);
+    const m = o.nivel === "sup" ? inc.sup : inc.ruta, k = o.nivel === "sup" ? o.sup : o.ruta;
+    if (!m.has(k)) m.set(k, {}); m.get(k)[o.inc] = o;
+  }
+  return inc;
+}
+
 /* Plan VPO cerveza por cliente: escalas de precio por producto y lo facturado en el mes */
 const VPO_PROD = {R330:"Regia 330 ML VR", S330:"Suprema 330 ML VR (11 oz)", R750:"Regia 750 ML VR"};
 function parseVp(rows, info){
@@ -1898,7 +2066,7 @@ function parseVp(rows, info){
     const t = str(r[I("escalas")]).split(/\s+/).map(x => x.split(":").map(Number)).filter(x => x.length === 2 && isFinite(x[0]) && isFinite(x[1])).sort((a, b) => a[0] - b[0]);
     if (!t.length) continue;
     if (!vp.cli.has(cl)) vp.cli.set(cl, {min: num(r[I("minimo")]) || 0, tipo: str(r[I("tipo")]), clase: str(r[I("clase")]), prods:{}});
-    vp.cli.get(cl).prods[str(r[I("producto")])] = {t, v: num(r[I("facturado")]) || 0};
+    vp.cli.get(cl).prods[str(r[I("producto")])] = {t, v: num(r[I("facturado")]) || 0, plan: I("plan") >= 0 ? str(r[I("plan")]) : "", nota: I("nota") >= 0 ? str(r[I("nota")]) : "", max: I("maximo") >= 0 ? (num(r[I("maximo")]) || 0) : 0};
   }
   return vp;
 }
@@ -2066,7 +2234,7 @@ const DEFAULT_SUP = EMBED ? "BRYAN ESCOBAR" : "";
 /* ---------- visitas (checks) ---------- */
 const VKEY = "rutapdv_visitas_v1";
 let VIS = ls.get(VKEY, {});
-const visit = (c, create) => { const d = todayKey(); if (!VIS[d]) { if (!create) return null; VIS[d] = {}; } if (!VIS[d][c] && create) VIS[d][c] = {cov:{}, ac:{}, note:"", t:null}; return VIS[d][c] || null; };
+const visit = (c, create) => { const d = todayKey(); if (!VIS[d]) { if (!create) return null; VIS[d] = {}; } if (!VIS[d][c] && create) VIS[d][c] = {cov:{}, ac:{}, wl:{}, rn:{}, note:"", t:null}; return VIS[d][c] || null; };
 const saveVis = () => ls.set(VKEY, VIS);
 // La app es un apoyo visual de indicadores (no registra visitas ni pedidos: eso va en la app oficial).
 const visitedToday = c => false;
@@ -2149,6 +2317,8 @@ function segFn(k){
   if (f === "gps") return op === "no" ? (p => p.lat == null) : (p => p.lat != null);
   if (f === "fr") return p => (p.fr || "").toUpperCase() === v;
   if (f === "promo"){ const ids = v.split(","); return p => ids.some(id => promoPassK(p, id)); }
+  if (f === "ac"){ const cols = v.split("|"); return p => !!p.ac && cols.some(k => p.ac.includes(k)); }   // segmento de la base AC (p. ej. compra cero de Gatorade)
+  if (f === "vpp"){ const [pl, pr] = v.split("@"), plans = pl.split(","), prods = pr ? pr.split(",") : null; return p => { const x = DB.vp && DB.vp.cli.get(p.c); return !!x && Object.entries(x.prods).some(([k, o]) => plans.includes(o.plan) && (!prods || prods.includes(k))); }; }   // plan Gambito de cerveza
   return () => true;
 }
 function segLabel(k){
@@ -2163,6 +2333,8 @@ function segLabel(k){
   if (f === "gps") return op === "no" ? "Sin coordenadas" : "Con coordenadas";
   if (f === "fr") return `Frecuencia ${v}`;
   if (f === "promo") return "Promo: " + v.split(",").map(id => (promoById(id) || {}).n || id).join(" o ");
+  if (f === "ac") return v.split("|").map(x => { const y = x.replace(/\s*-\s*/g, " ").replace(/\(cc\)/i, "compra cero").toLowerCase(); return y.charAt(0).toUpperCase() + y.slice(1); }).join(" o ");
+  if (f === "vpp"){ const [pl, pr] = v.split("@"); return "Cerveza " + pl.split(",").join(" o ").toLowerCase() + (pr ? " (" + pr.split(",").map(x => VPO_PROD[x] || x).join(", ") + ")" : ""); }
   return k;
 }
 function focusParts(){
@@ -2528,6 +2700,9 @@ function renderPanel(){
   h += `</section>`;
 
   // ---- secciones plegables ----
+  if (PSEC.avd === undefined) PSEC.avd = true;   // abierto por defecto: es lo que se llena durante el día
+  h += acc("avd", "Avance del día", avSum(L), () => renderAvance(L));
+  const ins = incSum(L); if (ins) h += acc("inc", "Incentivos del mes", ins, () => renderIncentivos(L));
   const ems = emSum(L); if (ems) h += acc("em", "Seguimiento emergente", ems, () => renderEmergente(L));
   const cps = cpSum(L); if (cps) h += acc("cp", "Coberturas de pago", cps, () => renderCPago(L));
   const rns = rnSum(L); if (rns) h += acc("rn", "R+N · rojo y negro", rns, () => renderRN(L));
@@ -2835,6 +3010,7 @@ function initMap(){
     lyr.on("tileerror", () => { bad++; if (!ok && bad === 6 && map.hasLayer(lyr)){ const nx = BASES[(i+1) % BASES.length]; map.removeLayer(lyr); nx[1].addTo(map); toast("Mapa cambiado a " + nx[0]); } });
   });
   layer = L.layerGroup().addTo(map);
+  map.on("moveend", () => { clearTimeout(OW.t); OW.t = setTimeout(owUpdate, 350); });   // flechas del sentido de las calles
   map.on("click", pickAt);
   map.on("contextmenu", e => {
     L.popup().setLatLng(e.latlng).setContent(`<b>¿Estás aquí?</b><br><button class="popbtn" id="setMeBtn">Fijar mi ubicación aquí</button>`).openOn(map);
@@ -2902,6 +3078,7 @@ function drawMe(){
   const ll = [ME.lat, ME.lng];
   if (!meMarker){
     meMarker = L.marker(ll, {icon:L.divIcon({className:"", html:'<div class="me-dot"></div>', iconSize:[18,18], iconAnchor:[9,9]}), zIndexOffset:1000, interactive:false, keyboard:false}).addTo(map);
+    if (NAV.on) navSetIcon();
     meCircle = L.circle(ll, {renderer:PTS, radius:ME.acc || 30, color:"#2F80ED", weight:1, fillOpacity:.08, interactive:false, bubblingMouseEvents:true}).addTo(map); meCircle.bringToBack();
   } else { meMarker.setLatLng(ll); meCircle.setLatLng(ll).setRadius(ME.acc || 30); }
 }
@@ -2914,7 +3091,7 @@ function gpsBar(state, html){
 }
 function stopGps(){
   if (watchId != null) navigator.geolocation.clearWatch(watchId);
-  watchId = null; ME = null; $("#btnGps").classList.remove("on");
+  watchId = null; ME = null; $("#btnGps").classList.remove("on"); navStop();
   if (meMarker){ meMarker.remove(); meCircle.remove(); meMarker = null; }
   gpsBar(null); renderList();
 }
@@ -2935,7 +3112,7 @@ function startGps(){
   gpsBar("wait", "Buscando tu ubicación… si el navegador pregunta, toca <b>Permitir</b>.");
   let first = true;
   const onPos = pos => {
-    ME = {lat:pos.coords.latitude, lng:pos.coords.longitude, acc:pos.coords.accuracy, manual:false};
+    ME = {lat:pos.coords.latitude, lng:pos.coords.longitude, acc:pos.coords.accuracy, manual:false}; LASTPOS = pos;
     drawMe();
     if (first){
       first = false;
@@ -2987,7 +3164,7 @@ function routeBar(html){
   el.hidden = false; el.innerHTML = html;
 }
 function clearRoute(){
-  ROUTE = null; ROUTE_WAIT = null;
+  ROUTE = null; ROUTE_WAIT = null; navStop();
   if (routeLayer) routeLayer.clearLayers();
   routeBar(null);
 }
@@ -3000,6 +3177,7 @@ function wireRouteBar(){
 }
 async function routeTo(c){
   const p = DB.pdv.get(Number(c)); if (!p || p.lat == null) return;
+  navAskCompass();
   closeDrawers(); setTab("map"); initMap();
   if (!routeLayer) routeLayer = L.layerGroup().addTo(map);
   routeLayer.clearLayers(); ROUTE = null;
@@ -3027,13 +3205,15 @@ async function drawRoute(p, fit){
   routeLayer.addLayer(L.polyline(pts, {renderer:R, interactive:false, color:"#1F4E8C", weight:11, opacity:.22, lineCap:"round", lineJoin:"round"}));
   routeLayer.addLayer(L.polyline(pts, {renderer:R, interactive:false, color:"#1F4E8C", weight:5, opacity:.95, dashArray: res ? null : "8 10", lineCap:"round", lineJoin:"round"}));
   routeLayer.addLayer(L.circleMarker([p.lat, p.lng], {renderer:R, interactive:false, radius:13, color:"#FFFFFF", weight:3, fillColor:"#1F4E8C", fillOpacity:.25}));
-  ROUTE = {p, from, t:Date.now(), ok:!!res};
+  ROUTE = {p, from, t:Date.now(), ok:!!res, pts};
+  navStart();
   const info = res ? `${fmtDist(res.dist / 1000)} · ${fmtDur(res.dur)} en vehículo` : `Línea directa ${fmtDist(haversine(from.lat, from.lng, p.lat, p.lng))} · no se pudo calcular por calles (revisa tu conexión)`;
   routeBar(`<div class="rt-t"><b>${esc(p.n)}</b><span>${info}</span></div><div class="rt-b"><button class="btn sm pri" id="routeOpen" data-c="${p.c}">Ficha</button>${routeLinks(p)}</div>`); wireRouteBar();
   if (fit) map.fitBounds(L.latLngBounds(pts), {paddingTopLeft:[40, 70], paddingBottomRight:[40, 150], maxZoom:18});
 }
 function routeOnMove(){
   if (!ME || !map) return;
+  navOnPos();
   if (ROUTE_WAIT){ const p = DB.pdv.get(ROUTE_WAIT); if (p) drawRoute(p, true); return; }
   if (!ROUTE) return;
   const toDest = haversine(ME.lat, ME.lng, ROUTE.p.lat, ROUTE.p.lng);
@@ -3043,6 +3223,519 @@ function routeOnMove(){
   }
   // recalcular si te alejaste más de 150 m del último punto de partida (máximo cada 20 s)
   if (haversine(ME.lat, ME.lng, ROUTE.from.lat, ROUTE.from.lng) > 0.15 && Date.now() - ROUTE.t > 20000) drawRoute(ROUTE.p, false);
+}
+
+/* ---------- navegación: con una ruta activa tu punto se vuelve una flecha y el mapa avanza y gira con ella ---------- */
+const NAV = {on:false, follow:true, head:null, gpsT:0, prev:null, devH:null, devT:0, ev:null, t0:0, bound:false, last:0};
+let LASTPOS = null;
+function bearingTo(a, b){ const r = Math.PI / 180, y = Math.sin((b.lng - a.lng) * r) * Math.cos(b.lat * r), x = Math.cos(a.lat * r) * Math.sin(b.lat * r) - Math.sin(a.lat * r) * Math.cos(b.lat * r) * Math.cos((b.lng - a.lng) * r); return (Math.atan2(y, x) / r + 360) % 360; }
+function navArrowHTML(){ return '<div class="me-arrow"><svg viewBox="0 0 44 44" width="44" height="44" aria-hidden="true"><circle cx="22" cy="22" r="20" fill="rgba(31,78,140,.18)"/><path d="M22 4 L36 37 L22 29 L8 37 Z" fill="#1F4E8C" stroke="#fff" stroke-width="3" stroke-linejoin="round"/></svg></div>'; }
+function navSetIcon(){
+  if (!meMarker) return;
+  meMarker.setIcon(L.divIcon({className:"", html: NAV.on ? navArrowHTML() : '<div class="me-dot"></div>', iconSize: NAV.on ? [44,44] : [18,18], iconAnchor: NAV.on ? [22,22] : [9,9]}));
+  navRender();
+}
+// sentido que hay que tomar según la ruta: el punto de la ruta unos 30 m adelante del más cercano a ti
+function navRouteAhead(){
+  if (!ROUTE || !ME) return null;
+  const P = ROUTE.pts || [[ROUTE.p.lat, ROUTE.p.lng]]; let bi = 0, bd = Infinity;
+  for (let i = 0; i < P.length; i++){ const d = haversine(ME.lat, ME.lng, P[i][0], P[i][1]); if (d < bd){ bd = d; bi = i; } }
+  let acc = 0, j = bi;
+  while (j < P.length - 1 && acc < 0.03){ acc += haversine(P[j][0], P[j][1], P[j + 1][0], P[j + 1][1]); j++; }
+  const t = P[j]; if (haversine(ME.lat, ME.lng, t[0], t[1]) < 0.003) return null;
+  return bearingTo(ME, {lat:t[0], lng:t[1]});
+}
+function navRender(){
+  if (!NAV.on || !meMarker || !map) return;
+  const el = meMarker.getElement && meMarker.getElement(), a = el && el.querySelector(".me-arrow"); if (!a) return;
+  const b = map.getBearing ? map.getBearing() : 0, h = NAV.head == null ? 0 : NAV.head;
+  a.style.transform = `rotate(${(h + b + 360) % 360}deg)`;
+}
+function navApply(h){
+  if (h == null) return;
+  if (NAV.head == null) NAV.head = h;
+  else { const d = ((h - NAV.head + 540) % 360) - 180; NAV.head = (NAV.head + d * 0.5 + 360) % 360; }   // suavizado
+  navRender();
+  if (!NAV.follow || Date.now() < NAV.t0 || !map) return;
+  const now = Date.now(); if (now - NAV.last < 250) return; NAV.last = now;
+  if (map.setBearing) map.setBearing((360 - NAV.head) % 360);   // la flecha queda apuntando hacia arriba
+  map.setView([ME.lat, ME.lng], Math.max(map.getZoom(), 17), {animate:true});
+}
+// cada posición nueva: rumbo real si vas en movimiento; si estás quieto, el sentido de la ruta (o la brújula)
+function navOnPos(){
+  if (!NAV.on || !ME) return;
+  let h = null; const c = LASTPOS && LASTPOS.coords;
+  if (c && typeof c.heading === "number" && !isNaN(c.heading) && (c.speed == null || c.speed > 1)){ h = c.heading; NAV.gpsT = Date.now(); }
+  if (!NAV.prev) NAV.prev = {lat:ME.lat, lng:ME.lng};
+  else if (haversine(NAV.prev.lat, NAV.prev.lng, ME.lat, ME.lng) > 0.012){ if (h == null){ h = bearingTo(NAV.prev, ME); NAV.gpsT = Date.now(); } NAV.prev = {lat:ME.lat, lng:ME.lng}; }
+  if (h == null && Date.now() - NAV.gpsT > 6000) h = navRouteAhead();
+  if (h == null && Date.now() - NAV.devT < 2000) h = NAV.devH;
+  navApply(h == null ? NAV.head : h);
+}
+function navOnCompass(e){
+  if (!NAV.on) return;
+  const h = compassHeading(e); if (h == null) return;
+  NAV.devH = h; NAV.devT = Date.now();
+  if (Date.now() - NAV.gpsT > 6000 && !ROUTE) navApply(h);
+}
+function navRecenterBtn(show){
+  let b = document.getElementById("navCenter");
+  if (!b && show){ b = document.createElement("button"); b.id = "navCenter"; b.className = "navcenter"; b.innerHTML = "➤ Seguir mi avance"; document.getElementById("map").parentNode.appendChild(b); b.onclick = () => { NAV.follow = true; NAV.t0 = 0; navRecenterBtn(false); navApply(NAV.head ?? navRouteAhead()); }; }
+  if (b) b.hidden = !show;
+}
+function navStart(){
+  if (!map) return;
+  if (!NAV.bound){ NAV.bound = true; map.on("rotate", navRender); map.on("dragstart", () => { if (NAV.on){ NAV.follow = false; navRecenterBtn(true); } }); }
+  const was = NAV.on; NAV.on = true;
+  if (!was){ NAV.follow = true; NAV.t0 = Date.now() + 3500; NAV.prev = ME ? {lat:ME.lat, lng:ME.lng} : null; }   // al recalcular la ruta no se pierde el modo seguir
+  if (COMP.on){ COMP.on = false; window.removeEventListener(COMP.ev, onCompass, true); $("#btnCompass").classList.remove("on"); }   // la navegación maneja el giro del mapa
+  if (!NAV.ev && ("ondeviceorientationabsolute" in window || "ondeviceorientation" in window)){ NAV.ev = "ondeviceorientationabsolute" in window ? "deviceorientationabsolute" : "deviceorientation"; window.addEventListener(NAV.ev, navOnCompass, true); }
+  if (!was){ navSetIcon(); navRecenterBtn(false); NAV.head = navRouteAhead(); navRender(); }
+  setTimeout(() => navOnPos(), 3600);
+}
+function navStop(){
+  if (!NAV.on) return;
+  NAV.on = false; NAV.head = null; navRecenterBtn(false);
+  if (NAV.ev){ window.removeEventListener(NAV.ev, navOnCompass, true); NAV.ev = null; }
+  navSetIcon();
+  if (map && map.setBearing) map.setBearing(0);
+}
+function navAskCompass(){ try{ if (typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function") DeviceOrientationEvent.requestPermission().catch(() => {}); }catch(e){} }
+
+/* ---------- Incentivos: avance por ruta y por supervisor, rápido de leer ---------- */
+function incRitmo(){ const h = new Date(); const y = h.getFullYear(), m = h.getMonth(); let dh = 0, dl = 0; for (let t = new Date(y, m, 1); t.getMonth() === m; t.setDate(t.getDate() + 1)) if (esHabil(t)){ dh++; if (t < new Date(y, m, h.getDate())) dl++; } return {dh, dl, ritmo: dh ? dl / dh : 0, rest: Math.max(1, dh - dl)}; }
+function incBar(lab, real, meta, R, opt){
+  opt = opt || {};
+  if (!meta) return `<div class="ibar na"><span class="il">${lab}</span><span class="iv">sin meta</span></div>`;
+  const p = real / meta, cls = p >= 1 ? "ok" : p >= R.ritmo * 0.92 ? "warn" : "bad", falt = Math.max(0, meta - real);
+  const fx = opt.pct ? `${Math.round(real * 100)}% de ${Math.round(meta * 100)}%` : `${fmt(real, opt.dec || 0)} / ${fmt(meta, opt.dec || 0)}`;
+  const nec = !opt.pct && falt > 0 ? ` · ${fmt(Math.ceil(falt / R.rest))}/día` : "";
+  return `<div class="ibar ${cls}"><span class="il">${lab}</span><span class="iv"><b>${Math.round(p * 100)}%</b> ${fx}${falt > 0 && !opt.pct ? ` · faltan <b>${fmt(Math.ceil(falt - 1e-6))}</b>${nec}` : p >= 1 ? " ✓" : ""}</span><span class="it"><i style="width:${Math.min(100, p * 100)}%"></i>${opt.pct ? "" : `<em style="left:${Math.min(100, R.ritmo * 100)}%"></em>`}</span></div>`;
+}
+const incPos = o => o.rank ? `<span class="ipos">#${o.rank}<small> de ${o.nrank}</small></span>` : "";
+function incChip(o){
+  if (o.gana === "SI") return `<span class="ichip ok">✓ ${o.inc === "pary" ? "Va ganando" : "Gana"}${o.premio ? " · " + esc(o.premio) : ""}</span>`;
+  if (o.gana === "NO") return `<span class="ichip bad">Aún no gana${o.premio ? " · premio " + esc(o.premio) : ""}</span>`;
+  return "";
+}
+function incRow(o, R, titulo, sub){
+  const D = INC_DEF[o.inc] || {};
+  let bars = "";
+  if (o.inc === "regiero"){ const meta = o.grupo == 1 && o.meta < 35 ? 35 : o.meta; bars = incBar(D.vol, o.real, meta, R) + incBar(D.cob, o.rcob, o.mcob, R); }
+  else if (o.inc === "pary"){ bars = o.nivel === "ruta" ? incBar("Coberturas (llave " + fmt(o.mcob || 30) + ")", o.rcob, o.mcob || 30, R) + `<p class="itend">Volumen Pary: <b>${fmt(o.real, 1)} CJ</b>${o.tend != null ? ` · tendencia ${fmt(o.tend, 1)} CJ` : ""}</p>` : incBar("Meta de volumen del supervisor (llave 100%)", o.real, o.meta, R, {dec:1}) + (o.tend != null && o.meta ? `<p class="itend">Tendencia al cierre: <b>${Math.round(o.tend / o.meta * 100)}%</b></p>` : ""); }
+  else if (o.inc === "cervecero"){ bars = incBar(D.vol, o.real, o.meta, R, {dec:1}) + incBar("% clientes coberturados (mín. 50%)", o.pcob || 0, 0.5, R, {pct:1}) + incBar("% clientes con 3+ empaques (mín. 25%)", o.pcob3 || 0, 0.25, R, {pct:1}); }
+  else if (o.inc === "forza"){ bars = incBar(D.vol, o.real, o.meta, R, {dec:1}) + incBar(D.cob, o.rcob, o.mcob, R) + (o.tend != null && o.meta ? `<p class="itend">Tendencia al cierre: <b>${Math.round(o.tend / o.meta * 100)}%</b> (${fmt(o.tend)} CJ)</p>` : ""); }
+  const ch = incChip(o);
+  return `<div class="irow"><div class="ih"><span><b>${esc(titulo)}</b>${sub ? `<small>${esc(sub)}</small>` : ""}</span>${incPos(o)}</div>${ch ? `<div class="ist">${ch}</div>` : ""}${bars}</div>`;
+}
+function incSum(L){
+  if (!DB.inc || !DB.inc.rows.length) return "";
+  const rs = new Set(L.map(p => p.ruta)); let g = 0, n = 0;
+  for (const r of rs){ const x = DB.inc.ruta.get(r); if (x && x.regiero){ n++; if (x.regiero.gana === "SI") g++; } }
+  const k = Object.keys(INC_DEF).filter(k => DB.inc.rows.some(o => o.inc === k && (o.nivel === "ruta" ? rs.has(o.ruta) : true))).length;
+  return `${k} incentivo${k === 1 ? "" : "s"}${n ? ` · Top Regiero <b>${g}/${n}</b> rutas ganando` : ""}`;
+}
+function renderIncentivos(L){
+  if (!DB.inc || !DB.inc.rows.length) return `<p class="note">Sin datos de incentivos. En el Publicador elige también los Excel de la carpeta <b>incentivos</b>.</p>`;
+  const R = incRitmo(), rutas = [...new Set(L.map(p => p.ruta))].filter(Boolean).sort();
+  const sups = new Set(); for (const r of rutas){ const m = DB.rutaSup.get(r); if (m) for (const s of m.keys()) sups.add(normSup(s)); const c = DB.cp && DB.cp.rutas.get(r); if (c && c.sup) sups.add(normSup(c.sup)); }
+  const one = rutas.length === 1;
+  let h = `<p class="note">Avance al día: la rayita marca el ritmo esperado hoy (${R.dl} de ${R.dh} días hábiles = ${Math.round(R.ritmo * 100)}%). Verde cumplido · amarillo cerca del ritmo · rojo atrasado. "/día" = lo que falta ÷ ${R.rest} días hábiles que quedan.</p>`;
+  h += `<div class="itabs">` + Object.entries(INC_DEF).map(([k, D]) => { const has = DB.inc.rows.some(o => o.inc === k && ((o.nivel === "ruta" && rutas.includes(o.ruta)) || (o.nivel === "sup" && sups.has(o.sup)))); return has ? `<button class="itab ${INCV.k === k ? "on" : ""}" data-inck="${k}">${esc(D.t)}</button>` : ""; }).join("") + `</div>`;
+  const keys = Object.keys(INC_DEF).filter(k => DB.inc.rows.some(o => o.inc === k && ((o.nivel === "ruta" && rutas.includes(o.ruta)) || (o.nivel === "sup" && sups.has(o.sup)))));
+  if (!keys.length) return h + `<p class="note">Ninguna de las rutas de este alcance aparece en los archivos de incentivos.</p>`;
+  if (!keys.includes(INCV.k)) INCV.k = keys[0];
+  const k = INCV.k, D = INC_DEF[k], info = (DB.inc.info || {})[k] || {};
+  h += `<div class="icard"><div class="ihd"><b>${esc(D.t)}</b><span>${esc(D.d)}</span>${info.corte ? `<small>Archivo al ${esc(info.corte)}</small>` : ""}</div>`;
+  // supervisor(es) del alcance
+  const S = one ? [] : DB.inc.rows.filter(o => o.inc === k && o.nivel === "sup" && sups.has(o.sup));   // con una sola ruta (vendedor) solo se ve la ruta
+  for (const o of S) h += incRow(o, R, "Supervisor " + o.sup.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()), o.inc === "cervecero" ? `Rango ${o.grupo} · posición en su rango` : o.inc === "pary" ? `Posición en ${o.grupo || "su agencia"}` : "Posición entre supervisores");
+  // rutas: las que van ganando primero, luego por avance
+  const av = o => o.inc === "pary" ? (o.mcob ? o.rcob / o.mcob : 0) : (o.meta ? o.real / o.meta : 0);
+  const Rr = rutas.map(r => (DB.inc.ruta.get(r) || {})[k]).filter(Boolean).sort((a, b) => (b.gana === "SI") - (a.gana === "SI") || av(b) - av(a));
+  if (Rr.length && S.length && !one) h += `<h4 class="cpt">Por ruta · ${Rr.filter(o => o.gana === "SI").length ? `${Rr.filter(o => o.gana === "SI").length} de ${Rr.length} ${k === "pary" ? "van ganando su mesa" : "ganando"}` : `${Rr.length} rutas`}</h4>`;
+  for (const o of Rr) h += incRow(o, R, "Ruta " + o.ruta, o.inc === "regiero" ? `Cluster ${o.grupo} · posición en el cluster` : o.inc === "pary" ? "Posición en la mesa del supervisor" : o.inc === "forza" ? "Posición en la agencia (tendencia)" : o.inc === "cervecero" ? "Detalle de la ruta" : "");
+  return h + `</div>`;
+}
+const INCV = {k:"regiero"};
+document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-inck]"); if (!b) return; INCV.k = b.dataset.inck; const box = b.closest(".accb"); if (box && typeof filtered === "function"){ box.innerHTML = renderIncentivos(filtered(true)); } });
+
+/* ---------- Seguimiento en vivo: lo que el vendedor marca en ruta le llega al supervisor ----------
+   Cada marca (cobertura, promo, lectura Wellington, equipo sacado de R+N, visita, pedido) se cifra con la llave del equipo
+   del supervisor (viene dentro del paquete cifrado) y se envía al buzón del equipo. El buzón solo guarda texto cifrado. */
+const LIVE = {q: ls.get("rutapdv_liveq", []), busy:false, timer:null, data:null, t:0, err:"", poll:null};
+const hexBytes = h => new Uint8Array((h.match(/../g) || []).map(x => parseInt(x, 16)));
+const b64e = u => { let s = ""; const a = new Uint8Array(u); for (let i = 0; i < a.length; i += 8192) s += String.fromCharCode.apply(null, a.subarray(i, i + 8192)); return btoa(s); };
+const b64d = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const liveKeys = () => (DB.live && DB.live.url && DB.live.keys) ? DB.live.keys : null;
+async function liveChan(keyHex){ const h = await crypto.subtle.digest("SHA-256", TXT.encode("canal|" + keyHex)); return [...new Uint8Array(h)].slice(0, 12).map(b => b.toString(16).padStart(2, "0")).join(""); }
+async function liveKey(keyHex){ return crypto.subtle.importKey("raw", hexBytes(keyHex), "AES-GCM", false, ["encrypt", "decrypt"]); }
+async function liveEnc(keyHex, obj){ const iv = crypto.getRandomValues(new Uint8Array(12)); const ct = await crypto.subtle.encrypt({name:"AES-GCM", iv}, await liveKey(keyHex), TXT.encode(JSON.stringify(obj))); const o = new Uint8Array(12 + ct.byteLength); o.set(iv); o.set(new Uint8Array(ct), 12); return b64e(o); }
+async function liveDec(keyHex, b){ const u = b64d(b); const pt = await crypto.subtle.decrypt({name:"AES-GCM", iv:u.slice(0, 12)}, await liveKey(keyHex), u.slice(12)); return JSON.parse(new TextDecoder().decode(pt)); }
+function liveSupDe(p){ const K = liveKeys(); if (!K) return null; const s = normSup(p.sup); if (K[s]) return s; const c = DB.cp && DB.cp.rutas.get(p.ruta); if (c && K[normSup(c.sup)]) return normSup(c.sup); const ks = Object.keys(K); return ks.length === 1 ? ks[0] : null; }
+function liveMark(c, kind, id, val){
+  const K = liveKeys(); if (!K) return;
+  const p = DB.pdv.get(Number(c)); if (!p) return; const s = liveSupDe(p); if (!s) return;
+  LIVE.q.push({s, e:{d:todayKey(), c:p.c, r:p.ruta, k:kind, i:String(id), v:val, t:Date.now(), u:(SRC && SRC.code ? SRC.code.slice(-4) : "")}});
+  if (LIVE.q.length > 2000) LIVE.q = LIVE.q.slice(-2000);
+  ls.set("rutapdv_liveq", LIVE.q);
+  clearTimeout(LIVE.timer); LIVE.timer = setTimeout(liveFlush, 2500);
+}
+async function liveFlush(){
+  const K = liveKeys(); if (!K || LIVE.busy || !LIVE.q.length || !navigator.onLine) return;
+  LIVE.busy = true;
+  try{
+    const batch = LIVE.q.slice(0, 120), bySup = new Map();
+    for (const x of batch){ if (!K[x.s]) continue; if (!bySup.has(x.s)) bySup.set(x.s, []); bySup.get(x.s).push(x.e); }
+    for (const [s, evs] of bySup){
+      const body = JSON.stringify({a:"put", ch: await liveChan(K[s]), b: await liveEnc(K[s], evs)});
+      await fetch(DB.live.url, {method:"POST", mode:"no-cors", headers:{"Content-Type":"text/plain;charset=utf-8"}, body});
+    }
+    LIVE.q = LIVE.q.slice(batch.length); ls.set("rutapdv_liveq", LIVE.q); LIVE.err = "";
+    if (LIVE.q.length) setTimeout(liveFlush, 500);
+  }catch(e){ LIVE.err = "sin conexión"; setTimeout(liveFlush, 30000); }
+  finally{ LIVE.busy = false; }
+}
+window.addEventListener("online", () => liveFlush());
+// supervisor: trae las marcas de hoy de su equipo (o equipos) y se queda con la última de cada cosa
+async function liveFetch(force){
+  const K = liveKeys(); if (!K) return null;
+  if (!force && LIVE.data && Date.now() - LIVE.t < 45000) return LIVE.data;
+  const st = new Map(), d = todayKey(); let n = 0;
+  try{
+    for (const [s, k] of Object.entries(K)){
+      const r = await fetch(`${DB.live.url}?a=get&ch=${await liveChan(k)}&d=${d}&t=${Date.now()}`, {cache:"no-store"});
+      if (!r.ok) throw new Error("http " + r.status);
+      const j = await r.json();
+      for (const row of (j.rows || [])){ let evs; try{ evs = await liveDec(k, row[1]); }catch(e){ continue; }
+        for (const e of evs){ if (e.d !== d) continue; n++; const key = e.c + "|" + e.k + "|" + e.i, o = st.get(key); if (!o || o.t <= e.t) st.set(key, e); } }
+    }
+    LIVE.data = {st, n}; LIVE.t = Date.now(); LIVE.err = "";
+  }catch(e){ LIVE.err = "No se pudo leer el buzón en vivo (revisa la conexión)"; }
+  return LIVE.data;
+}
+// las marcas de este teléfono (aunque todavía no se hayan enviado)
+function liveLocal(){
+  const st = new Map(), d = VIS[todayKey()] || {};
+  for (const [c, v] of Object.entries(d)){ const p = DB.pdv.get(Number(c)); if (!p) continue;
+    for (const kind of ["cov", "ac", "wl", "rn"]) for (const [i, on] of Object.entries(v[kind] || {})) st.set(c + "|" + kind + "|" + i, {c:Number(c), r:p.ruta, k:kind, i, v:!!on, t:v.t || 0});
+    if (v.t) st.set(c + "|vis|1", {c:Number(c), r:p.ruta, k:"vis", i:"1", v:true, t:v.t}); }
+  const cart = ls.get("rutapdv_cart", {}); if (cart.day === todayKey()) for (const [c, items] of Object.entries(cart.c || {})){ const p = DB.pdv.get(Number(c)); if (p) st.set(c + "|cart|cj", {c:Number(c), r:p.ruta, k:"cart", i:"cj", v:cartCj(items), t:0}); }
+  return st;
+}
+function cartCj(items){ let t = 0; for (const [id, x] of Object.entries(items || {})){ const it = typeof CATALOGO !== "undefined" && CATALOGO ? CATALOGO.items.find(y => y.id === id) : null; t += (x.cj || 0) + (x.un || 0) / ((it && it.u) || 24); } return Math.round(t * 100) / 100; }
+
+/* ---------- Avance del día ---------- */
+const LOG_KEY = "rutapdv_logros";
+function logFecha(){
+  const t = (DB.md && DB.md.info && DB.md.info.corte) || (DB.baseInfo && DB.baseInfo.act) || "";
+  const m = String(t).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/), d = m ? new Date(+m[3], +m[2] - 1, +m[1]) : new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+function logFoto(){
+  const R = {}, add = r => R[r] || (R[r] = {});
+  if (DB.md) for (const [r, M] of DB.md.rutas) add(r).vol = {tot:[M.tot.real, M.tot.meta, M.tot.nec]};
+  for (const [r, e] of DB.ev.rutas){ const ev = {}; for (const k of ["multi","single","gatorade","cerveza"]) if (e[k] && e[k].meta) ev[k] = [e[k].real, e[k].meta]; if (Object.keys(ev).length) add(r).ev = ev; }
+  if (DB.cp) for (const [r, c] of DB.cp.rutas){ const cp = {}; for (const [k] of CP_CATS) if (c[k] && c[k].meta) cp[k] = [c[k].real, c[k].meta]; if (Object.keys(cp).length) add(r).cp = cp; }
+  if (DB.em) for (const [r, e] of DB.em.rutas) add(r).em = [e.real, e.meta];
+  if (DB.rn && DB.rn.sem) for (const [r, n] of DB.rn.rutas) add(r).rn = [n.rn, n.base, Math.round(n.base * rnMetaPct(r))];
+  const wl = {}; for (const p of DB.pdv.values()){ if (!p.ruta) continue; const n = (p.eq || []).length; if (!wl[p.ruta]) wl[p.ruta] = [0, 0]; if (n){ wl[p.ruta][0]++; wl[p.ruta][1] += n; } }
+  for (const [r, w] of Object.entries(wl)) add(r).wl = w;
+  if (DB.inc) for (const [r, x] of DB.inc.ruta){ const o = {}; if (x.regiero){ o.rv = [x.regiero.real, x.regiero.meta]; o.rc = [x.regiero.rcob, x.regiero.mcob]; } if (x.pary) o.pc = [x.pary.rcob, x.pary.mcob]; if (x.forza) o.fc = [x.forza.rcob, x.forza.mcob]; if (Object.keys(o).length) add(r).inc = o; }
+  return {t: Date.now(), r: R};
+}
+function logGuardar(S){
+  try{
+    if (!DB.pdv.size) return;
+    let H = ls.get(LOG_KEY, {});
+    if (S && S.hist && S.hist.dias) for (const [f, s] of Object.entries(S.hist.dias)) if (!H[f]) H[f] = s;   // cierres que trae el paquete del supervisor
+    H[logFecha()] = logFoto();
+    const keep = Object.keys(H).sort().slice(-60); const o = {}; for (const k of keep) o[k] = H[k]; ls.set(LOG_KEY, o);
+  }catch(e){}
+}
+const LOGV = {f:""};
+function habRest(k){ const [y, m, d] = k.split("-").map(Number); let n = 0; for (const x = new Date(y, m - 1, d); x.getMonth() === m - 1; x.setDate(x.getDate() + 1)) if (esHabil(x)) n++; return Math.max(1, n); }
+function habEntre(a, b){ const [y, m, d] = a.split("-").map(Number); let n = 0; const x = new Date(y, m - 1, d); x.setDate(x.getDate() + 1); for (; ; x.setDate(x.getDate() + 1)){ const k = `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}`; if (k > b) break; if (esHabil(x)) n++; } return Math.max(1, n); }
+function logCalc(rutas, fT){
+  const H = ls.get(LOG_KEY, {}), fs = Object.keys(H).sort(); if (!fs.length) return null;
+  fT = fT && H[fT] ? fT : fs[fs.length - 1];
+  const fB = fs.filter(f => f < fT).pop() || null, T = H[fT], B = fB ? H[fB] : null, mismo = fB && fB.slice(0, 7) === fT.slice(0, 7);
+  const dRest = mismo ? habRest(fB) : habRest(fT.slice(0, 8) + "01"), wd = mismo ? habEntre(fB, fT) : 1;
+  const it = new Map(); const acc = (k, lab, unit, log, nec) => { if (log == null) return; const o = it.get(k) || {k, lab, unit, log:0, nec:0}; o.log += log; o.nec += nec || 0; it.set(k, o); };
+  const dif = (t, b, i = 0) => t ? t[i] - (mismo && b ? b[i] : 0) : null, necOf = (b, t) => { const rb = mismo && b ? b[0] : 0, mb = mismo && b ? b[1] : t[1]; return Math.ceil(Math.max(0, mb - rb) / dRest) * wd; };
+  const EVL = {multi:"Everest Multi", single:"Everest Single", gatorade:"Everest Gatorade", cerveza:"Everest Cerveza"};
+  for (const r of rutas){
+    const t = T.r[r], b = B && B.r[r]; if (!t) continue;
+    if (t.vol && (mismo ? b && b.vol : true)) acc("vol", "Volumen (CJ)", "CJ", dif(t.vol.tot, b && b.vol && b.vol.tot), mismo && b.vol.tot[2] != null ? Math.max(0, b.vol.tot[2]) * wd : Math.max(0, t.vol.tot[1]) / dRest * wd);
+    for (const [k, v] of Object.entries(t.ev || {})){ const bv = b && b.ev && b.ev[k]; if (mismo && !bv) continue; acc("ev_" + k, EVL[k] || k, "cob.", dif(v, bv), necOf(bv, v)); }
+    for (const [k, v] of Object.entries(t.cp || {})){ const bv = b && b.cp && b.cp[k]; if (mismo && !bv) continue; acc("cp_" + k, "Cob. de pago " + ((CP_ALL.find(x => x[0] === k) || [])[1] || k), "cob.", dif(v, bv), necOf(bv, v)); }
+    if (t.em && (!mismo || (b && b.em))) acc("em", "Emergente (CJ)", "CJ", dif(t.em, b && b.em), necOf(b && b.em, t.em));
+    if (t.rn && b && b.rn) acc("rn", "Equipos sacados de R+N", "equipos", b.rn[0] - t.rn[0], Math.ceil(Math.max(0, b.rn[0] - b.rn[2]) / dRest) * wd);
+    if (t.wl && b && b.wl) acc("wl", "Lecturas Wellington", "equipos", b.wl[1] - t.wl[1], Math.ceil(b.wl[1] / dRest) * wd);
+    const ti = t.inc || {}, bi = (b && b.inc) || {};
+    if (ti.rv && (!mismo || bi.rv)) acc("rv", "Top Regiero · Regia VR (CJ)", "CJ", dif(ti.rv, bi.rv), necOf(bi.rv, ti.rv));
+    if (ti.rc && (!mismo || bi.rc)) acc("rc", "Top Regiero · coberturas", "cob.", dif(ti.rc, bi.rc), necOf(bi.rc, ti.rc));
+    if (ti.pc && (!mismo || bi.pc)) acc("pc", "Pary · coberturas", "cob.", dif(ti.pc, bi.pc), necOf(bi.pc, ti.pc));
+    if (ti.fc && (!mismo || bi.fc)) acc("fc", "Forza Lata · coberturas", "cob.", dif(ti.fc, bi.fc), necOf(bi.fc, ti.fc));
+  }
+  return {fT, fB, mismo, wd, fechas: fs, items:[...it.values()]};
+}
+const fCorta = k => { const [y, m, d] = k.split("-").map(Number); const x = new Date(y, m - 1, d); return ["dom","lun","mar","mié","jue","vie","sáb"][x.getDay()] + " " + d; };
+function avTile(lab, val, sub, p, cls){ return `<div class="avt ${cls || ""}"><span class="avl">${lab}</span><b class="avv num">${val}</b>${sub ? `<span class="avs">${sub}</span>` : ""}${p != null ? `<span class="avm"><i style="width:${Math.min(100, Math.max(0, p) * 100)}%"></i></span>` : ""}</div>`; }
+function avSum(L){
+  const rs = new Set(L.map(p => p.ruta)), st = LIVE.data ? LIVE.data.st : liveLocal(); let cov = 0, vis = 0;
+  for (const e of st.values()){ if (!rs.has(e.r) || !e.v) continue; if (e.k === "cov") cov++; if (e.k === "vis") vis++; }
+  return `Hoy: <b>${fmt(cov)}</b> coberturas marcadas · <b>${fmt(vis)}</b> clientes atendidos`;
+}
+function renderAvance(L){
+  const rutas = [...new Set(L.map(p => p.ruta))].filter(Boolean).sort(), rs = new Set(rutas);
+  let h = "";
+  // 1) en vivo: lo que marcan en ruta
+  const K = liveKeys(), st = (K && LIVE.data) ? new Map([...liveLocal(), ...LIVE.data.st]) : liveLocal();
+  const T = {cov:0, ac:0, wl:0, rn:0, vis:0, cj:0}, G = {cerveza:0, gatorade:0, multi:0, single:0}, PR = new Map();
+  for (const e of st.values()){
+    if (!rs.has(e.r)) continue; const pr = PR.get(e.r) || {cov:0, ac:0, wl:0, rn:0, vis:0, cj:0, t:0}; PR.set(e.r, pr); pr.t = Math.max(pr.t, e.t || 0);
+    if (e.k === "cart"){ T.cj += +e.v || 0; pr.cj += +e.v || 0; continue; }
+    if (!e.v) continue; T[e.k] = (T[e.k] || 0) + 1; pr[e.k] = (pr[e.k] || 0) + 1;
+    if (e.k === "cov"){ const g = covGroupOf(e.i); if (g && G[g] != null) G[g]++; }
+  }
+  const hhmm = t => t ? new Date(t).toLocaleTimeString("es-SV", {hour:"2-digit", minute:"2-digit"}) : "—";
+  h += `<div class="avh"><b>En vivo · lo que van marcando hoy</b><span>${K ? (LIVE.err ? `<span class="warn">${esc(LIVE.err)}</span>` : LIVE.t ? `actualizado ${hhmm(LIVE.t)} · se actualiza solo cada minuto` : "cargando…") : "solo las marcas de este teléfono"}</span>${K ? `<button class="btn sm" data-avref>Actualizar</button>` : ""}</div>`;
+  h += `<div class="avg">` + avTile("Coberturas marcadas", fmt(T.cov), `Cerveza ${G.cerveza} · Gatorade ${G.gatorade} · Multi ${G.multi} · Single ${G.single}`) + avTile("Promociones vendidas", fmt(T.ac), "") + avTile("Lecturas Wellington", fmt(T.wl), "equipos lecturados") + avTile("Sacados de R+N", fmt(T.rn), "equipos") + avTile("Clientes atendidos", fmt(T.vis), "con al menos una marca") + avTile("Pedidos en catálogo", fmt(T.cj, 1) + " CJ", "lo que llevan cargado hoy") + `</div>`;
+  if (rutas.length > 1){
+    const rows = rutas.map(r => [r, PR.get(r) || {cov:0, ac:0, wl:0, rn:0, vis:0, cj:0, t:0}]).sort((a, b) => (b[1].cov + b[1].ac + b[1].wl + b[1].rn) - (a[1].cov + a[1].ac + a[1].wl + a[1].rn));
+    h += `<div class="tw"><table class="rt avtab"><thead><tr><th>Ruta</th><th>Cob.</th><th>Promos</th><th>Lect.</th><th>R+N</th><th>Clientes</th><th>CJ</th><th>Última</th></tr></thead><tbody>` + rows.map(([r, o]) => `<tr><td><b>${esc(r)}</b></td><td class="num">${fmt(o.cov)}</td><td class="num">${fmt(o.ac)}</td><td class="num">${fmt(o.wl)}</td><td class="num">${fmt(o.rn)}</td><td class="num">${fmt(o.vis)}</td><td class="num">${fmt(o.cj, 1)}</td><td class="num">${hhmm(o.t)}</td></tr>`).join("") + `</tbody></table></div>`;
+  }
+  if (!K) h += `<p class="note">Para que el supervisor vea en su teléfono lo que marca cada vendedor, activa <b>Seguimiento en vivo</b> en el Publicador y vuelve a publicar.</p>`;
+  if (rutas.length === 1) h = repCard(rutas[0]) + h;
+  else if (rutas.length > 1) h += repTabla(rutas);
+  // 2) según los datos: cierre de hoy contra el cierre anterior
+  const C = logCalc(rutas, LOGV.f);
+  h += `<div class="avh" style="margin-top:6px"><b>Logrado según los datos</b><span>${C && C.fB ? `cierre del ${fCorta(C.fT)} contra el ${fCorta(C.fB)}${C.wd > 1 ? ` (${C.wd} días hábiles)` : ""}` : ""}</span></div>`;
+  if (!C || !C.fB) h += `<p class="note">Todavía hay un solo cierre guardado. Cada vez que se actualizan los datos la app guarda una foto del avance; con la del siguiente día verás lo logrado: coberturas Everest y de pago, equipos sacados de R+N, lecturas, emergente e incentivos.</p>`;
+  else {
+    h += `<div class="itabs">` + C.fechas.slice(-7).map(f => `<button class="itab ${f === C.fT ? "on" : ""}" data-avf="${f}">${fCorta(f)}</button>`).join("") + `</div>`;
+    const ord = ["vol","ev_multi","ev_single","ev_gatorade","ev_cerveza","cp_ms","cp_sku4","cp_colas","em","rn","wl","rv","rc","pc","fc"];
+    h += `<div class="avg">` + C.items.sort((a, b) => ord.indexOf(a.k) - ord.indexOf(b.k)).map(o => { const p = o.nec > 0 ? Math.max(0, o.log) / o.nec : (o.log > 0 ? 1 : null); return avTile(o.lab, (o.log > 0 ? "+" : "") + fmt(o.log, o.unit === "CJ" ? 1 : 0), o.nec > 0 ? `necesitaba ${fmt(o.nec, o.unit === "CJ" ? 0 : 0)} ${o.unit} · ${Math.round((p || 0) * 100)}%` : "", p, p == null ? "" : p >= 1 ? "ok" : p >= .8 ? "warn" : "bad"); }).join("") + `</div>`;
+  }
+  return h;
+}
+document.addEventListener("click", async e => {
+  const f = e.target.closest && e.target.closest("[data-avf]"), r = e.target.closest && e.target.closest("[data-avref]");
+  if (!f && !r) return; const box = e.target.closest(".accb"); if (f) LOGV.f = f.dataset.avf;
+  if (r){ r.disabled = true; await liveFetch(true); }
+  if (box) box.innerHTML = renderAvance(filtered(true));
+});
+setInterval(async () => {   // con el panel abierto, se refresca solo
+  if (!liveKeys() || document.visibilityState !== "visible" || !PSEC.avd) return;
+  const box = [...document.querySelectorAll(".psec.acc")].find(s => s.querySelector('[data-acck="avd"]')); if (!box) return;
+  await liveFetch(true); const b = box.querySelector(".accb"); if (b) b.innerHTML = renderAvance(filtered(true));
+}, 60000);
+
+/* indicadores del día por ruta: salen solos de lo que se marca en las fichas (coberturas, R+N, lecturas) */
+const REP_AUTO = ["cfam", "css", "cgat", "ccvz", "rn"];
+function repInd(r, st){
+  const o = {cfam:0, css:0, cgat:0, ccvz:0, rn:0, wl:0, cli:new Set()};
+  for (const e of st.values()){ if (e.r !== r || !e.v || e.k === "rep") continue;
+    if (e.k === "cov"){ const k = {multi:"cfam", single:"css", gatorade:"cgat", cerveza:"ccvz"}[covGroupOf(e.i)]; if (k) o[k]++; }
+    else if (e.k === "rn") o.rn++; else if (e.k === "wl") o.wl++;
+    if (e.c) o.cli.add(e.c); }
+  o.cli = o.cli.size; return o;
+}
+// "Mi día" del vendedor: volúmenes que escribe (se guardan y se envían solos) + indicadores que se llenan con las marcas
+function repCard(r){
+  const v = ls.get(repKey(r), {}) || {}, ind = repInd(r, liveLocal());
+  const inp = c => `<label><span>${c.l}</span><input type="number" inputmode="decimal" step="0.01" min="0" data-mdk="${c.k}" data-mdr="${esc(r)}" value="${v[c.k] ?? ""}" placeholder="0"></label>`;
+  const tot = ["colas","licores","iso","oro","csd"].reduce((a, k) => a + (+v[k] || 0), 0);
+  let h = `<div class="mdcard"><div class="avh"><b>Mi día · Ruta ${esc(r)}</b><span id="mdState">${v._t ? "Enviado " + new Date(v._t).toLocaleTimeString("es-SV", {hour:"2-digit", minute:"2-digit"}) : "Escribe tus volúmenes: se guardan y se envían solos"}</span></div>`;
+  h += `<h4>Volumen del día (CJ)</h4><div class="repg">` + REP_COLS.filter(c => c.g === "vol" && !c.tot).map(inp).join("") + `<label><span>Total</span><input type="number" inputmode="decimal" step="0.01" min="0" data-mdk="total" data-mdr="${esc(r)}" value="${v.total ?? (tot ? Math.round(tot * 100) / 100 : "")}" placeholder="0"></label></div>`;
+  h += `<h4>Empaques emergentes (CJ)</h4><div class="repg">` + REP_COLS.filter(c => c.g === "eme").map(inp).join("") + `</div>`;
+  h += `<h4>Indicadores de hoy <small>(se suman solos con lo que marcas en cada cliente)</small></h4><div class="avg">` + avTile("Cob familiares", fmt(ind.cfam), "") + avTile("Cob SS", fmt(ind.css), "") + avTile("Cob Gatorade", fmt(ind.cgat), "") + avTile("Cob CVZ", fmt(ind.ccvz), "") + avTile("R+N sacados", fmt(ind.rn), "") + avTile("Lecturas Wellington", fmt(ind.wl), "") + `</div>`;
+  h += `<div class="repg">` + inp(REP_COLS.find(c => c.k === "etp")) + `</div><p class="note">Todo empieza en cero cada día: lo de ayer queda guardado solo como historial.</p></div>`;
+  return h;
+}
+const MD_T = {};
+document.addEventListener("input", e => {
+  const x = e.target.closest && e.target.closest("[data-mdk]"); if (!x) return;
+  const r = x.dataset.mdr, o = ls.get(repKey(r), {}) || {}, n = parseFloat(x.value);
+  if (isNaN(n)) delete o[x.dataset.mdk]; else o[x.dataset.mdk] = n;
+  if (x.dataset.mdk !== "total" && !o._totManual){ const t = ["colas","licores","iso","oro","csd"].reduce((a, k) => a + (+o[k] || 0), 0); o.total = Math.round(t * 100) / 100; const tt = document.querySelector(`[data-mdk="total"][data-mdr="${CSS.escape(r)}"]`); if (tt) tt.value = o.total || ""; }
+  if (x.dataset.mdk === "total") o._totManual = 1;
+  ls.set(repKey(r), o);
+  const s = document.getElementById("mdState"); if (s) s.textContent = "Guardando…";
+  clearTimeout(MD_T[r]); MD_T[r] = setTimeout(() => { o._t = Date.now(); ls.set(repKey(r), o); const ok = liveMarkRuta(r, "rep", r, o); const s2 = document.getElementById("mdState"); if (s2) s2.textContent = ok ? "Enviado a tu supervisor " + new Date().toLocaleTimeString("es-SV", {hour:"2-digit", minute:"2-digit"}) : "Guardado en este teléfono"; }, 2500);
+});
+
+/* ---------- Reporte del día (vendedor) y consolidado en imagen (supervisor) ---------- */
+const REP_COLS = [
+  {k:"colas", l:"Colas", g:"vol"}, {k:"licores", l:"Licores", g:"vol"}, {k:"iso", l:"ISO/AD", g:"vol"}, {k:"oro", l:"Oro", g:"vol"}, {k:"csd", l:"CSD", g:"vol"}, {k:"total", l:"Total", g:"vol", tot:1},
+  {k:"cvz", l:"Volumen CVZ", g:"eme"}, {k:"lipton", l:"Lipton 12 oz", g:"eme"}, {k:"frutado", l:"Frutado 600", g:"eme"}, {k:"black", l:"Black", g:"eme"},
+  {k:"cfam", l:"Cob familiares", g:"cob"}, {k:"css", l:"Cob SS", g:"cob"}, {k:"cgat", l:"Cob Gatorade", g:"cob"}, {k:"ccvz", l:"Cob CVZ", g:"cob"}, {k:"etp", l:"ETP", g:"cob"}, {k:"rn", l:"R+N", g:"cob"}
+];
+const repKey = r => "rutapdv_rep_" + todayKey() + "_" + r;
+function liveMarkRuta(r, kind, id, val){
+  const K = liveKeys(); if (!K) return false;
+  const p = [...DB.pdv.values()].find(x => x.ruta === r); if (!p) return false; const s = liveSupDe(p); if (!s) return false;
+  LIVE.q.push({s, e:{d:todayKey(), c:0, r, k:kind, i:String(id), v:val, t:Date.now(), u:(SRC && SRC.code ? SRC.code.slice(-4) : "")}}); ls.set("rutapdv_liveq", LIVE.q);
+  clearTimeout(LIVE.timer); LIVE.timer = setTimeout(liveFlush, 800); return true;
+}
+// lo que ya se sabe de la ruta hoy: coberturas y R+N marcados, y lo cargado en el catálogo por categoría
+function repPrefill(r){
+  const o = {}; const st = liveLocal();
+  for (const e of st.values()){ if (e.r !== r || !e.v) continue;
+    if (e.k === "cov"){ const g = covGroupOf(e.i); const k = {multi:"cfam", single:"css", gatorade:"cgat", cerveza:"ccvz"}[g]; if (k) o[k] = (o[k] || 0) + 1; }
+    if (e.k === "rn") o.rn = (o.rn || 0) + 1; }
+  const cart = ls.get("rutapdv_cart", {});
+  if (cart.day === todayKey() && typeof CATALOGO !== "undefined" && CATALOGO) for (const [c, items] of Object.entries(cart.c || {})){ const p = DB.pdv.get(Number(c)); if (!p || p.ruta !== r) continue;
+    for (const [id, x] of Object.entries(items)){ const it = CATALOGO.items.find(y => y.id === id); if (!it) continue; const cj = (x.cj || 0) + (x.un || 0) / (it.u || 24); if (!cj) continue;
+      const k = it.cat === "Cerveza" ? "cvz" : it.cat === "Carbonatadas" ? (/pepsi/i.test(it.n) && !/black/i.test(it.n) ? "colas" : /black/i.test(it.n) ? "black" : "csd") : /isot|energ/i.test(it.cat) ? "iso" : /ready/i.test(it.cat) ? "licores" : /lipton/i.test(it.n) && /12/.test(it.emp) ? "lipton" : null;
+      if (k) o[k] = Math.round(((o[k] || 0) + cj) * 100) / 100; } }
+  const vt = ["colas","licores","iso","oro","csd"].reduce((a, k) => a + (o[k] || 0), 0); if (vt) o.total = Math.round(vt * 100) / 100;
+  return o;
+}
+function repOpen(r){
+  let ov = document.getElementById("repView");
+  if (!ov){ ov = document.createElement("div"); ov.id = "repView"; ov.className = "repov"; document.body.appendChild(ov); ov.addEventListener("click", repClick); ov.addEventListener("input", e => { if (e.target.matches("[data-rk]") && e.target.dataset.rk !== "total"){ const f = ov.querySelectorAll('[data-rk]'); let t = 0; f.forEach(x => { if (["colas","licores","iso","oro","csd"].includes(x.dataset.rk)) t += parseFloat(x.value) || 0; }); const tt = ov.querySelector('[data-rk="total"]'); if (tt && !tt.dataset.manual) tt.value = Math.round(t * 100) / 100; } if (e.target.dataset.rk === "total") e.target.dataset.manual = "1"; }); }
+  const saved = ls.get(repKey(r), null), v = saved || repPrefill(r);
+  const grp = (g, t) => `<h4>${t}</h4><div class="repg">` + REP_COLS.filter(c => c.g === g).map(c => `<label><span>${c.l}</span><input type="number" inputmode="decimal" step="0.01" min="0" data-rk="${c.k}" value="${v[c.k] ?? ""}"></label>`).join("") + `</div>`;
+  ov.innerHTML = `<div class="repbox"><div class="desh"><div><small>${esc(new Date().toLocaleDateString("es-SV", {weekday:"long", day:"numeric", month:"long"}))}</small><h2>Reporte del día · Ruta ${esc(r)}</h2></div><button class="closeb" data-repx>Cerrar</button></div>
+    <p class="note">Las coberturas y los R+N vienen de lo que marcaste hoy; el volumen, de lo que cargaste en el catálogo. Revisa y corrige antes de enviar.</p>
+    ${grp("vol", "Volumen (CJ)")}${grp("eme", "Empaques emergentes (CJ)")}${grp("cob", "Coberturas")}
+    <button class="btn pri" data-repsend="${esc(r)}">${liveKeys() ? "Enviar a mi supervisor" : "Guardar reporte"}</button>${saved ? `<p class="note">Ya enviaste un reporte hoy${saved._t ? " a las " + new Date(saved._t).toLocaleTimeString("es-SV", {hour:"2-digit", minute:"2-digit"}) : ""}; si lo envías de nuevo, se reemplaza.</p>` : ""}</div>`;
+  ov.hidden = false;
+}
+function repClick(e){
+  const ov = document.getElementById("repView");
+  if (e.target.closest("[data-repx]") || e.target === ov){ ov.hidden = true; return; }
+  const b = e.target.closest("[data-repsend]"); if (!b) return;
+  const r = b.dataset.repsend, o = {_t: Date.now()};
+  ov.querySelectorAll("[data-rk]").forEach(x => { const n = parseFloat(x.value); if (!isNaN(n)) o[x.dataset.rk] = n; });
+  ls.set(repKey(r), o);
+  const ok = liveMarkRuta(r, "rep", r, o);
+  ov.hidden = true; toast(ok ? "Reporte enviado a tu supervisor" : "Reporte guardado en este teléfono");
+  const box = [...document.querySelectorAll(".psec.acc")].find(s => s.querySelector('[data-acck="avd"]')); const bb = box && box.querySelector(".accb"); if (bb) bb.innerHTML = renderAvance(filtered(true));
+}
+// consolidado: reportes recibidos; si una ruta no reportó, se completa con lo que marcó en vivo (coberturas y R+N)
+function repConsolidado(rutas){
+  rutas = rutas.filter(r => !/999$/.test(r));   // la ruta agencia no reporta
+  const st = (liveKeys() && LIVE.data) ? new Map([...liveLocal(), ...LIVE.data.st]) : liveLocal(), rows = [];
+  for (const r of rutas){
+    const e = st.get("0|rep|" + r), loc = ls.get(repKey(r), null), vol = (e && e.v) || loc || null, rep = !!(vol && REP_COLS.some(c => c.g !== "cob" && vol[c.k] != null));
+    const ind = repInd(r, st), o = Object.assign({}, vol || {});
+    for (const k of REP_AUTO) o[k] = Math.max(ind[k] || 0, (vol && vol[k]) || 0);   // indicadores: lo marcado en vivo
+    const em = DB.em && DB.em.rutas.get(r);
+    rows.push({r, rep, o, em: em ? em.real / em.meta : null});
+  }
+  return rows;
+}
+function repTabla(rutas){
+  const R = repConsolidado(rutas), nRep = R.filter(x => x.rep).length;
+  const tot = {}; for (const c of REP_COLS) tot[c.k] = R.reduce((a, x) => a + (+x.o[c.k] || 0), 0);
+  const emR = R.map(x => DB.em && DB.em.rutas.get(x.r)).filter(Boolean), emTot = emR.length ? Math.round(emR.reduce((a, e) => a + e.real, 0) / emR.reduce((a, e) => a + e.meta, 0) * 100) + "%" : "—";
+  let h = `<div class="avh" style="margin-top:6px"><b>Consolidado del día</b><span>${nRep} de ${R.length} rutas reportadas</span><button class="btn sm pri" data-repimg>Generar imagen</button></div>`;
+  h += `<div class="tw"><table class="rt avtab"><thead><tr><th>Ruta</th>${REP_COLS.map(c => `<th>${esc(c.l)}</th>` + (c.k === "black" ? "<th>Emerg. alcance mes</th>" : "")).join("")}</tr></thead><tbody>` + R.map(x => `<tr class="${x.rep ? "" : "norep"}"><td><b>${esc(x.r)}</b>${x.rep ? "" : "<small> sin reporte</small>"}</td>${REP_COLS.map(c => `<td class="num">${x.o[c.k] != null ? fmt(x.o[c.k], 2) : "—"}</td>` + (c.k === "black" ? `<td class="num">${x.em != null ? Math.round(x.em * 100) + "%" : "—"}</td>` : "")).join("")}</tr>`).join("") + `<tr class="tot"><td><b>Total</b></td>${REP_COLS.map(c => `<td class="num"><b>${fmt(tot[c.k], 2)}</b></td>` + (c.k === "black" ? `<td class="num"><b>${emTot}</b></td>` : "")).join("")}</tr></tbody></table></div>`;
+  return h;
+}
+// imagen para WhatsApp (mismo estilo del consolidado que se manda al grupo)
+async function repImagen(rutas){
+  const R = repConsolidado(rutas), nRep = R.filter(x => x.rep).length;
+  const cols = [...REP_COLS]; cols.splice(cols.findIndex(c => c.k === "black") + 1, 0, {k:"_em", l:"Alcance mes", g:"eme", pct:1});   // el alcance del emergente va dentro de su segmento
+  const W0 = 130, CW = 86, padX = 34, top = 110, hh = 64, rh = 46;
+  const W = padX * 2 + W0 + cols.length * CW, H = top + 34 + hh + rh * (R.length + 1) + 50, sc = 2;
+  const cv = document.createElement("canvas"); cv.width = W * sc; cv.height = H * sc; const g = cv.getContext("2d"); g.scale(sc, sc);
+  const F = (w, s) => `${w} ${s}px Inter, "Segoe UI", Roboto, Arial, sans-serif`;
+  g.fillStyle = "#0E141C"; g.fillRect(0, 0, W, H);
+  g.fillStyle = "#FFFFFF"; g.font = F(800, 26); g.fillText("CONSOLIDADO DE VENTA · PREVENTA", padX, 52);
+  const d = new Date(), dia = d.toLocaleDateString("es-SV", {weekday:"long"}); g.fillStyle = "#9AA6B5"; g.font = F(500, 14);
+  g.fillText(`${dia.charAt(0).toUpperCase() + dia.slice(1)} ${d.toLocaleDateString("es-SV")}  ·  ${nRep} de ${R.length} rutas reportadas${(DB.sups.length === 1 ? "  ·  " + DB.sups[0] : "")}`, padX, 80);
+  const x0 = padX + W0, groups = [["vol", "VOLUMEN", "#4FB3E8"], ["eme", "EMERGENTES", "#E8B44F"], ["cob", "COBERTURAS", "#6FCF7F"]];
+  let gx = x0; for (const [k, t, col] of groups){ const n = cols.filter(c => c.g === k).length; if (!n) continue; g.fillStyle = col; g.font = F(800, 12); g.textAlign = "center"; g.fillText(t, gx + n * CW / 2, top + 12); g.fillRect(gx + 4, top + 22, n * CW - 8, 2); gx += n * CW; }
+  const y0 = top + 34; g.fillStyle = "#172030"; g.fillRect(padX, y0, W - padX * 2, hh);
+  g.textAlign = "left"; g.fillStyle = "#C9D3DF"; g.font = F(700, 12); g.fillText("RUTA", padX + 12, y0 + hh / 2 + 4);
+  cols.forEach((c, i) => { const cx = x0 + i * CW + CW / 2; g.textAlign = "center"; g.fillStyle = c.tot ? "#F2C94C" : c.g === "cob" ? "#8FE3A0" : c.g === "vol" ? "#79C8F2" : "#F2C94C"; g.font = F(800, 11);
+    const words = c.l.toUpperCase().split(" "); const lines = words.length > 1 && c.l.length > 9 ? [words.slice(0, Math.ceil(words.length / 2)).join(" "), words.slice(Math.ceil(words.length / 2)).join(" ")] : [c.l.toUpperCase()];
+    lines.forEach((ln, j) => g.fillText(ln, cx, y0 + hh / 2 + 4 + (j - (lines.length - 1) / 2) * 14)); });
+  const tot = {}; const val = (x, c) => c.k === "_em" ? (x.em != null ? Math.round(x.em * 100) + "%" : "—") : x.o[c.k] != null ? String(Math.round(x.o[c.k] * 100) / 100) : "—";
+  R.forEach((x, i) => { const y = y0 + hh + i * rh; g.fillStyle = i % 2 ? "#131B26" : "#0F1620"; g.fillRect(padX, y, W - padX * 2, rh);
+    g.textAlign = "left"; g.fillStyle = "#FFFFFF"; g.font = F(800, 15); g.fillText(x.r, padX + 12, y + rh / 2 + 5); if (!x.rep){ g.fillStyle = "#E08A6B"; g.font = F(600, 10); g.fillText("sin reporte", padX + 12, y + rh - 6); }
+    cols.forEach((c, j) => { const cx = x0 + j * CW + CW / 2; if (c.tot){ g.fillStyle = "rgba(242,201,76,.10)"; g.fillRect(x0 + j * CW, y, CW, rh); } const v = val(x, c); g.textAlign = "center"; g.font = F(c.tot ? 800 : 500, 15); g.fillStyle = c.tot ? "#F2C94C" : v === "0" || v === "—" ? "#5E6B7A" : "#E6ECF2"; g.fillText(v, cx, y + rh / 2 + 5); if (c.k !== "_em") tot[c.k] = (tot[c.k] || 0) + (+x.o[c.k] || 0); }); });
+  const yt = y0 + hh + R.length * rh; g.fillStyle = "#3A3312"; g.fillRect(padX, yt, W - padX * 2, rh); g.fillStyle = "#C9A227"; g.fillRect(padX, yt, W - padX * 2, 2);
+  g.textAlign = "left"; g.fillStyle = "#F2C94C"; g.font = F(800, 15); g.fillText("TOTAL", padX + 12, yt + rh / 2 + 5);
+  const emR = R.map(x => DB.em && DB.em.rutas.get(x.r)).filter(Boolean), emTot = emR.length ? Math.round(emR.reduce((a, e) => a + e.real, 0) / emR.reduce((a, e) => a + e.meta, 0) * 100) + "%" : "—";
+  cols.forEach((c, j) => { g.textAlign = "center"; g.fillText(c.k === "_em" ? emTot : String(Math.round((tot[c.k] || 0) * 100) / 100), x0 + j * CW + CW / 2, yt + rh / 2 + 5); });
+  const xs = x0 + cols.filter(c => c.g === "vol" || c.g === "eme").length * CW; g.fillStyle = "#3E7A4A"; g.fillRect(xs, y0, 1.5, hh + rh * (R.length + 1));
+  g.textAlign = "left"; g.fillStyle = "#5E6B7A"; g.font = F(500, 11); g.fillText("Ruta PDV · generado " + d.toLocaleTimeString("es-SV", {hour:"2-digit", minute:"2-digit"}) + " · Alcance mes = avance acumulado del desafío emergente (documento emergente)", padX, H - 18);
+  const blob = await new Promise(res => cv.toBlob(res, "image/png"));
+  const name = `consolidado_${todayKey()}.png`, file = new File([blob], name, {type:"image/png"});
+  if (navigator.canShare && navigator.canShare({files:[file]})){ try{ await navigator.share({files:[file], title:"Consolidado de venta", text:"Consolidado de venta · preventa " + d.toLocaleDateString("es-SV")}); return; }catch(err){ if (err && err.name === "AbortError") return; } }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); toast("Imagen guardada: compártela por WhatsApp desde tu galería o descargas");
+}
+document.addEventListener("click", async e => {
+  const b = e.target.closest && e.target.closest("[data-repimg]"); const o = e.target.closest && e.target.closest("[data-repopen]");
+  if (o){ repOpen(o.dataset.repopen); return; }
+  if (!b) return; b.disabled = true; b.textContent = "Generando…";
+  try{ if (liveKeys()) await liveFetch(true); await repImagen([...new Set(filtered(true).map(p => p.ruta))].filter(Boolean).sort()); }catch(err){ toast("No se pudo generar la imagen"); }
+  b.disabled = false; b.textContent = "Generar imagen";
+});
+
+/* ---------- sentido de las calles (OpenStreetMap): flechas en las calles de una sola vía, desde zoom 16 ----------
+   Se consultan a Overpass solo las calles del área visible (por cuadros, con caché de 7 días en el teléfono).
+   La ruta por calles (OSRM) ya respeta los sentidos; las flechas son para ver hacia dónde corre cada calle. */
+const OW = {on: ls.get("rutapdv_sentidos", true), layer:null, mem:new Map(), busy:new Set(), z:16, t:null};
+const OW_URLS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"];
+const owTile = (lat, lng, z) => { const n = 2 ** z, x = Math.floor((lng + 180) / 360 * n), r = lat * Math.PI / 180, y = Math.floor((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * n); return [x, y]; };
+const owBox = (x, y, z) => { const n = 2 ** z, lng = v => v / n * 360 - 180, lat = v => { const m = Math.PI - 2 * Math.PI * v / n; return 180 / Math.PI * Math.atan(0.5 * (Math.exp(m) - Math.exp(-m))); }; return [lat(y + 1), lng(x), lat(y), lng(x + 1)]; };
+async function owFetch(key){
+  if (OW.mem.has(key) || OW.busy.has(key)) return;
+  const C = ls.get("rutapdv_ow_cache", {}), c = C[key];
+  if (c && Date.now() - c.t < 7 * 864e5){ OW.mem.set(key, c.w); return; }
+  OW.busy.add(key);
+  const [x, y] = key.split("/").map(Number), [s, w, n, e] = owBox(x, y, OW.z);
+  const q = `[out:json][timeout:20];(way["highway"]["oneway"~"^(yes|1|-1|true)$"](${s},${w},${n},${e});way["highway"]["junction"~"^(roundabout|circular)$"](${s},${w},${n},${e}););out geom;`;
+  let ways = null;
+  for (const u of OW_URLS){ try{ const r = await fetch(u, {method:"POST", body:"data=" + encodeURIComponent(q), headers:{"Content-Type":"application/x-www-form-urlencoded"}}); if (!r.ok) continue; const j = await r.json();
+      ways = (j.elements || []).filter(el => el.geometry && el.geometry.length > 1).map(el => { let g = el.geometry.map(p => [Math.round(p.lat * 1e6) / 1e6, Math.round(p.lon * 1e6) / 1e6]); if (el.tags && el.tags.oneway === "-1") g = g.reverse(); return g; }); break; }catch(err){} }
+  OW.busy.delete(key);
+  if (!ways) return;
+  OW.mem.set(key, ways);
+  try{ const keys = Object.keys(C); if (keys.length > 60) for (const k of keys.sort((a, b) => C[a].t - C[b].t).slice(0, keys.length - 60)) delete C[k]; C[key] = {t:Date.now(), w:ways}; ls.set("rutapdv_ow_cache", C); }catch(err){}
+  owDraw();
+}
+function owDraw(){
+  if (!map) return;
+  if (!OW.layer) OW.layer = L.layerGroup().addTo(map);
+  OW.layer.clearLayers();
+  const z = map.getZoom(); if (!OW.on || z < 16) return;
+  const b = map.getBounds().pad(0.15), size = 3 * 2 ** (19 - Math.min(19, z)), gap = size * 7;   // tamaño de la flecha en metros según el zoom
+  const R = PTS, seen = new Set();
+  for (const ways of OW.mem.values()) for (const g of ways){
+    const id = g[0].join() + g[g.length - 1].join(); if (seen.has(id)) continue; seen.add(id);
+    if (!g.some(p => b.contains(p))) continue;
+    OW.layer.addLayer(L.polyline(g, {renderer:R, interactive:false, color:"#1F4E8C", weight:2, opacity:.28}));
+    let acc = gap / 2;
+    for (let i = 0; i < g.length - 1; i++){
+      const a = {lat:g[i][0], lng:g[i][1]}, c = {lat:g[i + 1][0], lng:g[i + 1][1]}, d = haversine(a.lat, a.lng, c.lat, c.lng) * 1000;
+      while (acc < d){
+        const f = acc / d, P = {lat:a.lat + (c.lat - a.lat) * f, lng:a.lng + (c.lng - a.lng) * f}, br = bearingTo(a, c);
+        const off = (deg, m) => { const r = (deg * Math.PI) / 180, dl = m / 111320; return [P.lat + dl * Math.cos(r), P.lng + dl * Math.sin(r) / Math.cos(P.lat * Math.PI / 180)]; };
+        const tip = off(br, size * .6), l = off(br + 150, size * .7), rr = off(br - 150, size * .7);
+        if (b.contains([P.lat, P.lng])) OW.layer.addLayer(L.polyline([l, tip, rr], {renderer:R, interactive:false, color:"#1F4E8C", weight:3, opacity:.85, lineCap:"round", lineJoin:"round"}));
+        acc += gap;
+      }
+      acc -= d;
+    }
+  }
+  OW.layer.eachLayer(l => { try{ l.bringToBack(); }catch(e){} });   // debajo de los puntos de los clientes
+}
+function owUpdate(){
+  if (!map) return; owDraw();
+  if (!OW.on || map.getZoom() < 16) return;
+  const b = map.getBounds(), [x0, y0] = owTile(b.getNorth(), b.getWest(), OW.z), [x1, y1] = owTile(b.getSouth(), b.getEast(), OW.z);
+  let n = 0; for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++){ if (++n > 9) return; owFetch(`${x}/${y}`); }
+}
+function owToggle(){
+  OW.on = !OW.on; ls.set("rutapdv_sentidos", OW.on); $("#btnOneway").classList.toggle("on", OW.on);
+  owUpdate(); toast(OW.on ? (map && map.getZoom() < 16 ? "Sentido de calles activo: acerca el mapa para ver las flechas" : "Sentido de calles activo") : "Sentido de calles oculto");
 }
 
 /* ---------- ficha del cliente ---------- */
@@ -3132,16 +3825,17 @@ function openPdv(c){
   const vpc = DB.vp && DB.vp.cli.get(p.c);
   const vpoEsc = vpc ? (() => { const I = DB.vp.info || {};
     const rows = Object.entries(vpc.prods).map(([k, x]) => { const T = vpoTier({t:x.t, v:x.v || 0, min:vpc.min || 0, tot:Object.values(vpc.prods).reduce((a, y) => a + (y.v || 0), 0)}, 0);
-      return `<div class="vrow"><div class="vh"><b>${esc(VPO_PROD[k] || k)}</b><span>facturado <b>${fmt(x.v, 1)} CJ</b></span></div><div class="vtiers">${x.t.map((t, i) => `<span class="vtier ${i === T.i ? "on" : ""}">${fmt(t[0])}+ CJ <b>$${t[1].toFixed(2)}</b></span>`).join("")}</div></div>`; }).join("");
-    return `<div class="vbox"><div class="vcap">Plan VPO ${esc(I.periodo || "")} · precio por caja según escala <small>(facturado al ${esc(I.corte || "—")})</small></div>${rows}</div><p class="note" style="margin:0">${vpc.tipo ? `Tipo <b>${esc(vpc.tipo)}</b> · ` : ""}${vpc.min ? `compra mínima <b>${fmt(vpc.min)} CJ</b> de cerveza VPO por pedido · ` : ""}la escala se calcula con las cajas de cada pedido (no es acumulado del mes). Calcula el precio en <b>Catálogo</b>.</p><button class="btn cat" data-fcat>Ver precio VPO en el catálogo</button>`; })() : "";
+      return `<div class="vrow"><div class="vh"><b>${esc(VPO_PROD[k] || k)}</b><span>${x.plan ? `<b>${esc(x.plan === "VPO" ? "Plan VPO" : x.plan)}</b>` : ""}${x.max ? ` · máx ${fmt(x.max)} CJ (primera compra)` : ""}${x.v ? ` · facturado <b>${fmt(x.v, 1)} CJ</b>` : ""}</span></div><div class="vtiers">${x.t.map((t, i) => `<span class="vtier ${i === T.i ? "on" : ""}">${fmt(t[0])}+ CJ <b>$${t[1].toFixed(2)}</b></span>`).join("")}</div></div>`; }).join("");
+    return `<div class="vbox"><div class="vcap">${I.fuente === "Plan Gambito" ? "Plan Gambito cerveza" : "Plan VPO"} ${esc(I.periodo || "")} · precio por caja según las cajas del pedido <small>(archivo al ${esc(I.corte || "—")})</small></div>${rows}</div><p class="note" style="margin:0">${vpc.tipo ? `Tipo <b>${esc(vpc.tipo)}</b> · ` : ""}${vpc.min ? `compra mínima <b>${fmt(vpc.min)} CJ</b> de cerveza VPO por pedido · ` : ""}la escala se calcula con las cajas de cada pedido (no es acumulado del mes). Calcula el precio en <b>Catálogo</b>.</p><button class="btn cat" data-fcat>Ver precio VPO en el catálogo</button>`; })() : "";
   if (p.vpo || vpc){
     const V = p.vpo || {din:vpc.tipo, clas:vpc.clase, real:Object.values(vpc.prods).reduce((a, y) => a + (y.v || 0), 0), meta:vpc.min || null, pct:vpc.min ? Object.values(vpc.prods).reduce((a, y) => a + (y.v || 0), 0) / vpc.min : 0, resp:""}, pc = Math.round((V.pct || 0) * 100), falta = V.meta != null ? Math.max(0, V.meta - (V.real || 0)) : null;
     const P = vpc ? null : DB.vpoPlan;
-    h += `<div class="sec"><h3>Plan VPO<span class="r">${p.vpo || V.meta ? `<span class="pill ${pc >= 100 ? "ok" : pc >= 50 ? "warn" : "bad"}">${pc}% ${p.vpo ? "cumplimiento" : "de la compra mínima"}</span>` : `<span class="pill acc">Precio por escala</span>`}</span></h3><div class="in">
-      <div class="kv2">${kv("Dinámica", esc(V.din||"—"))}${kv("Clasificación", esc(V.clas||"—"))}
+    const soloG = !p.vpo && vpc && !V.meta && !V.real;   // cliente que solo trae plan Gambito (nunca compra, compra 0, caídos o VPO nuevo): sin metas que mostrar
+    h += `<div class="sec"><h3>${soloG ? "Plan cerveza (Gambito)" : "Plan VPO"}<span class="r">${p.vpo || V.meta ? `<span class="pill ${pc >= 100 ? "ok" : pc >= 50 ? "warn" : "bad"}">${pc}% ${p.vpo ? "cumplimiento" : "de la compra mínima"}</span>` : `<span class="pill acc">Precio por escala</span>`}</span></h3><div class="in">
+      ${soloG ? (V.din || V.clas ? `<div class="kv2">${kv("Tipo", esc(V.din||"—"))}${kv("Clasificación", esc(V.clas||"—"))}</div>` : "") : `<div class="kv2">${kv("Dinámica", esc(V.din||"—"))}${kv("Clasificación", esc(V.clas||"—"))}
         ${kv(p.vpo ? "Real (CJ)" : "Facturado VPO (CJ)", `<span class="num">${fmt(V.real,2)}</span>`, "hi")}${kv(p.vpo ? "Meta (CJ)" : "Compra mínima (CJ)", `<span class="num">${V.meta != null ? fmt(V.meta,2) : "—"}</span>`, "hi")}
         ${kv("Faltan (CJ)", `<span class="num">${falta != null ? fmt(falta,2) : "—"}</span>`, falta ? "" : "hi")}${kv("Responsable", esc(V.resp||"—"))}</div>
-      <div class="covbar" aria-hidden="true"><i style="width:${Math.min(100,pc)}%"></i></div>
+      <div class="covbar" aria-hidden="true"><i style="width:${Math.min(100,pc)}%"></i></div>`}
       ${vpoEsc}
       ${P ? `<div style="overflow-x:auto"><table class="vpot"><caption>${esc(P.title || "Precios por escala")}</caption><thead><tr>${P.head.map(x => `<th>${esc(x)}</th>`).join("")}</tr></thead><tbody>${P.rows.map(r => `<tr>${r.map((x,i) => `<td class="${i?"num":""}">${i === 0 ? esc(x) : (/dto/i.test(P.head[i]||"") ? fmt((num(x)||0)*100,1)+"%" : "$"+(num(x)??0).toFixed(2))}</td>`).join("")}</tr>`).join("")}</tbody></table></div>${P.note ? `<p class="note" style="margin:0">${esc(P.note)}</p>` : ""}` : ""}
     </div></div>`;
@@ -3153,13 +3847,13 @@ function openPdv(c){
   // Lectura Wellington (equipos sin lectura): solo si el cliente tiene alguno
   if (p.eq.length) h += `<div class="sec"><h3>Lectura Wellington<span class="r"><span class="pill ${p.eq.some(e => /\+60/.test(e.status)) ? "bad" : "warn"}">${p.eq.length} sin lectura</span></span></h3><div class="in">${p.eq.length ? p.eq.map((e,i) => `<div class="eq"><h4>Equipo ${i+1} · <span class="num">${esc(e.serie)}</span></h4><div class="kv2">
       ${kv("Modelo", esc(e.modelo||"—"))}${kv("Status", `<span class="pill ${/\+60/.test(e.status)?"bad":/30/.test(e.status)?"warn":"ok"}">${esc(e.status||"—")}</span>`)}
-      ${kv("Visto por", esc(e.visto||"—"))}${kv("GPS equipo", e.gps?`<a style="color:var(--cyan)" href="https://www.google.com/maps?q=${esc(e.gps)}" target="_blank" rel="noopener">Ver ubicación</a>`:"—")}</div></div>`).join("") : `<p class="note" style="margin:0">Sin equipos de monitoreo registrados.</p>`}</div></div>`;
+      ${kv("Visto por", esc(e.visto||"—"))}${kv("GPS equipo", e.gps?`<a style="color:var(--cyan)" href="https://www.google.com/maps?q=${esc(e.gps)}" target="_blank" rel="noopener">Ver ubicación</a>`:"—")}</div>${(() => { const vv = visit(p.c, false), k = String(e.serie || i), on = !!(vv && vv.wl && vv.wl[k]); return `<label class="chk ${on ? "done" : ""}"><input type="checkbox" data-kind="wl" data-k="${esc(k)}" ${on ? "checked" : ""}><span class="t">Lo lecturé hoy</span></label>`; })()}</div>`).join("") : `<p class="note" style="margin:0">Sin equipos de monitoreo registrados.</p>`}</div></div>`;
   // R+N
   {
     const sem = DB.rn && DB.rn.sem, nRN = rnEq(p).length;
     const semPill = e => !e.sem ? "" : `<span class="pill ${e.sem === "VERDE" ? "ok" : e.sem === "AMARILLO" ? "warn" : "bad"}" ${e.sem === "NEGRO" ? `style="background:#000;color:#fff;border-color:#555"` : ""}>${esc(e.sem === "ROJO" && e.rango ? "Rojo " + e.rango : e.sem.charAt(0) + e.sem.slice(1).toLowerCase())}</span>`;
     const ord = [...p.rn].sort((x, y) => (isRN(y) - isRN(x)) || ((y.nec || 0) - (x.nec || 0)));
-    if (p.rn.length) h += `<div class="sec"><h3>R+N · Equipos fríos<span class="r">${sem ? (nRN ? `<span class="pill bad">${nRN} en rojo/negro</span>` : `<span class="pill ok">Sin R+N</span>`) : p.rn.length}</span></h3><div class="in">${p.rn.length ? `<div class="kv2">${ord.map(r => kv(`${esc(r.mat||"—")}${r.serie?` · <span class="num">${esc(r.serie)}</span>`:""}`, `${semPill(r)} ${r.nec ? `<span class="num">Nec. ${fmt(r.nec,2)} cj</span>` : (isRN(r) ? "" : "Sin necesidad")}`)).join("")}</div>${nRN ? `<p class="note" style="margin:0">Para sacar el equipo de rojo/negro hay que llevarlo a amarillo: "Nec." son las cajas que le faltan.</p>` : ""}` : `<p class="note" style="margin:0">Sin equipos en la base R+N.</p>`}</div></div>`;
+    if (p.rn.length) h += `<div class="sec"><h3>R+N · Equipos fríos<span class="r">${sem ? (nRN ? `<span class="pill bad">${nRN} en rojo/negro</span>` : `<span class="pill ok">Sin R+N</span>`) : p.rn.length}</span></h3><div class="in">${p.rn.length ? `<div class="kv2">${ord.map(r => kv(`${esc(r.mat||"—")}${r.serie?` · <span class="num">${esc(r.serie)}</span>`:""}`, `${semPill(r)} ${r.nec ? `<span class="num">Nec. ${fmt(r.nec,2)} cj</span>` : (isRN(r) ? "" : "Sin necesidad")}`)).join("")}</div>${sem ? ord.filter(isRN).map((r, j) => { const vv = visit(p.c, false), k = String(r.serie || r.mat || j), on = !!(vv && vv.rn && vv.rn[k]); return `<label class="chk ${on ? "done" : ""}"><input type="checkbox" data-kind="rn" data-k="${esc(k)}" ${on ? "checked" : ""}><span class="t">Saqué de R+N ${esc(r.serie || r.mat || "")} (le vendí la necesidad)</span></label>`; }).join("") : ""}${nRN ? `<p class="note" style="margin:0">Para sacar el equipo de rojo/negro hay que llevarlo a amarillo: "Nec." son las cajas que le faltan.</p>` : ""}` : `<p class="note" style="margin:0">Sin equipos en la base R+N.</p>`}</div></div>`;
   }
   // visita
 
@@ -3186,9 +3880,9 @@ function openPdv(c){
 function onCheck(e){
   const t = e.target; if (!t.matches("input[type=checkbox][data-kind]") || openC == null) return;
   const v = visit(openC, true);
-  v[t.dataset.kind][t.dataset.k] = t.checked;
-  if (!v.t && t.checked) v.t = Date.now();
-  saveVis();
+  v[t.dataset.kind] = v[t.dataset.kind] || {}; v[t.dataset.kind][t.dataset.k] = t.checked;
+  if (!v.t && t.checked){ v.t = Date.now(); liveMark(openC, "vis", "1", true); }
+  saveVis(); liveMark(openC, t.dataset.kind, t.dataset.k, t.checked);
   const box = t.closest(".chk, .pcard"); if (box) box.classList.toggle("done", t.checked);
   const s = $("#covSold"); if (s) s.textContent = Object.values(v.cov).filter(Boolean).length;
   renderList(); renderMap();
@@ -3363,6 +4057,7 @@ function wire(){
   $("#btnFit").onclick = () => fitPts(current.filter(p => p.lat != null));
   $("#btnMe").onclick = () => { if (!ME){ startGps(); return; } map && map.setView([ME.lat, ME.lng], 17); };
   $("#btnCompass").onclick = () => { initMap(); toggleCompass(); };
+  $("#btnOneway").onclick = () => { initMap(); owToggle(); }; $("#btnOneway").classList.toggle("on", OW.on);
   $("#list").onclick = e => { if (e.target.id === "more"){ SHOWN += 150; renderList(); return; } const c = e.target.closest("[data-pdv]"); if (c) openPdv(c.dataset.pdv); };
   document.addEventListener("click", e => {
     const r = e.target.closest(".popbtn[data-route]"); if (r){ map && map.closePopup(); routeTo(r.dataset.route); return; }
@@ -3384,7 +4079,7 @@ function wire(){
     if (rt){ routeTo(rt.dataset.route); return; }
     const c = e.target.closest("[data-center]");
     if (c){ const p = DB.pdv.get(Number(c.dataset.center)); closeDrawers(); setTab("map"); setTimeout(() => { map.setView([p.lat,p.lng], 19); }, 80); return; }
-    if (e.target.id === "vDone"){ const v = visit(openC, true); v.t = v.t || Date.now(); v.note = $("#vNote").value; saveVis(); toast("Visita registrada"); const cc = openC; renderList(); renderMap(); openPdv(cc); }
+    if (e.target.id === "vDone"){ const v = visit(openC, true); v.t = v.t || Date.now(); v.note = $("#vNote").value; saveVis(); liveMark(openC, "vis", "1", true); toast("Visita registrada"); const cc = openC; renderList(); renderMap(); openPdv(cc); }
   });
   $("#dBody").addEventListener("input", e => { if (e.target.id === "vNote" && openC != null){ const v = visit(openC, true); v.note = e.target.value; saveVis(); } });
   $("#btnExport").onclick = () => { $("#menu").hidden = true; exportVisits(); };
@@ -3514,7 +4209,7 @@ function compassHeading(e){
   return (h + so + 360) % 360;
 }
 function onCompass(e){
-  if (!COMP.on || !map || !map.setBearing) return;
+  if (!COMP.on || !map || !map.setBearing || NAV.on) return;
   const h = compassHeading(e); if (h == null) return;
   const target = (360 - h) % 360;                                      // la dirección hacia la que apuntas queda arriba
   const d = ((target - COMP.cur + 540) % 360) - 180;                   // giro más corto, suavizado para que no tiemble
@@ -3584,6 +4279,7 @@ function cartSave(){
   const has = Object.values(CATV.cart).some(x => x.cj || x.un || x.cond);
   if (has) all.c[CATV.c] = CATV.cart; else delete all.c[CATV.c];
   ls.set("rutapdv_cart", all);
+  clearTimeout(cartSave.t); const cc = CATV.c, tot = cartCj(CATV.cart); cartSave.t = setTimeout(() => liveMark(cc, "cart", "cj", tot), 4000);
 }
 const nfloat = s => parseFloat(String(s).replace(",", "."));
 const condMin = pr => { const m = (pr.cond + " " + pr.esc).match(/(?:a partir de|desde)\s*(\d+(?:[.,]\d+)?)\s*CJ/i); return m ? nfloat(m[1]) : 0; };
@@ -3608,7 +4304,7 @@ function catInfo(it, p, V){
   if (vc && vc.prods[vk]){
     const x = vc.prods[vk], tot = Object.values(vc.prods).reduce((a, y) => a + (y.v || 0), 0);
     const totReal = Math.max(tot, (p.vpo && p.vpo.real) || 0);
-    opts.push({pr:{id:"VPO-" + vk, n:"Plan VPO cerveza · precio por escala", tipo:"VPO", cat:"VPO", cols:[], ap:"", pa:x.t[0][1], pp:null, da:null, dp:null, cond:"", esc:"", vpo:{t:x.t, v:x.v || 0, min:vc.min || 0, tot:totReal, tipo:vc.tipo, prod:vk}}, st:"si"});
+    opts.push({pr:{id:"VPO-" + vk, n:(x.plan && x.plan !== "VPO" ? "Plan Gambito · " + x.plan : "Plan VPO cerveza") + " · precio por escala", tipo:"VPO", cat:"VPO", cols:[], ap:"", pa:x.t[0][1], pp:null, da:null, dp:null, cond:"", esc:"", vpo:{t:x.t, v:x.v || 0, min:vc.min || 0, tot:totReal, tipo:vc.tipo, prod:vk, plan:x.plan || "", max:x.max || 0}}, st:"si"});
   }
   const info = vig.filter(pr => /info|incentivo/i.test(pr.tipo));
   if (base == null && !opts.length) return null;   // combo al que el cliente no aplica
@@ -3630,7 +4326,7 @@ function catLine(it, ci, q, canal){
   const qty = (q.cj || 0) + (q.un || 0) / it.u;          // en cajas
   const cands = ci.opts.filter(o => o.st === "si" || q.cond || ci.base == null).map(o => {
     if (o.pr.vpo){ const T = vpoTier(o.pr.vpo, qty), Tq = qty ? T : vpoTier(o.pr.vpo, Math.max(o.pr.vpo.t[0][0], o.pr.vpo.min || 0));
-      return {o, precio: T.precio ?? Tq.precio ?? o.pr.vpo.t[0][1], min:0, max:null, vpoT:T}; }
+      return {o, precio: T.precio ?? Tq.precio ?? o.pr.vpo.t[0][1], min:0, max:o.pr.vpo.max || null, vpoT:T}; }
     return {o, precio:precioCanal(o.pr, canal), min:condMin(o.pr), max:condMax(o.pr)}; });
   const refBase = c => ci.base != null ? ci.base : c.precio / (1 - (dtoCanal(c.o.pr, canal) || 0));
   // con varias promos para el mismo producto se usa la que deja el menor total para la cantidad elegida
@@ -3712,11 +4408,11 @@ function catPriceHTML(it, ci, L){
 function vpoHTML(V, qty){
   const T = vpoTier(V, qty), info = (DB.vp && DB.vp.info) || {};
   const chips = V.t.map((t, k) => `<span class="vtier ${k === T.i ? "on" : ""}">${qtxt(t[0])}+ CJ <b>${cmoney(t[1])}</b></span>`).join("");
-  let msg = `Cajas en este pedido: <b>${qtxt(qty)} CJ</b> · facturado en el mes: ${qtxt(V.v)} CJ (no suma para la escala)`;
+  let msg = `Cajas en este pedido: <b>${qtxt(qty)} CJ</b>${V.v ? ` · facturado en el mes: ${qtxt(V.v)} CJ (no suma para la escala)` : ""}${V.max ? `<br>Primera compra: precio especial hasta <b>${qtxt(V.max)} CJ</b>; el resto a precio normal` : ""}`;
   if (V.min) msg += `<br>Compra mínima del cliente: <b>${qtxt(V.min)} CJ</b> de cerveza VPO por pedido (lleva ${qtxt(T.tot)})${T.faltaMin ? ` · <b class="bad">faltan ${qtxt(T.faltaMin)} CJ</b>` : ` <b class="ok">✓</b>`}`;
   if (T.precio != null) msg += `<br>Precio que le sale: <b class="ok">${cmoney(T.precio)}</b> por caja${T.next ? ` · con <b>${qtxt(T.faltaNext)} CJ</b> más baja a <b>${cmoney(T.next[1])}</b>` : " (escala más baja)"}`;
   else if (T.faltaDrop > 0 && !T.faltaMin) msg += `<br>La escala empieza en ${qtxt(V.t[0][0])} CJ`;
-  return `<span class="pill acc">Plan VPO${V.tipo ? " · " + esc(V.tipo.toLowerCase()) : ""}</span> <span>Precio por escala según las cajas de este pedido</span><div class="vtiers">${chips}</div><small>${msg}${info.corte ? `<br>Facturado al ${esc(info.corte)}` : ""}</small>`;
+  return `<span class="pill acc">${V.plan && V.plan !== "VPO" ? "Plan Gambito · " + esc(V.plan.toLowerCase()) : "Plan VPO"}${V.tipo ? " · " + esc(V.tipo.toLowerCase()) : ""}</span> <span>Precio por escala según las cajas de este pedido</span><div class="vtiers">${chips}</div><small>${msg}${info.corte ? `<br>${info.fuente === "Plan Gambito" ? "Plan al" : "Facturado al"} ${esc(info.corte)}` : ""}</small>`;
 }
 function catCard({it, ci}){
   const q = CATV.cart[it.id] || {}, L = catLine(it, ci, q, CATV.canal);
@@ -3839,6 +4535,9 @@ function desRuta(r, L){
   if (c) for (const [k, l] of CP_CATS){ const x = c[k]; if (x && x.meta) add("Cob. de pago", l, Math.max(0, x.meta - x.real), dCp, "cob.", x.meta, x.real); }
   const n = DB.rn && DB.rn.sem ? DB.rn.rutas.get(r) : null;
   if (n){ const mt = Math.round(n.base * rnMetaPct(r)); add("R+N", "Sacar de rojo/negro", Math.max(0, n.rn - mt), dRn, "equipos", mt, n.rn); }
+  const ix = DB.inc && DB.inc.ruta.get(r), dM = evDias({periodo: MESES[hoy.getMonth()] + " " + hoy.getFullYear()}).dias;
+  if (ix && ix.regiero){ const o = ix.regiero, mv = o.grupo == 1 && o.meta < 35 ? 35 : o.meta; if (mv) add("Top Regiero", "Regia VR", Math.max(0, Math.ceil(mv - o.real)), dM, "CJ", mv, o.real); if (o.mcob) add("Top Regiero", "Coberturas Regia", Math.max(0, o.mcob - o.rcob), dM, "cob.", o.mcob, o.rcob); }
+  if (ix && ix.pary && ix.pary.mcob) add("Pary", "Coberturas (llave)", Math.max(0, ix.pary.mcob - ix.pary.rcob), dM, "cob.", ix.pary.mcob, ix.pary.rcob);
   const em = DB.em && DB.em.rutas.get(r);
   if (em) add("Emergente", "Desafío en cajas", Math.max(0, em.meta - em.real), dEm, "CJ", em.meta, em.real);
   // clientes de hoy
@@ -4012,7 +4711,23 @@ function parseVoz(text){
   // ---- compra / volumen
   const vm = t.match(/\b(compra|compran|compro|promedio|volumen|venden|vende)\b.{0,20}?\b(menor(es)?( a| de| que)?|menos de|debajo de|bajo|hasta|mayor(es)?( a| de| que)?|mas de|arriba de|encima de|sobre)\s+(?<num>\d+(?:\s?punto\s?\d+)?)\s*(cajas?|cj)?\b/);
   if (vm){ const n = parseFloat(vm.groups.num.replace(/\s?punto\s?/, ".")); const op = /menor|menos|debajo|bajo/.test(vm[2]) ? "<" : /hasta/.test(vm[2]) ? "<=" : ">"; seg(`x:${has(/\b(este mes|del mes|mes actual|real)\b/) ? "real" : "prom"}:${op}:${n}`); }
-  else if (has(/\b(no han comprado|no ha comprado|sin compra|compra cero|no compran nada|no han facturado|sin facturar|no han pedido)\b/)) seg("x:real:<=:0", "Sin compra este mes");
+  else if (has(/\b(compras? (cero|0)|compra 0|nunca compra(n|do)?|nunca han comprado|caidos?|caido)\b/)){
+    // "compra cero" = segmentos de la base AC (U3M) por producto; en cerveza, los planes del Plan Gambito
+    const cc = has(/\b(caidos?|caido)\b/) ? "caidos" : has(/\bnunca\b/) ? "nunca" : "cero";
+    const acAll = (DB.acCols || []).map(String), byCat = [[/\bgatorade\b/, /gatorade/i], [/\b(aqua|agua)\b/, /aqua/i], [/\b(lipton|te)\b/, /lipton/i], [/\b(petit|nectar|nectares)\b/, /petit/i], [/\bfrutado\b/, /frutado/i], [/\b(amp|adrenaline|energizante|energizantes)\b/, /amp|adrenaline/i]];
+    const ccCol = c2 => cc === "caidos" ? /caidos/i.test(c2) : /compra cero|\(cc\)/i.test(c2);
+    const beer = has(/\b(cerveza|cervezas|regia|suprema|chela|chelas|750|330)\b/), cats = byCat.filter(([re]) => has(re));
+    const prods = [has(/\b750\b/) ? "R750" : "", has(/\b330\b/) && !has(/suprema/) ? "R330" : "", has(/suprema/) ? "S330" : ""].filter(Boolean);
+    const plans = cc === "caidos" ? ["Caídos"] : cc === "nunca" ? ["Nunca compra"] : ["Compra 0", "Nunca compra"];
+    if (beer) seg("x:vpp:has:" + plans.join(",") + (prods.length ? "@" + prods.join(",") : ""));
+    else {
+      const cols = acAll.filter(ccCol).filter(c2 => !cats.length || cats.some(([, rc]) => rc.test(c2)));
+      if (cols.length) seg("x:ac:has:" + cols.join("|"), cats.length ? undefined : (cc === "caidos" ? "Caídos (base AC)" : "Compra cero en cualquier producto (base AC)"));
+      else if (!cats.length && DB.vp && DB.vp.cli.size) seg("x:vpp:has:" + plans.join(","));
+      else seg("x:real:<=:0", "Sin compra este mes");
+    }
+  }
+  else if (has(/\b(no han comprado|no ha comprado|sin compra|no compran nada|no han facturado|sin facturar|no han pedido)\b/)) seg("x:real:<=:0", "Sin compra este mes");
   if (has(/\b(mayor|mayores|mas|alto|altos|grande|grandes|mejor|mejores)\b.{0,12}\b(volumen|compra|compran|venta|ventas)\b/) || has(/\bmejores clientes\b/) || has(/\bque mas (compran|venden|compra)\b/)){ c.sort = "prom"; c.lab.push("Ordenados por mayor volumen de compra"); }
   else if (has(/\b(menor|menores|menos|bajo|bajos|peor|peores)\b.{0,12}\b(volumen|compra|compran|venta|ventas)\b/)){ c.sort = "promasc"; c.lab.push("Ordenados de menor a mayor compra"); }
   else if (has(/\b(cerca|cercanos|cercanas|proximos|cerquita|mas cerca|alrededor|a la par)\b/)){ c.sort = "dist"; c.lab.push("Ordenados por cercanía"); }
@@ -4032,6 +4747,7 @@ function parseVoz(text){
     else seg("conpromo", "Con promo dirigida");
   }
   if (has(/\bvpo\b/)) seg(has(/\b(falta|cumplir|pendiente|no cumplen|no han cumplido)\b/) ? "vpopend" : "vpo");
+  else if (has(/\b(gambito|plan de cerveza|plan cerveza)\b/)) seg("x:vpp:has:VPO,Compra 0,Nunca compra,Caídos", "Con plan Gambito de cerveza");
   if (has(/\b(sin visitar|no visitados|no he visitado|faltan de visitar|no he ido)\b/)) seg("novis", "Sin visitar hoy");
   else if (has(/\b(visitados|ya visite|ya fui)\b/)) seg("visto", "Visitados hoy");
   // ---- ruta(s) y supervisor
@@ -4095,8 +4811,8 @@ function undoVoz(){
 }
 document.addEventListener("click", e => { if (e.target.closest("[data-vozundo]")) undoVoz(); if (e.target.closest("[data-vozhelp]")){ $("#menu").hidden = true; vozHelp(); } });
 function vozHelp(){
-  toast("Toca el micrófono y di, por ejemplo: \"clientes de hoy con necesidad de equipo frío\"");
-  const ej = ["clientes de hoy con necesidad de equipo frío en el mapa", "los que les falta solo una cobertura", "les faltan 2 coberturas", "les falta cerveza y gatorade el lunes", "los que no han comprado este mes", "compra menor a 2 cajas", "mayor volumen de compra", "ruta 113 sector Bolívar", "clientes de Erick con R más N", "tiendas 5 estrellas con promo de Gatorade", "sin lectura Wellington", "cuántos clientes tienen VPO por cumplir", "abre la ficha de tienda Rosita", "llévame a tacos el Taurino", "catálogo de tienda Rosita", "desafíos del día", "panel emergente", "quitar filtros"];
+  toast("Toca el micrófono o escribe en el buscador y presiona Enter, por ejemplo: \"compra cero de cerveza de la ruta 265115\"");
+  const ej = ["clientes de hoy con necesidad de equipo frío en el mapa", "los que les falta solo una cobertura", "les faltan 2 coberturas", "les falta cerveza y gatorade el lunes", "los que no han comprado este mes", "compra menor a 2 cajas", "mayor volumen de compra", "ruta 113 sector Bolívar", "clientes de Erick con R más N", "tiendas 5 estrellas con promo de Gatorade", "clientes con promoción de Lipton que estén en R más N de la ruta 265113", "clientes compra cero de la ruta 265114", "compra cero de cerveza de la ruta 265115", "compra cero de Gatorade", "los que nunca compran Regia 750", "clientes con plan Gambito", "sin lectura Wellington", "cuántos clientes tienen VPO por cumplir", "abre la ficha de tienda Rosita", "llévame a tacos el Taurino", "catálogo de tienda Rosita", "desafíos del día", "panel emergente", "quitar filtros"];
   $("#vozBar").innerHTML = `<span class="vzi">🎙</span><span class="vzt"><b>Puedes decir, por ejemplo:</b><br>${ej.map(x => "· " + esc(x)).join("<br>")}<br>O di el nombre o código del cliente.</span><button class="vzx" data-vozundo>Cerrar</button>`;
   $("#vozBar").hidden = false; setTab("list");
 }
