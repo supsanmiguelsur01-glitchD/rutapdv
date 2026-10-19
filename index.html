@@ -910,7 +910,38 @@ select.sm{height:38px;border:1px solid var(--line);border-radius:10px;background
 .welcome label.btn{cursor:pointer}
 .xl summary{cursor:pointer}
 .welcome #codeForm[hidden]{display:none!important}
-.focusbar{display:flex;align-items:center;gap:10px;padding:8px 16px;background:rgba(178,94,9,.10);border-bottom:1px solid rgba(178,94,9,.35);font-size:13.5px}
+.focusbar{display:flex;align-items:center;gap:8px;padding:6px 12px;background:rgba(31,78,140,.07);border-bottom:1px solid rgba(31,78,140,.22);font-size:13px}
+.focusbar .fbn{flex:none;background:var(--cyan);color:#fff;border-radius:999px;padding:3px 10px;font-size:13px}
+.focusbar .fbc{flex:1;min-width:0;display:flex;gap:6px;align-items:center;overflow-x:auto;scrollbar-width:none;white-space:nowrap}
+.focusbar .fbc::-webkit-scrollbar{display:none}
+.focusbar .fchip{flex:none;padding:4px 8px 4px 10px;font-size:12.5px}
+.focusbar .fchip.sc{border-color:var(--line);background:var(--panel)}
+.focusbar .op{flex:none;color:var(--dim);font-size:11.5px;font-weight:700;text-transform:uppercase}
+.fgrp{display:inline-flex;gap:4px;align-items:center;border:1px dashed rgba(31,78,140,.45);border-radius:999px;padding:2px 4px;flex:none}
+.fgrp .fchip{border-color:transparent}
+.qsug{display:flex;align-items:center;gap:8px;background:rgba(14,124,102,.08);border:1px solid rgba(14,124,102,.35);border-radius:12px;padding:8px 10px;font-size:13px;margin-top:8px}
+.qsug .vzt{flex:1;min-width:0;line-height:1.4}
+.qsub{margin-top:8px}.quick.qsub button{padding:6px 12px;font-size:13px;font-weight:600}
+.qsug .btn{width:auto;flex:none;margin:0}
+.qsep{flex:none;width:1px;background:var(--line);margin:2px 2px}
+.ltl{flex:1;font-size:14px;color:var(--muted)}.ltl b{color:var(--ink);font-size:16px}
+.ltw{color:var(--warn);font-size:12px}
+.ltinfo{height:34px;min-width:34px;font-size:16px}
+#summary{margin:0 0 10px}
+.fopt.zero{opacity:.55}
+.pill.more{background:var(--field);border-color:var(--line);color:var(--muted)}
+.cgrp{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.cgl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.cgo{display:flex;flex-wrap:wrap;gap:6px}
+#panelBody .dias{grid-template-columns:repeat(auto-fit,minmax(72px,1fr))!important;gap:6px!important}
+#panelBody .dia{min-height:0!important;padding:8px 6px!important;border-radius:10px;align-items:center;text-align:center}
+#panelBody .dia .dv{font-size:20px!important;background:none!important;padding:0!important;min-width:0!important}
+#panelBody .dia .dl{font-size:11.5px!important;font-weight:600;line-height:1.2}#panelBody .dia .ds{display:none}
+details.tfold{margin:8px 0}details.tfold>summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--cyan);padding:6px 0}
+details.ninfo{margin:6px 0}
+details.ninfo>summary{cursor:pointer;font-size:12.5px;color:var(--cyan);font-weight:600;list-style:none}
+details.ninfo>summary::-webkit-details-marker{display:none}
+details.ninfo>p.note{margin-top:6px}
 .focusbar span{flex:1;min-width:0}
 .focusbar b{color:var(--warn)}
 .focusbar .iconbtn{height:30px;min-width:30px;padding:0 8px}
@@ -1356,7 +1387,9 @@ h1,h2,h3,h4,.at,.acch .at,.cvt b,.phead h2,.psec h3,.sec h3,.evhead h3,.cpt,.lh,
         <div class="qbar needdata">
           <div class="qwrap"><input id="q" type="search" placeholder="Cliente, código o dicta 🎙" autocomplete="off" aria-label="Buscar cliente o código" enterkeyhint="search"><button class="qmic" id="qMic" type="button" title="Buscar por voz" aria-label="Buscar por voz"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button></div>
           <div class="vozbar" id="vozBar" hidden role="status"></div>
+          <div class="qsug" id="qSug" hidden role="status"></div>
           <div class="quick" id="quick" role="group" aria-label="Vista rápida"></div>
+          <div class="quick qsub" id="quickSub" hidden role="group" aria-label="Categorías de Gambito"></div>
         </div>
         <details class="box" id="fBox" open>
           <summary><h2>Más filtros <span id="fCount"></span></h2><svg class="car" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></summary>
@@ -1369,20 +1402,21 @@ h1,h2,h3,h4,.at,.acch .at,.cvt b,.phead h2,.psec h3,.sec h3,.evhead h3,.cpt,.lh,
               <span class="note">LJ = lunes y jueves · MV = martes y viernes · RS = miércoles y sábado</span></div>
             <div class="field"><span class="lab">Clientes VPO</span><div class="seg" id="fVpo"></div></div>
             <div class="field"><span class="lab">Cobertura</span><div class="seg" id="fCov"></div></div>
+            <div class="field" id="fCondWrap"><span class="lab">Condiciones</span><span class="note">Marca varias: dentro de un mismo grupo basta con una (o); entre grupos se cumplen todas (y).</span><div id="fCond"></div></div>
             <button class="btn pri" id="fApply">Aplicar y ver mapa</button>
             <button class="btn" id="fClear">Limpiar</button>
           </div>
         </details>
-        <div class="box needdata">
+        <div class="box needdata" hidden style="display:none">
           <div class="tiles">
             <div class="tile"><div class="v num" id="stShown">0</div><div class="l">mostrados</div></div>
             <div class="tile"><div class="v num" id="stRes">0</div><div class="l">resultado</div></div>
             <div class="tile"><div class="v num" id="stBase">0</div><div class="l">base</div></div>
           </div>
-          <div class="substats" id="summary"></div>
         </div>
         <div class="listtools needdata">
-          <h2>Puntos de venta</h2>
+          <div class="ltl"><b class="num" id="ltN">0</b> clientes <span id="ltSt"></span></div>
+          <button class="iconbtn ltinfo" id="ltInfo" type="button" title="Detalle del resultado" aria-label="Detalle del resultado" aria-expanded="false">ⓘ</button>
           <select id="sort" class="sm" aria-label="Ordenar">
             <option value="dist">Más cercano</option>
             <option value="name">Nombre</option>
@@ -1391,6 +1425,7 @@ h1,h2,h3,h4,.at,.acch .at,.cvt b,.phead h2,.psec h3,.sec h3,.evhead h3,.cpt,.lh,
             <option value="promasc">Menor PromU3M</option>
           </select>
         </div>
+        <div class="substats" id="summary" hidden></div>
         <div id="list"></div>
       </div>
     </section>
@@ -1816,6 +1851,31 @@ function pickSheets(wbIn){
     }
     if (INC.length){ out.inc = [["inc", "nivel", "ruta", "sup", "agencia", "grupo", "meta", "real", "tend", "mcob", "rcob", "pcob", "pcob3", "gana", "premio", "rank", "nrank"], ...INC]; out.incInfo = info; }
   }
+  // Compras de cerveza por cliente (hoja "Cubo" de los archivos de incentivos): para medir qué clientes del Plan Gambito ya se activaron
+  {
+    let best = null;
+    for (const wb of wbs) for (const n of wb.SheetNames){
+      if (!/^cubo$/i.test(String(n).trim())) continue;
+      const rows = rowsOf(wb, n) || []; const hi = rows.slice(0, 12).findIndex(r => { const l = (r || []).map(low); return l.includes("cliente_id") && l.includes("descripcion") && l.includes("date") && l.includes("volumen_cajas_fisicas"); });
+      if (hi >= 0 && (!best || rows.length > best.rows.length)) best = {rows, hi, wb};
+    }
+    if (best){
+      const h = best.rows[best.hi].map(low), ci = h.indexOf("cliente_id"), di = h.indexOf("descripcion"), fi = h.indexOf("date"), vi = h.indexOf("volumen_cajas_fisicas");
+      const prodOf = d => /regia\s*750/i.test(d) ? "R750" : /regia\s*330/i.test(d) ? "R330" : /suprema\s*11\s*oz\s*vr/i.test(d) ? "S330" : null;
+      const M = new Map(); let maxD = "";
+      for (const r of best.rows.slice(best.hi + 1)){
+        const cl = code(r && r[ci]), k = prodOf(str(r && r[di])); if (!cl || !k) continue;
+        const m = str(r[fi]).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if (!m) continue;
+        const f = `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`; if (f > maxD) maxD = f;
+        const key = cl + "|" + k, o = M.get(key) || [cl, k, 0, "", ""]; const v = num(r[vi]) || 0;
+        o[2] += v; o[3] = !o[3] || f < o[3] ? f : o[3]; o[4] = f > o[4] ? f : o[4];
+        (o.d = o.d || []).push([f, v]); M.set(key, o);
+      }
+      out.gcb = [["cliente", "producto", "cj_mes", "primera", "ultima", "compras"]];
+      for (const o of M.values()) out.gcb.push([o[0], o[1], Math.round(o[2] * 100) / 100, o[3], o[4], o.d.map(x => x[0].slice(5) + ":" + Math.round(x[1] * 100) / 100).join(" ")]);
+      out.gcbInfo = {hasta: maxD};
+    }
+  }
   // Plan VPO cerveza, formato nuevo (BASE FINAL VPO, hoja "Export"): cliente, dinámica, clasificación y lo vendido en el mes por producto.
   // No trae las escalas de precio: se usan las escalas vigentes del plan (iguales para todos los clientes).
   // Escalas oficiales del plan VPO (lámina "cerveza - Plan VPO"): precio por caja según las cajas del pedido (1-4.99 / 5-9.99 / 10+)
@@ -1841,7 +1901,7 @@ function pickSheets(wbIn){
 }
 function fromEmbed(e){
   e = e || {};
-  return {inc:e["INCENT"]||[], incInfo:e.incInfo||null, maestra:e["maestra"]||[], listados:e["LISTADOS"]||[], ac:e["AC BASE"]||[], rn:e["Base"]||[], mon:e["MONITOREO"]||[], vpo:e["VPO"]||[], ev:e["EVEREST"]||[], evInfo:e.evInfo||null, baseInfo:e.baseInfo||null, promosInfo:e.promosInfo||null, promos:e["PROMOS"]||[], cp:e["COBPAGO"]||[], cpInfo:e.cpInfo||null, em:e["EMERGENTE"]||[], emInfo:e.emInfo||null, md:e["METAS"]||[], mdInfo:e.mdInfo||null, vp:e["VPOPLAN"]||[], vpInfo:e.vpInfo||null};
+  return {gcb:e["GAMBCOMPRA"]||[], gcbInfo:e.gcbInfo||null, inc:e["INCENT"]||[], incInfo:e.incInfo||null, maestra:e["maestra"]||[], listados:e["LISTADOS"]||[], ac:e["AC BASE"]||[], rn:e["Base"]||[], mon:e["MONITOREO"]||[], vpo:e["VPO"]||[], ev:e["EVEREST"]||[], evInfo:e.evInfo||null, baseInfo:e.baseInfo||null, promosInfo:e.promosInfo||null, promos:e["PROMOS"]||[], cp:e["COBPAGO"]||[], cpInfo:e.cpInfo||null, em:e["EMERGENTE"]||[], emInfo:e.emInfo||null, md:e["METAS"]||[], mdInfo:e.mdInfo||null, vp:e["VPOPLAN"]||[], vpInfo:e.vpInfo||null};
 }
 
 /* ---------- modelo ---------- */
@@ -2022,7 +2082,7 @@ function build(S){
     }
   }
   for (const o of rnRutas.values()){ o.rn = o.rojo + o.negro; }
-  DB = {live: S.live || null, inc: parseInc(S.inc || [], S.incInfo), pdv, covCols, acCols, sups, rutas, rutaSup, vpoPlan, ev, baseInfo: S.baseInfo || null, promosInfo: S.promosInfo || null, promos: parsePromos(S.promos || []), cp: parseCPago(S.cp || [], S.cpInfo), em: parseEm(S.em || [], S.emInfo), md: parseMd(S.md || [], S.mdInfo), vp: parseVp(S.vp || [], S.vpInfo), rn:{sem:rnSem, rutas:rnRutas, meta: Object.assign({}, RN_META_DEF, S.rnMeta || {})}};
+  DB = {gcb: parseGcb(S.gcb || [], S.gcbInfo), live: S.live || null, inc: parseInc(S.inc || [], S.incInfo), pdv, covCols, acCols, sups, rutas, rutaSup, vpoPlan, ev, baseInfo: S.baseInfo || null, promosInfo: S.promosInfo || null, promos: parsePromos(S.promos || []), cp: parseCPago(S.cp || [], S.cpInfo), em: parseEm(S.em || [], S.emInfo), md: parseMd(S.md || [], S.mdInfo), vp: parseVp(S.vp || [], S.vpInfo), rn:{sem:rnSem, rutas:rnRutas, meta: Object.assign({}, RN_META_DEF, S.rnMeta || {})}};
   if (typeof logGuardar === "function") setTimeout(() => logGuardar(S), 0);   // foto del avance para "Avance del día"
 }
 /* ---------- R+N (rojo + negro) ---------- */
@@ -2035,11 +2095,21 @@ const isRN = e => e.sem === "ROJO" || e.sem === "NEGRO";
 /* ---------- Coberturas de pago (Seguimiento TU's / Metas Cobertura SM): meta y real por ruta ---------- */
 const CP_ALL = [["ms","1.5L y 3L"],["sku4","4 SKU"],["colas","Colas SV"]];
 let CP_CATS = CP_ALL;   // solo las categorías que traen meta en el archivo cargado (coberturas TU no trae Colas SV)
+/* compras de cerveza por cliente y empaque en el mes (para la activación del Plan Gambito) */
+function parseGcb(rows, info){
+  const g = {cli:new Map(), info: info || null};
+  if (!rows || rows.length < 2) return g;
+  const h = rows[0].map(low), I = n => h.indexOf(n);
+  for (const r of rows.slice(1)){ const cl = code(r[I("cliente")]); if (!cl) continue;
+    if (!g.cli.has(cl)) g.cli.set(cl, {});
+    g.cli.get(cl)[str(r[I("producto")])] = {cj: num(r[I("cj_mes")]) || 0, primera: str(r[I("primera")]), ultima: str(r[I("ultima")]), compras: str(r[I("compras")]).split(" ").filter(Boolean).map(x => { const [md, v] = x.split(":"); return [md, +v || 0]; })}; }
+  return g;
+}
 /* Incentivos: filas por ruta o supervisor, con su posición calculada sobre todo el país */
 const INC_DEF = {
   regiero:  {t:"Top Regiero", d:"Volumen Regia VR + coberturas Regia · premio en latas según cluster · top 3 del cluster: kit", vol:"Regia VR (CJ)", cob:"Coberturas Regia"},
-  pary:     {t:"Pary · Pique en corto", d:"Preventa: top 1 de la mesa con 30 coberturas, $60 · Supervisor: top 1 de la agencia con 100% de la meta, $250", vol:"Volumen Pary (CJ)", cob:"Coberturas"},
-  cervecero:{t:"Top Cervecero SV", d:"Supervisor: alcance de la meta de cerveza con mínimo 50% de clientes coberturados y 25% con 3 o más empaques", vol:"Cerveza (CJ)", cob:"Clientes"},
+  pary:     {t:"Pary · Pique en corto", dv:"Preventa: top 1 de la mesa con 30 coberturas, $60", d:"Preventa: top 1 de la mesa con 30 coberturas, $60 · Supervisor: top 1 de la agencia con 100% de la meta, $250", vol:"Volumen Pary (CJ)", cob:"Coberturas"},
+  cervecero:{t:"Top Cervecero SV", soloSup:true, d:"Supervisor: alcance de la meta de cerveza con mínimo 50% de clientes coberturados y 25% con 3 o más empaques", vol:"Cerveza (CJ)", cob:"Clientes"},
   forza:    {t:"Forza Lata Petit", d:"Volumen Petit (néctar + fresh) y coberturas · tendencia al cierre", vol:"Volumen Petit (CJ)", cob:"Coberturas Petit"}
 };
 function parseInc(rows, info){
@@ -2273,8 +2343,16 @@ const SEG_FN = {
   vpopend: p => !!p.vpo && (p.vpo.pct || 0) < 1,
   vpo: p => !!p.vpo,
   conpromo: p => nPromosCliente(p) > 0,
-  cov1: p => covPend(p).length === 1
-};RN_BUCKETS.forEach(([k, l]) => { SEG_LABEL["rnb:" + k] = "Equipos " + l.toLowerCase(); SEG_FN["rnb:" + k] = p => p.rn.some(e => e.sem === "ROJO" && rnBucket(e.rango) === k); });
+  cov1: p => covPend(p).length === 1,
+  gamb: p => !!gambPlans(p).length,
+  gambvpo: p => gambPlans(p).includes("VPO"),
+  gambnc: p => gambPlans(p).includes("Nunca compra"),
+  gamb0: p => gambPlans(p).includes("Compra 0"),
+  gambcai: p => gambPlans(p).includes("Caídos")
+};
+// planes del Plan Gambito (cerveza) que tiene el cliente
+function gambPlans(p){ const x = DB.vp && DB.vp.cli.get(p.c); if (!x) return []; return [...new Set(Object.values(x.prods).map(o => o.plan || "VPO"))]; }
+Object.assign(SEG_LABEL, {gamb:"Con plan Gambito (cerveza)", gambvpo:"Gambito · VPO por escalas", gambnc:"Gambito · Nunca compra", gamb0:"Gambito · Compra 0", gambcai:"Gambito · Caídos"});RN_BUCKETS.forEach(([k, l]) => { SEG_LABEL["rnb:" + k] = "Equipos " + l.toLowerCase(); SEG_FN["rnb:" + k] = p => p.rn.some(e => e.sem === "ROJO" && rnBucket(e.rango) === k); });
 
 const promoById = id => (DB.promos || []).find(x => x.id === id);
 const promoNombre = id => (promoById(id) || {}).n || id;
@@ -2334,20 +2412,49 @@ function segLabel(k){
   if (f === "fr") return `Frecuencia ${v}`;
   if (f === "promo") return "Promo: " + v.split(",").map(id => (promoById(id) || {}).n || id).join(" o ");
   if (f === "ac") return v.split("|").map(x => { const y = x.replace(/\s*-\s*/g, " ").replace(/\(cc\)/i, "compra cero").toLowerCase(); return y.charAt(0).toUpperCase() + y.slice(1); }).join(" o ");
-  if (f === "vpp"){ const [pl, pr] = v.split("@"); return "Cerveza " + pl.split(",").join(" o ").toLowerCase() + (pr ? " (" + pr.split(",").map(x => VPO_PROD[x] || x).join(", ") + ")" : ""); }
+  if (f === "vpp"){ const [pl, pr] = v.split("@"); return "Gambito " + pl.split(",").join(" o ").toLowerCase() + (pr ? " (" + pr.split(",").map(x => VPO_PROD[x] || x).join(", ") + ")" : ""); }
+  return k;
+}
+/* las condiciones del mismo grupo se suman (basta una: "o"); grupos distintos se cumplen todos ("y").
+   Ej.: Gambito nunca compra o compra 0 o caídos  y  ruta 265115  y  con promo de Lipton */
+function segFam(k){
+  k = String(k);
+  if (/^gamb(vpo|nc|0|cai)?$/.test(k) || k.startsWith("x:vpp:")) return "gamb";
+  if (k === "gambact" || k === "gambpend") return "gambst";
+  if (k === "conpromo" || k.startsWith("x:promo:")) return "promo";
+  if (k.startsWith("rnb:") || k === "rnrn" || k === "rnneg" || k === "rn") return "rn";
+  if (k.startsWith("x:ac:")) return "ac";
+  if (k.startsWith("x:est:")) return "est";
+  if (k.startsWith("x:name:")) return "tipo";
+  if (k === "visto" || k === "novis") return "vis";
+  if (k === "well" || k === "well60") return "well";
+  if (k === "vpo" || k === "vpopend") return "vpo";
+  if (k === "covpend" || k === "cov1" || k === "covok" || k.startsWith("x:covn:")) return "cov";
   return k;
 }
 function focusParts(){
-  return [...F.segs.map(k => ({t:"seg", k, l:segLabel(k)})), ...F.emps.map(k => ({t:"emp", k, l:"Pendiente " + empLabel(k)})), ...F.promos.map(k => ({t:"promo", k, l:promoNombre(k)}))];
+  return [...F.segs.map(k => ({t:"seg", k, l:segLabel(k), fam:segFam(k)})), ...F.emps.map(k => ({t:"emp", k, l:"Pendiente " + empLabel(k), fam:"emp:" + k})), ...F.promos.map(k => ({t:"promo", k, l:promoNombre(k), fam:"promo"}))];
 }
-function focusLabel(){ return focusParts().map(x => x.l).join(F.modo === "or" ? " o " : " y "); }
+// "Gambito · Nunca compra", "Gambito · Caídos" → "Gambito · Nunca compra", "Caídos"
+function labMerge(arr){ let pre = ""; return arr.map((l, i) => { const m = String(l).match(/^(.+?) · (.+)$/); if (m && i && m[1] === pre) return m[2]; pre = m ? m[1] : ""; return l; }); }
+function focusGroups(){ const g = new Map(); for (const x of focusParts()){ if (!g.has(x.fam)) g.set(x.fam, []); g.get(x.fam).push(x); } return [...g.values()]; }
+function focusLabel(){
+  if (F.modo === "or") return focusParts().map(x => x.l).join(" o ");
+  return focusGroups().map(g => g.length > 1 ? "(" + labMerge(g.map(x => x.l)).join(" o ") + ")" : g[0].l).join(" y ");
+}
+function focusChipsHTML(){
+  const chip = x => `<button class="fchip" data-rm="${x.t}|${esc(x.k)}" title="Quitar esta condición">${esc(x.l)}<span aria-hidden="true">✕</span></button>`;
+  if (F.modo === "or") return focusParts().map(chip).join(`<span class="op">o</span>`);
+  return focusGroups().map(g => { if (g.length < 2) return chip(g[0]); const ls2 = labMerge(g.map(x => x.l)); return g.map((x, i) => chip(Object.assign({}, x, {l:ls2[i]}))).join(`<span class="op">o</span>`); }).join(`<span class="op">y</span>`);
+}
 function passFocus(p){
-  const conds = [];
-  for (const k of F.segs) conds.push(segFn(k));
-  for (const k of F.emps) conds.push(p => !!(p.cov && p.cov.groups.some(g => g.k === k && !g.ok)));
-  for (const k of F.promos) conds.push(p => promoPassK(p, k));
-  if (!conds.length) return true;
-  return F.modo === "or" ? conds.some(f => f(p)) : conds.every(f => f(p));
+  const fams = new Map(), add = (fam, fn) => { if (!fams.has(fam)) fams.set(fam, []); fams.get(fam).push(fn); };
+  for (const k of F.segs) add(segFam(k), segFn(k));
+  for (const k of F.emps) add("emp:" + k, p => !!(p.cov && p.cov.groups.some(g => g.k === k && !g.ok)));
+  for (const k of F.promos) add("promo", p => promoPassK(p, k));
+  if (!fams.size) return true;
+  const G = [...fams.values()];
+  return F.modo === "or" ? G.some(fs => fs.some(f => f(p))) : G.every(fs => fs.some(f => f(p)));
 }
 /* distancia de edición acotada (Damerau: letra de más, de menos, cambiada o dos letras al revés); también compara con el inicio de la palabra para búsquedas a medio escribir */
 function editDist(a, b, k){
@@ -2446,11 +2553,15 @@ function cardHTML(p){
   const covTxt = pct == null ? "Sin cobertura" : `${p.cov.okN}/${p.cov.n} cob.`;
   const dist = p._d != null ? `<span class="dist num">${p._d < 1 ? Math.round(p._d*1000)+" m" : fmt(p._d,1)+" km"}</span>` : "";
   const nec = rnNec(p), wp = wellPend(p).length;
-  const segN = (nec > 0 ? `<span class="pill warn" title="Necesidad real amarilla">Nec ${fmt(nec)}</span>` : "") + (wp ? `<span class="pill bad" title="Equipos sin lectura Wellington">Well ${wp}</span>` : "") + (DB.rn && DB.rn.sem && rnEq(p).length ? `<span class="pill bad" title="Equipos fríos en rojo o negro">R+N ${rnEq(p).length}</span>` : "");
+  const segN = (nec > 0 ? `<span class="pill warn" title="Necesidad real amarilla">Nec ${fmt(nec)}</span>` : "") + (wp ? `<span class="pill bad" title="Equipos sin lectura Wellington">Well ${wp}</span>` : "") + (DB.rn && DB.rn.sem && rnEq(p).length ? `<span class="pill bad" title="Equipos fríos en rojo o negro">R+N ${rnEq(p).length}</span>` : "") + (() => { const g = gambPlans(p); if (!g.length) return ""; const e = DB.gcb && DB.gcb.cli.size ? gambEstado(p) : null; return `<span class="pill ${e && e.act ? "ok" : "acc"}" title="Plan Gambito de cerveza${e ? (e.act ? ": ya se activó" : ": por activar") : ""}">🍺 ${esc(g.join(" · "))}${e && e.act ? " ✓" : ""}</span>`; })();
   const acN = segN + (nPromosCliente(p) ? `<span class="pill acc" title="Promociones vigentes para este cliente">${nPromosCliente(p)} promo</span>` : "") + (p.vpo ? `<span class="pill ${p.vpo.pct >= 1 ? "ok" : "warn"}">VPO ${p.vpo.pct != null ? Math.round(p.vpo.pct*100)+"%" : "0%"}</span>` : "");
+  let pills = acN.match(/<span class="pill[^"]*"[^>]*>.*?<\/span>/g) || [];
+  const fam = new Set(F.segs.map(segFam)), prio = x => (fam.has("gamb") || fam.has("gambst")) && x.includes("🍺") || fam.has("promo") && /\d promo</.test(x) || fam.has("rn") && x.includes("R+N") || fam.has("well") && x.includes("Well") || fam.has("nec") && x.includes("Nec") || fam.has("vpo") && x.includes("VPO") ? 0 : 1;
+  pills = pills.map((x, i) => [x, i]).sort((a, b) => prio(a[0]) - prio(b[0]) || a[1] - b[1]).map(x => x[0]);
+  const MAXP = 2, pillsH = pills.slice(0, MAXP).join("") + (pills.length > MAXP ? `<span class="pill more" title="Más indicadores en la ficha">+${pills.length - MAXP}</span>` : "");
   return `<button class="card ${visitedToday(p.c)?"visited":""}" data-pdv="${p.c}">
     <span class="nm">${esc(p.n || "(sin nombre)")}</span>
-    <span class="side">${dist}<span class="pill ${cc}">${covTxt}</span>${acN}</span>
+    <span class="side">${dist}<span class="pill ${cc}">${covTxt}</span>${pillsH}</span>
     <span class="meta num"><span>${p.c}</span><span>Ruta ${esc(p.ruta||"—")}</span><span>FR ${esc(p.fr||"—")}</span>${p.est?`<span>${esc(p.est)}</span>`:""}${p.lat==null?`<span style="color:var(--bad)">sin GPS</span>`:""}</span>
   </button>`;
 }
@@ -2461,9 +2572,11 @@ function renderList(){
   const withCov = current.filter(p => p.cov); const avg = withCov.length ? withCov.reduce((a,p)=>a+p.cov.okN,0)/withCov.length : 0; const nItems = withCov[0]?.cov.n || COV_GROUPS.length;
   $("#stShown").textContent = fmt(Math.min(n, SHOWN)); $("#stRes").textContent = fmt(n); $("#stBase").textContent = fmt(DB.pdv.size);
   const dupNote = DUP_INFO.merged ? `<span title="Mismo nombre, ruta y ubicación con varios códigos">${fmt(DUP_INFO.merged)} códigos repetidos unificados</span>` : "";
-  $("#summary").innerHTML = `<span>${stampHTML("base")}</span>` + dupNote + `<span><b class="num">${fmt(current.filter(p=>p.lat!=null).length)}</b> en mapa</span><span>Cobertura promedio <b class="num">${fmt(avg,1)}/${nItems}</b></span>${F.sort==="dist"&&!ME?`<span>Activa GPS para ordenar por cercanía</span>`:""}${QFUZZY ? `<span style="color:var(--warn)">Sin coincidencia exacta: se muestran nombres parecidos</span>` : ""}`;
+  $("#ltN").textContent = fmt(n); { const t = stampOf("base"); $("#ltSt").innerHTML = t ? staleTag(t) : ""; }
+  if (QFUZZY) $("#ltSt").innerHTML += ` <span class="ltw">nombres parecidos</span>`;
+  $("#summary").innerHTML = `<span>${stampHTML("base")}</span><span>Mostrando <b class="num">${fmt(Math.min(n, SHOWN))}</b> de ${fmt(n)} · base ${fmt(DB.pdv.size)}</span>` + dupNote + `<span><b class="num">${fmt(current.filter(p=>p.lat!=null).length)}</b> en mapa</span><span>Cobertura promedio <b class="num">${fmt(avg,1)}/${nItems}</b></span>${F.sort==="dist"&&!ME?`<span>Activa GPS para ordenar por cercanía</span>`:""}${QFUZZY ? `<span style="color:var(--warn)">Sin coincidencia exacta: se muestran nombres parecidos</span>` : ""}`;
   const L = $("#list");
-  if (!n){ L.innerHTML = `<div class="empty">No hay puntos de venta con estos filtros.<br>Prueba cambiando supervisor, ruta o frecuencia.</div>`; return; }
+  if (!n){ L.innerHTML = `<div class="empty">No hay puntos de venta con estos filtros.<br>${!$("#qSug").hidden ? "Toca <b>Aplicar</b> arriba o presiona Enter para filtrar con lo que escribiste." : "Quita alguna condición de la barra de filtros de arriba."}</div>`; return; }
   L.innerHTML = current.slice(0, SHOWN).map(cardHTML).join("") + (n > SHOWN ? `<button class="more" id="more">Mostrar ${Math.min(150, n-SHOWN)} más de ${fmt(n-SHOWN)}</button>` : "");
 }
 /* vista rápida: un toque para lo más usado en la calle */
@@ -2472,10 +2585,14 @@ const QUICK = [
   ["hoy", "Hoy", () => ({segs:[], dias:["HOY"]})],
   ["cov", "Cobertura pendiente", () => ({segs:["covpend"], dias:[]})],
   ["promo", "Con promo", () => ({segs:["conpromo"], dias:[]})],
-  ["rn", "R+N", () => ({segs:["rnrn"], dias:[]})]
+  ["rn", "R+N", () => ({segs:["rnrn"], dias:[]})],
+  ["gamb", "Gambito", () => ({segs:["gamb"], dias:[]})]
 ];
+const GAMB_SUB = [["gambnc", "Nunca compra"], ["gamb0", "Compra 0"], ["gambcai", "Caídos"], ["gambvpo", "VPO escalas"]];
+const GAMB_ST = [["gambpend", "Por activar"], ["gambact", "Activados ✓"]];
 function quickActive(){
   if (F.emps.length || F.promos.length) return "";
+  if (F.segs.length && F.segs.every(k => /^gamb/.test(segFam(k))) && !F.dias.length) return "gamb";
   const same = (a, b) => a.length === b.length && a.every(x => b.includes(x));
   const q = QUICK.find(([, , f]) => { const o = f(); return same(o.segs, F.segs) && same(o.dias, F.dias); });
   return q ? q[0] : "";
@@ -2483,15 +2600,81 @@ function quickActive(){
 function renderQuick(){
   const el = $("#quick"); if (!el) return;
   const act = quickActive();
-  el.innerHTML = QUICK.filter(([k]) => k !== "rn" || (DB.rn && DB.rn.sem)).map(([k, l]) => `<button class="${act === k ? "on" : ""}" data-quick="${k}" aria-pressed="${act === k}">${l}</button>`).join("");
+  el.innerHTML = QUICK.filter(([k]) => (k !== "rn" || (DB.rn && DB.rn.sem)) && (k !== "gamb" || (DB.vp && DB.vp.cli.size))).map(([k, l]) => `<button class="${act === k ? "on" : ""}" data-quick="${k}" aria-pressed="${act === k}">${l}</button>`).join("");
+  renderQuickSub(); renderConds();
   const n = [F.ag, F.sup && DB.sups.length > 1 ? F.sup : "", F.rutas.length && DB.rutas.length > 1 ? 1 : 0, F.frs.length, F.vpo, F.cov, F.vis].filter(Boolean).length;
   $("#fCount").textContent = n ? `(${n} activos)` : "";
 }
+/* al elegir Gambito aparecen sus categorías: se pueden marcar varias a la vez (nunca compra + compra 0 + caídos…) */
+const COND_GROUPS = [
+  ["Plan Gambito", () => DB.vp && DB.vp.cli.size, [...GAMB_SUB]],
+  ["Activación Gambito", () => DB.gcb && DB.gcb.cli.size, [...GAMB_ST]],
+  ["Coberturas", () => true, [["covpend", "Pendiente"], ["cov1", "Falta solo 1"], ["covok", "Completas"]]],
+  ["Equipo frío", () => true, [["rnrn", "Rojo o negro"], ["nec", "Necesidad"], ["well", "Wellington pendiente"], ["well60", "Wellington +60 días"]]],
+  ["Promos y VPO", () => true, [["conpromo", "Con promo"], ["vpopend", "VPO por cumplir"]]],
+  ["Visita de hoy", () => true, [["novis", "Sin visitar"], ["visto", "Visitados"]]]
+];
+function renderConds(){
+  const el = $("#fCond"); if (!el || !$("#fBox").open) return;
+  const L = filtered(true);
+  el.innerHTML = COND_GROUPS.filter(([, ok]) => ok()).map(([g, , opts]) => {
+    const b = opts.map(([k, l]) => { const n = SEG_FN[k] ? L.filter(SEG_FN[k]).length : 0; return n || F.segs.includes(k) ? `<button class="fopt ${F.segs.includes(k) ? "on" : ""}" data-cond="${k}">${esc(l)} <small class="num">${fmt(n)}</small></button>` : ""; }).join("");
+    return b ? `<div class="cgrp"><span class="cgl">${esc(g)}</span><div class="cgo">${b}</div></div>` : "";
+  }).join("");
+}
+function compactNotes(root){
+  if (!root) return;
+  root.querySelectorAll("p.note").forEach(p => {
+    if (p.closest("details.ninfo") || p.textContent.length < 120) return;
+    const d = document.createElement("details"); d.className = "ninfo";
+    d.innerHTML = `<summary>ⓘ Cómo se calcula</summary>`; p.replaceWith(d); d.appendChild(p);
+  });
+  // tablas largas: plegadas, se abren al tocar
+  root.querySelectorAll(".tw").forEach(t => {
+    if (t.closest("details")) return;
+    const n = t.querySelectorAll("tbody tr").length; if (n <= 5) return;
+    const d = document.createElement("details"); d.className = "tfold";
+    d.innerHTML = `<summary>Ver tabla (${n} filas)</summary>`; t.replaceWith(d); d.appendChild(t);
+  });
+}
+function renderQuickSub(){
+  const el = $("#quickSub"); if (!el) return;
+  const on = F.segs.some(k => segFam(k) === "gamb" || segFam(k) === "gambst");
+  if (!on || !(DB.vp && DB.vp.cli.size)){ el.hidden = true; return; }
+  const L = filtered(true), base = L.filter(SEG_FN.gamb);
+  const has = k => F.segs.includes(k);
+  const b = ([k, l], pool) => { const n = pool.filter(SEG_FN[k]).length; return `<button class="fopt ${has(k) ? "on" : ""} ${n ? "" : "zero"}" data-gsub="${k}">${l} <small class="num">${fmt(n)}</small></button>`; };
+  const st = DB.gcb && DB.gcb.cli.size ? `<span class="qsep"></span>` + GAMB_ST.map(x => b(x, base)).join("") : "";
+  el.hidden = false; el.innerHTML = GAMB_SUB.map(x => b(x, L)).join("") + st;
+}
+function onQuickSub(e){
+  const t = e.target.closest("[data-gsub]"); if (!t) return;
+  const k = t.dataset.gsub;
+  F.segs = F.segs.filter(x => x !== "gamb");
+  tog(F.segs, k);
+  if (!F.segs.some(x => segFam(x) === "gamb")) F.segs.unshift("gamb");   // sin categoría marcada = todo Gambito
+  focusChanged();
+}
 function renderAll(){ renderList(); renderMap(); renderFocusBar(); renderQuick(); if (CUR_TAB === "panel") renderPanel(); saveF(); }
+function scopeParts(){
+  const P = [], dn = {HOY:"Hoy", L:"Lun", M:"Mar", R:"Mié", J:"Jue", V:"Vie", S:"Sáb"};
+  if (F.ag) P.push({t:"ag", l:F.ag});
+  if (F.sup && DB.sups.length > 1 && F.sup !== DEFAULT_SUP) P.push({t:"sup", l:F.sup});
+  if (F.rutas.length && DB.rutas.length > 1) P.push({t:"rutas", l:(F.rutas.length > 1 ? "Rutas " : "Ruta ") + (F.rutas.length > 3 ? F.rutas.length : F.rutas.join(", "))});
+  if (F.frs.length) P.push({t:"frs", l:"FR " + F.frs.map(x => x === "_none" ? "sin" : x).join("+")});
+  if (F.dias.length) P.push({t:"dias", l:F.dias.map(d => dn[d] || d).join(" o ")});
+  if (F.vpo) P.push({t:"vpo", l:"VPO: " + ({con:"con plan", sin:"sin plan", pend:"< 100%", ok:"cumplido"}[F.vpo] || F.vpo.replace(/^d:/, ""))});
+  if (F.cov) P.push({t:"cov", l:"Cobertura " + ({bad:"0–1 de 4", warn:"2–3 de 4", ok:"4/4", na:"sin dato"}[F.cov] || F.cov)});
+  if (F.sector) P.push({t:"sector", l:"Sector " + F.sector});
+  if (F.q) P.push({t:"q", l:"“" + F.q + "”"});
+  return P;
+}
 function renderFocusBar(){
-  const t = focusLabel(), el = $("#focusBar");
-  if (!t){ el.hidden = true; return; }
-  el.hidden = false; el.innerHTML = `<span><b>Filtro personalizado (${fmt(current.length)}):</b> ${esc(t)}</span><button class="iconbtn" id="focusClear" aria-label="Quitar filtro de seguimiento">✕</button>`;
+  const el = $("#focusBar"), sp = scopeParts(), fp = focusParts();
+  if (!fp.length && !sp.filter(x => x.t !== "sup" && x.t !== "q").length){ el.hidden = true; return; }
+  el.hidden = false;
+  const sc = sp.map(x => `<button class="fchip sc" data-scrm="${x.t}" title="Quitar">${esc(x.l)}<span aria-hidden="true">✕</span></button>`).join("");
+  el.innerHTML = `<b class="fbn num">${fmt(current.length)}</b><div class="fbc">${focusChipsHTML()}${sc && fp.length ? `<span class="op">y</span>` : ""}${sc}</div><button class="iconbtn" id="focusClear" title="Quitar todos los filtros" aria-label="Quitar todos los filtros">✕</button>`;
 }
 function clearFocus(){ F.segs = []; F.emps = []; F.promos = []; needFit = true; renderAll(); }
 
@@ -2527,8 +2710,8 @@ function renderPromosPanel(L, acC){
   return h + `</section>`;
 }
 /* ---------- panel: "Mi día" + secciones plegables (solo se calcula lo que está abierto) ---------- */
-const PSEC_KEY = "rutapdv_psec";
-let PSEC = Object.assign({ind:true, seg:true, em:true}, ls.get(PSEC_KEY, {}));
+const PSEC_KEY = "rutapdv_psec2";
+let PSEC = Object.assign({avd:true}, ls.get(PSEC_KEY, {}));
 const CARET = `<svg class="car" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`;
 function acc(key, title, sum, bodyFn){
   const open = !!PSEC[key];
@@ -2700,8 +2883,9 @@ function renderPanel(){
   h += `</section>`;
 
   // ---- secciones plegables ----
-  if (PSEC.avd === undefined) PSEC.avd = true;   // abierto por defecto: es lo que se llena durante el día
+  if (PSEC.avd === undefined) PSEC.avd = !Object.values(PSEC).some(v => v === true);   // abierto por defecto si no hay otra
   h += acc("avd", "Avance del día", avSum(L), () => renderAvance(L));
+  const gms = gmbSum(L); if (gms) h += acc("gmb", "Plan Gambito · activación", gms, () => renderGambito(L));
   const ins = incSum(L); if (ins) h += acc("inc", "Incentivos del mes", ins, () => renderIncentivos(L));
   const ems = emSum(L); if (ems) h += acc("em", "Seguimiento emergente", ems, () => renderEmergente(L));
   const cps = cpSum(L); if (cps) h += acc("cp", "Coberturas de pago", cps, () => renderCPago(L));
@@ -2746,6 +2930,7 @@ function renderPanel(){
   const viejos = fuentes().filter(f => f.ok && f.t && !/hoy/.test(staleTag(f.t))).length;
   h += acc("datos", "Actualización de los datos", viejos ? `<b class="warn">${viejos} fuente(s) no son de hoy</b>` : `todo al día`, () => fuentesHTML());
   $("#panelBody").innerHTML = h;
+  compactNotes($("#panelBody"));
 }
 /* ---------- Everest: alcance, faltantes y necesidad diaria por ruta ---------- */
 const EV_CATS = [["multi","Pepsi Multi Serve"],["single","Pepsi Single Serve"],["gatorade","Gatorade 600 ML PET"],["cerveza","Cerveza"]];
@@ -2930,12 +3115,12 @@ const getPresets = () => { const x = ls.get(PRESETS_KEY, []); return Array.isArr
 function renderBuilder(L){
   const parts = focusParts(), n = focusN();
   const cnt = k => fmt(L.filter(SEG_FN[k]).length);
-  const extra = ["hoy", "vpo", "conpromo", "covok"];
+  const extra = ["hoy", "vpo", "conpromo", "covok", ...["gamb", "gambact", "gambpend", "gambvpo", "gambnc", "gamb0", "gambcai"].filter(k => L.some(SEG_FN[k]))];   // Plan Gambito: solo si hay clientes con ese plan
   const pres = getPresets();
   let h = `<section class="builder ${n ? "act" : ""}"><div class="bh"><h3>Filtro personalizado</h3>`;
-  h += `<div class="seg mode" role="group" aria-label="Cómo combinar las condiciones"><button class="${F.modo === "and" ? "on" : ""}" data-modo="and" title="El cliente debe cumplir todas las condiciones">Cumple todas (Y)</button><button class="${F.modo === "or" ? "on" : ""}" data-modo="or" title="Basta con cumplir una condición">Cumple alguna (O)</button></div></div>`;
+  h += `<div class="seg mode" role="group" aria-label="Cómo combinar las condiciones"><button class="${F.modo === "and" ? "on" : ""}" data-modo="and" title="Dentro de un mismo grupo basta con una (por ejemplo nunca compra o caídos); entre grupos distintos se cumplen todas">Combinar (Y)</button><button class="${F.modo === "or" ? "on" : ""}" data-modo="or" title="Basta con cumplir una condición">Cumple alguna (O)</button></div></div>`;
   if (n){
-    h += `<div class="chips">${parts.map(x => `<button class="fchip" data-rm="${x.t}|${esc(x.k)}" title="Quitar esta condición">${esc(x.l)}<span aria-hidden="true">✕</span></button>`).join(`<span class="op">${F.modo === "or" ? "o" : "y"}</span>`)}</div>`;
+    h += `<div class="chips">${focusChipsHTML()}</div>`;
     h += `<div class="bres"><b class="num">${fmt(current.length)}</b> clientes cumplen <span class="note">de ${fmt(L.length)} en tu cartera filtrada</span></div>`;
     h += `<div class="bact"><button class="btn sm pri" data-go="list">Ver lista</button><button class="btn sm" data-go="map">Ver mapa</button><button class="btn sm" data-save>Guardar filtro</button><button class="btn sm" data-clear>Limpiar</button></div>`;
   } else h += `<p class="note" style="margin:0">Toca varias condiciones (indicadores, categorías de cobertura, metas Everest, promociones o las de abajo) y se combinan según el modo elegido.</p>`;
@@ -2950,7 +3135,7 @@ function onPanelClick(e){
   if ((el = q("[data-segorden]"))){ F.segOrden = el.dataset.segorden; renderPanel(); saveF(); return; }
   if ((el = q("[data-segsup]"))){ F.sup = el.dataset.segsup; F.rutas = []; F.segVista = "ruta"; F.segFromSup = true; buildFilterUI(); needFit = true; renderAll(); $("#panelPane").scrollTop = 0; return; }
   if (q("[data-segback]")){ if (F.rutas.length === 1){ F.rutas = []; } else if (F.segFromSup){ F.sup = ""; F.segFromSup = false; F.segVista = "sup"; } buildFilterUI(); needFit = true; renderAll(); $("#panelPane").scrollTop = 0; return; }
-  if ((el = q("[data-acck]"))){ const k = el.dataset.acck; PSEC[k] = !PSEC[k]; ls.set(PSEC_KEY, PSEC); const y = $("#panelPane").scrollTop; renderPanel(); $("#panelPane").scrollTop = y; return; }
+  if ((el = q("[data-acck]"))){ const k = el.dataset.acck; const op = !PSEC[k]; for (const x of Object.keys(PSEC)) if (typeof PSEC[x] === "boolean") PSEC[x] = false; PSEC[k] = op;   /* una sección abierta a la vez */ ls.set(PSEC_KEY, PSEC); const y = $("#panelPane").scrollTop; renderPanel(); $("#panelPane").scrollTop = y; return; }
   if ((el = q("[data-dia]"))){
     const m = {pend:["hoy"], cov:["hoy","covpend"], promo:["hoy","conpromo"], rn:["hoy","rnrn"]}[el.dataset.dia] || [];
     F.segs = [...m]; F.emps = []; F.promos = []; F.modo = "and"; F.sort = "dist"; $("#sort").value = "dist";
@@ -3328,25 +3513,29 @@ function incRow(o, R, titulo, sub){
   const ch = incChip(o);
   return `<div class="irow"><div class="ih"><span><b>${esc(titulo)}</b>${sub ? `<small>${esc(sub)}</small>` : ""}</span>${incPos(o)}</div>${ch ? `<div class="ist">${ch}</div>` : ""}${bars}</div>`;
 }
+/* el vendedor (código de una ruta) solo ve los incentivos de su ruta; los del supervisor los ven el supervisor, la agencia y el acceso total */
+const incVendedor = () => /^Ruta\b/i.test((typeof SRC !== "undefined" && SRC && SRC.scope) || "");
+const incVisible = k => !!INC_DEF[k] && !(INC_DEF[k].soloSup && incVendedor());
 function incSum(L){
   if (!DB.inc || !DB.inc.rows.length) return "";
+  if (!Object.keys(INC_DEF).some(k => incVisible(k) && DB.inc.rows.some(o => o.inc === k))) return "";
   const rs = new Set(L.map(p => p.ruta)); let g = 0, n = 0;
   for (const r of rs){ const x = DB.inc.ruta.get(r); if (x && x.regiero){ n++; if (x.regiero.gana === "SI") g++; } }
-  const k = Object.keys(INC_DEF).filter(k => DB.inc.rows.some(o => o.inc === k && (o.nivel === "ruta" ? rs.has(o.ruta) : true))).length;
+  const k = Object.keys(INC_DEF).filter(k => incVisible(k) && DB.inc.rows.some(o => o.inc === k && (o.nivel === "ruta" ? rs.has(o.ruta) : !incVendedor()))).length;
   return `${k} incentivo${k === 1 ? "" : "s"}${n ? ` · Top Regiero <b>${g}/${n}</b> rutas ganando` : ""}`;
 }
 function renderIncentivos(L){
   if (!DB.inc || !DB.inc.rows.length) return `<p class="note">Sin datos de incentivos. En el Publicador elige también los Excel de la carpeta <b>incentivos</b>.</p>`;
   const R = incRitmo(), rutas = [...new Set(L.map(p => p.ruta))].filter(Boolean).sort();
   const sups = new Set(); for (const r of rutas){ const m = DB.rutaSup.get(r); if (m) for (const s of m.keys()) sups.add(normSup(s)); const c = DB.cp && DB.cp.rutas.get(r); if (c && c.sup) sups.add(normSup(c.sup)); }
-  const one = rutas.length === 1;
+  const one = rutas.length === 1 || incVendedor();
   let h = `<p class="note">Avance al día: la rayita marca el ritmo esperado hoy (${R.dl} de ${R.dh} días hábiles = ${Math.round(R.ritmo * 100)}%). Verde cumplido · amarillo cerca del ritmo · rojo atrasado. "/día" = lo que falta ÷ ${R.rest} días hábiles que quedan.</p>`;
-  h += `<div class="itabs">` + Object.entries(INC_DEF).map(([k, D]) => { const has = DB.inc.rows.some(o => o.inc === k && ((o.nivel === "ruta" && rutas.includes(o.ruta)) || (o.nivel === "sup" && sups.has(o.sup)))); return has ? `<button class="itab ${INCV.k === k ? "on" : ""}" data-inck="${k}">${esc(D.t)}</button>` : ""; }).join("") + `</div>`;
-  const keys = Object.keys(INC_DEF).filter(k => DB.inc.rows.some(o => o.inc === k && ((o.nivel === "ruta" && rutas.includes(o.ruta)) || (o.nivel === "sup" && sups.has(o.sup)))));
+  h += `<div class="itabs">` + Object.entries(INC_DEF).map(([k, D]) => { const has = incVisible(k) && DB.inc.rows.some(o => o.inc === k && ((o.nivel === "ruta" && rutas.includes(o.ruta)) || (o.nivel === "sup" && sups.has(o.sup)))); return has ? `<button class="itab ${INCV.k === k ? "on" : ""}" data-inck="${k}">${esc(D.t)}</button>` : ""; }).join("") + `</div>`;
+  const keys = Object.keys(INC_DEF).filter(k => incVisible(k) && DB.inc.rows.some(o => o.inc === k && ((o.nivel === "ruta" && rutas.includes(o.ruta)) || (o.nivel === "sup" && sups.has(o.sup)))));
   if (!keys.length) return h + `<p class="note">Ninguna de las rutas de este alcance aparece en los archivos de incentivos.</p>`;
   if (!keys.includes(INCV.k)) INCV.k = keys[0];
   const k = INCV.k, D = INC_DEF[k], info = (DB.inc.info || {})[k] || {};
-  h += `<div class="icard"><div class="ihd"><b>${esc(D.t)}</b><span>${esc(D.d)}</span>${info.corte ? `<small>Archivo al ${esc(info.corte)}</small>` : ""}</div>`;
+  h += `<div class="icard"><div class="ihd"><b>${esc(D.t)}</b><span>${esc(incVendedor() && D.dv ? D.dv : D.d)}</span>${info.corte ? `<small>Archivo al ${esc(info.corte)}</small>` : ""}</div>`;
   // supervisor(es) del alcance
   const S = one ? [] : DB.inc.rows.filter(o => o.inc === k && o.nivel === "sup" && sups.has(o.sup));   // con una sola ruta (vendedor) solo se ve la ruta
   for (const o of S) h += incRow(o, R, "Supervisor " + o.sup.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()), o.inc === "cervecero" ? `Rango ${o.grupo} · posición en su rango` : o.inc === "pary" ? `Posición en ${o.grupo || "su agencia"}` : "Posición entre supervisores");
@@ -3738,6 +3927,52 @@ function owToggle(){
   owUpdate(); toast(OW.on ? (map && map.getZoom() < 16 ? "Sentido de calles activo: acerca el mapa para ver las flechas" : "Sentido de calles activo") : "Sentido de calles oculto");
 }
 
+/* ---------- Plan Gambito: avance de activación (clientes del plan que ya compraron su empaque desde el inicio del plan) ---------- */
+function gambInicio(){
+  const per = String((DB.vp && DB.vp.info && DB.vp.info.periodo) || ""), m = per.match(/(\d{1,2})\s+de\s+([a-záéíóú]+)/i), y = new Date().getFullYear();
+  const mi = m ? MESES.indexOf(m[2].toLowerCase()) : -1;
+  return mi >= 0 ? `${y}-${String(mi + 1).padStart(2, "0")}-${String(+m[1]).padStart(2, "0")}` : `${y}-${String(new Date().getMonth() + 1).padStart(2, "0")}-01`;
+}
+const GPROD = {R750:"Regia 750", R330:"Regia 330", S330:"Suprema 330"};
+// por cliente: cada empaque de su plan, si ya compró desde el inicio y cuántas cajas
+function gambEstado(p){
+  const x = DB.vp && DB.vp.cli.get(p.c); if (!x) return null;
+  const ini = gambInicio().slice(5), c = (DB.gcb && DB.gcb.cli.get(p.c)) || {}, items = [];
+  for (const [k, o] of Object.entries(x.prods)){
+    const b = c[k], cj = b ? b.compras.filter(([md]) => md >= ini).reduce((a, [, v]) => a + v, 0) : 0;
+    items.push({k, plan:o.plan || "VPO", cj, act: cj > 0, drop: o.t && o.t[0] ? o.t[0][0] : 1, ok: cj >= ((o.t && o.t[0] && o.t[0][0]) || 1) - 1e-6, max:o.max || 0, ult: b ? b.ultima : ""});
+  }
+  return {items, act: items.some(i => i.act), all: items.every(i => i.act)};
+}
+Object.assign(SEG_FN, {gambact: p => { const e = gambEstado(p); return !!e && e.act; }, gambpend: p => { const e = gambEstado(p); return !!e && !e.act; }});
+Object.assign(SEG_LABEL, {gambact:"Gambito · ya se activaron", gambpend:"Gambito · por activar"});
+function gmbSum(L){
+  if (!DB.vp || !DB.vp.cli.size || !DB.gcb || !DB.gcb.cli.size) return "";
+  let n = 0, a = 0; for (const p of L){ const e = gambEstado(p); if (!e) continue; n++; if (e.act) a++; }
+  return n ? `<b>${fmt(a)}</b> de ${fmt(n)} clientes activados · <b>${Math.round(a / n * 100)}%</b>` : "";
+}
+function renderGambito(L){
+  const ini = gambInicio(), hasta = (DB.gcb.info || {}).hasta || "";
+  const P = {}, PR = {}, RT = new Map(); let n = 0, a = 0, cj = 0, hoyA = 0;
+  const ayer = hasta;
+  for (const p of L){ const e = gambEstado(p); if (!e) continue; n++; if (e.act) a++;
+    const r = RT.get(p.ruta) || {n:0, a:0, cj:0, nc:0, nca:0}; RT.set(p.ruta, r); r.n++; if (e.act) r.a++;
+    for (const it of e.items){ const pk = it.plan; P[pk] = P[pk] || {n:0, a:0, cj:0}; P[pk].n++; if (it.act) P[pk].a++; P[pk].cj += it.cj; const q = it.k; PR[q] = PR[q] || {n:0, a:0, cj:0}; PR[q].n++; if (it.act) PR[q].a++; PR[q].cj += it.cj; cj += it.cj; r.cj += it.cj; if (it.plan === "Nunca compra"){ r.nc++; if (it.act) r.nca++; }
+      if (it.act && it.ult === ayer) hoyA++; } }
+  if (!n) return `<p class="note">No hay clientes con plan Gambito en este alcance.</p>`;
+  const fd = k => k ? `${+k.slice(8)}/${+k.slice(5, 7)}` : "";
+  let h = `<p class="note">Plan desde el <b>${fd(ini)}</b> · compras hasta el <b>${fd(hasta)}</b> (archivos de incentivos). Un cliente se cuenta activado cuando compra el empaque de su plan desde el inicio.</p>`;
+  const pa = a / n;
+  h += `<div class="avg">` + avTile("Clientes activados", `${fmt(a)} / ${fmt(n)}`, `${Math.round(pa * 100)}% del plan · faltan ${fmt(n - a)}`, pa, pa >= .5 ? "ok" : pa >= .25 ? "warn" : "bad") + avTile("Cajas vendidas en el plan", fmt(cj, 1), "Regia 750, Regia 330 y Suprema 330") + avTile(`Compraron el ${fd(ayer)}`, fmt(hoyA), "último día de datos") + `</div>`;
+  h += `<h4 class="cpt">Por tipo de plan</h4><div class="avg">` + ["VPO", "Nunca compra", "Compra 0", "Caídos"].filter(k => P[k]).map(k => { const o = P[k], q = o.a / o.n; return avTile(k === "VPO" ? "VPO por escalas" : k, `${fmt(o.a)} / ${fmt(o.n)}`, `${Math.round(q * 100)}% · ${fmt(o.cj, 1)} CJ`, q, q >= .5 ? "ok" : q >= .25 ? "warn" : "bad"); }).join("") + `</div>`;
+  h += `<h4 class="cpt">Por empaque</h4><div class="avg">` + Object.keys(GPROD).filter(k => PR[k]).map(k => { const o = PR[k], q = o.a / o.n; return avTile(GPROD[k], `${fmt(o.a)} / ${fmt(o.n)}`, `${Math.round(q * 100)}% · ${fmt(o.cj, 1)} CJ`, q, q >= .5 ? "ok" : q >= .25 ? "warn" : "bad"); }).join("") + `</div>`;
+  const rows = [...RT.entries()].sort((x, y) => y[1].a / y[1].n - x[1].a / x[1].n);
+  if (rows.length > 1) h += `<h4 class="cpt">Por ruta</h4><div class="tw"><table class="rt avtab"><thead><tr><th>Ruta</th><th>Clientes</th><th>Activados</th><th>%</th><th>Nunca compra activados</th><th>CJ</th></tr></thead><tbody>` + rows.map(([r, o]) => `<tr><td><b>${esc(r)}</b></td><td class="num">${fmt(o.n)}</td><td class="num">${fmt(o.a)}</td><td class="num"><b class="${o.a / o.n >= .5 ? "ok" : o.a / o.n >= .25 ? "warn" : "bad"}">${Math.round(o.a / o.n * 100)}%</b></td><td class="num">${o.nc ? `${fmt(o.nca)} / ${fmt(o.nc)}` : "—"}</td><td class="num">${fmt(o.cj, 1)}</td></tr>`).join("") + `</tbody></table></div>`;
+  h += `<div class="bact"><button class="btn sm pri" data-gseg="gambpend">Ver los ${fmt(n - a)} por activar</button><button class="btn sm" data-gseg="gambact">Ver los ${fmt(a)} activados</button></div>`;
+  return h;
+}
+document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-gseg]"); if (!b) return; F.segs = [b.dataset.gseg]; F.emps = []; F.promos = []; F.modo = "and"; goFocus(); });
+
 /* ---------- ficha del cliente ---------- */
 function fichaPromos(p, v){
   const P = promosCliente(p);
@@ -3825,7 +4060,7 @@ function openPdv(c){
   const vpc = DB.vp && DB.vp.cli.get(p.c);
   const vpoEsc = vpc ? (() => { const I = DB.vp.info || {};
     const rows = Object.entries(vpc.prods).map(([k, x]) => { const T = vpoTier({t:x.t, v:x.v || 0, min:vpc.min || 0, tot:Object.values(vpc.prods).reduce((a, y) => a + (y.v || 0), 0)}, 0);
-      return `<div class="vrow"><div class="vh"><b>${esc(VPO_PROD[k] || k)}</b><span>${x.plan ? `<b>${esc(x.plan === "VPO" ? "Plan VPO" : x.plan)}</b>` : ""}${x.max ? ` · máx ${fmt(x.max)} CJ (primera compra)` : ""}${x.v ? ` · facturado <b>${fmt(x.v, 1)} CJ</b>` : ""}</span></div><div class="vtiers">${x.t.map((t, i) => `<span class="vtier ${i === T.i ? "on" : ""}">${fmt(t[0])}+ CJ <b>$${t[1].toFixed(2)}</b></span>`).join("")}</div></div>`; }).join("");
+      return `<div class="vrow"><div class="vh"><b>${esc(VPO_PROD[k] || k)}</b><span>${x.plan ? `<b>${esc(x.plan === "VPO" ? "Plan VPO" : x.plan)}</b>` : ""}${x.max ? ` · máx ${fmt(x.max)} CJ (primera compra)` : ""}${x.v ? ` · facturado <b>${fmt(x.v, 1)} CJ</b>` : ""}${(() => { if (!DB.gcb || !DB.gcb.cli.size) return ""; const e = gambEstado(p), it = e && e.items.find(i => i.k === k); return it ? (it.act ? ` · <b class="ok">✓ activado: ${fmt(it.cj, 1)} CJ</b>` : ` · <b class="warn">por activar</b>`) : ""; })()}</span></div><div class="vtiers">${x.t.map((t, i) => `<span class="vtier ${i === T.i ? "on" : ""}">${fmt(t[0])}+ CJ <b>$${t[1].toFixed(2)}</b></span>`).join("")}</div></div>`; }).join("");
     return `<div class="vbox"><div class="vcap">${I.fuente === "Plan Gambito" ? "Plan Gambito cerveza" : "Plan VPO"} ${esc(I.periodo || "")} · precio por caja según las cajas del pedido <small>(archivo al ${esc(I.corte || "—")})</small></div>${rows}</div><p class="note" style="margin:0">${vpc.tipo ? `Tipo <b>${esc(vpc.tipo)}</b> · ` : ""}${vpc.min ? `compra mínima <b>${fmt(vpc.min)} CJ</b> de cerveza VPO por pedido · ` : ""}la escala se calcula con las cajas de cada pedido (no es acumulado del mes). Calcula el precio en <b>Catálogo</b>.</p><button class="btn cat" data-fcat>Ver precio VPO en el catálogo</button>`; })() : "";
   if (p.vpo || vpc){
     const V = p.vpo || {din:vpc.tipo, clas:vpc.clase, real:Object.values(vpc.prods).reduce((a, y) => a + (y.v || 0), 0), meta:vpc.min || null, pct:vpc.min ? Object.values(vpc.prods).reduce((a, y) => a + (y.v || 0), 0) / vpc.min : 0, resp:""}, pc = Math.round((V.pct || 0) * 100), falta = V.meta != null ? Math.max(0, V.meta - (V.real || 0)) : null;
@@ -4038,7 +4273,13 @@ function wire(){
   $("#tabMap").onclick = () => setTab("map");
   $("#tabPanel").onclick = () => setTab("panel");
   $("#panelPane").addEventListener("click", onPanelClick);
-  $("#focusBar").addEventListener("click", e => { if (e.target.closest("#focusClear")) clearFocus(); });
+  $("#focusBar").addEventListener("click", e => {
+    if (e.target.closest("#focusClear")){ Object.assign(F, {ag:"", rutas:DB.rutas.length > 1 ? [] : F.rutas, frs:[], dias:[], vpo:"", cov:"", vis:"", segs:[], emps:[], promos:[], q:"", sector:"", secGeo:null}); $("#q").value = ""; $("#vozBar").hidden = true; qSugHide(); buildFilterUI(); needFit = true; renderAll(); return; }
+    const sc = e.target.closest("[data-scrm]");
+    if (sc){ const t = sc.dataset.scrm; if (t === "rutas" || t === "frs" || t === "dias") F[t] = []; else if (t === "q"){ F.q = ""; $("#q").value = ""; } else if (t === "sector"){ F.sector = ""; F.secGeo = null; } else F[t] = ""; buildFilterUI(); needFit = true; renderAll(); return; }
+    const rm = e.target.closest("[data-rm]");
+    if (rm){ const [t, ...k] = rm.dataset.rm.split("|"); tog(t === "seg" ? F.segs : t === "emp" ? F.emps : F.promos, k.join("|")); focusChanged(); }
+  });
   $("#btnGps").onclick = startGps;
   $("#btnFilters").onclick = () => { setTab("list"); const b = $("#fBox"); b.open = true; $("#side").scrollTo({top:0, behavior:"smooth"}); };
   $("#btnMenu").onclick = e => { e.stopPropagation(); $("#menu").hidden = !$("#menu").hidden; };
@@ -4051,7 +4292,12 @@ function wire(){
   if (window.innerWidth < 900) $("#fBox").open = false;       // en el celular los filtros avanzados empiezan cerrados
   $("#fClear").onclick = () => { Object.assign(F, {ag:"", sup:"", rutas:[], frs:[], dias:[], vpo:"", cov:"", vis:"", segs:[], emps:[], promos:[], q:""}); $("#q").value = ""; needFit = true; buildFilterUI(); renderAll(); };
   $("#fApply").onclick = () => { needFit = true; renderAll(); if (window.innerWidth < 900){ $("#fBox").open = false; setTab("map"); } else { fitPts(current.filter(p => p.lat != null)); } };
-  let qt; $("#q").oninput = e => { clearTimeout(qt); qt = setTimeout(() => { F.q = e.target.value; SHOWN = 150; renderList(); renderMap(); }, 150); };
+  let qt; $("#q").oninput = e => { clearTimeout(qt); qt = setTimeout(() => { F.q = e.target.value; SHOWN = 150; qSugUpdate(e.target.value); renderList(); renderMap(); renderFocusBar(); }, 180); };
+  $("#qSug").onclick = e => { if (e.target.closest("[data-qsugok]") && QSUG) applyVoz(QSUG.c, QSUG.txt); };
+  $("#quickSub").onclick = onQuickSub;
+  $("#ltInfo").onclick = () => { const s = $("#summary"); s.hidden = !s.hidden; $("#ltInfo").setAttribute("aria-expanded", String(!s.hidden)); };
+  $("#fBox").addEventListener("toggle", () => { if ($("#fBox").open) renderConds(); });
+  $("#fCond").onclick = e => { const b = e.target.closest("[data-cond]"); if (!b) return; const k = b.dataset.cond; if (segFam(k) === "gamb") F.segs = F.segs.filter(x => x !== "gamb"); tog(F.segs, k); focusChanged(); };
   $("#sort").value = F.sort; $("#sort").onchange = e => { F.sort = e.target.value; if (F.sort === "dist" && !ME) toast("Activa el GPS para ordenar por cercanía"); renderList(); saveF(); };
   $("#colorBy").value = F.colorBy; $("#colorBy").onchange = e => { F.colorBy = e.target.value; renderMap(); saveF(); };
   $("#btnFit").onclick = () => fitPts(current.filter(p => p.lat != null));
@@ -4708,14 +4954,31 @@ function parseVoz(text){
   else if (falta && has(/\b(cobertura|coberturas|empaque|empaques|cubrir)\b/)) seg("covpend", "Con cobertura pendiente");
   else if (has(/\b(cumplen|completas|completa|cumplida|cumplidas|4 de 4|todas las coberturas)\b/) && has(/\b(cobertura|coberturas|4 de 4)\b/)) seg("covok", "Coberturas completas");
   if (c.segs.includes("cov1") && emps.length){ for (const [k, , l] of emps){ c.emps.push(k); c.lab.push("La que falta es " + l); } }
+  // ---- Plan Gambito (cerveza): se pueden pedir varias categorías juntas: "gambito nunca compra, compra cero y caídos"
+  const gctx = has(/\b(gambito|gambitos|gambit|plan de cerveza|plan cerveza)\b/), beerW = has(/\b(cerveza|cervezas|regia|suprema|chela|chelas|750|330)\b/);
+  const gc = {nc: has(/\bnunca\b/), c0: has(/\b(compras? (cero|0)|cero compras?|compra 0)\b/), cai: has(/\b(caidos?|caidas?)\b/), vpo: has(/\b(vpo|escalas?)\b/)};
+  const gst = has(/\b(por activar|sin activar|no activados?|no se han activado|faltan? (de )?activar|pendientes? de activar|no activos)\b/) ? "gambpend" : has(/\b(activados?|activadas?|activos|ya se activaron|ya activaron|activaron)\b/) ? "gambact" : "";
+  let gambDone = false;
+  if (DB.vp && DB.vp.cli.size && (gctx || (beerW && (gc.nc || gc.c0 || gc.cai || gst)))){
+    const prods = [has(/\b750\b/) ? "R750" : "", has(/\b330\b/) && !has(/suprema/) ? "R330" : "", has(/suprema/) ? "S330" : ""].filter(Boolean);
+    const plans = [gc.nc && "Nunca compra", gc.c0 && "Compra 0", gc.cai && "Caídos", gc.vpo && "VPO"].filter(Boolean);
+    if (!gctx && gc.c0 && !gc.nc && !gc.cai) plans.push("Nunca compra");   // "compra cero de cerveza" incluye a los que nunca compran
+    const K = {"Nunca compra":"gambnc", "Compra 0":"gamb0", "Caídos":"gambcai", "VPO":"gambvpo"};
+    if (prods.length) seg("x:vpp:has:" + (plans.length ? plans : ["VPO", "Compra 0", "Nunca compra", "Caídos"]).join(",") + "@" + prods.join(","));
+    else if (plans.length) plans.forEach(pl => seg(K[pl]));
+    else if (!gst) seg("gamb");
+    if (gst) seg(gst);
+    gambDone = true;
+  }
   // ---- compra / volumen
   const vm = t.match(/\b(compra|compran|compro|promedio|volumen|venden|vende)\b.{0,20}?\b(menor(es)?( a| de| que)?|menos de|debajo de|bajo|hasta|mayor(es)?( a| de| que)?|mas de|arriba de|encima de|sobre)\s+(?<num>\d+(?:\s?punto\s?\d+)?)\s*(cajas?|cj)?\b/);
   if (vm){ const n = parseFloat(vm.groups.num.replace(/\s?punto\s?/, ".")); const op = /menor|menos|debajo|bajo/.test(vm[2]) ? "<" : /hasta/.test(vm[2]) ? "<=" : ">"; seg(`x:${has(/\b(este mes|del mes|mes actual|real)\b/) ? "real" : "prom"}:${op}:${n}`); }
-  else if (has(/\b(compras? (cero|0)|compra 0|nunca compra(n|do)?|nunca han comprado|caidos?|caido)\b/)){
+  else if (!gambDone && has(/\b(compras? (cero|0)|compra 0|nunca compra(n|do)?|nunca han comprado|caidos?|caido)\b/)){
     // "compra cero" = segmentos de la base AC (U3M) por producto; en cerveza, los planes del Plan Gambito
     const cc = has(/\b(caidos?|caido)\b/) ? "caidos" : has(/\bnunca\b/) ? "nunca" : "cero";
     const acAll = (DB.acCols || []).map(String), byCat = [[/\bgatorade\b/, /gatorade/i], [/\b(aqua|agua)\b/, /aqua/i], [/\b(lipton|te)\b/, /lipton/i], [/\b(petit|nectar|nectares)\b/, /petit/i], [/\bfrutado\b/, /frutado/i], [/\b(amp|adrenaline|energizante|energizantes)\b/, /amp|adrenaline/i]];
-    const ccCol = c2 => cc === "caidos" ? /caidos/i.test(c2) : /compra cero|\(cc\)/i.test(c2);
+    const ccCai = has(/\b(caidos?|caido)\b/), ccCero = has(/\b(compras? (cero|0)|compra 0|nunca)\b/);
+    const ccCol = c2 => (ccCai && /caidos/i.test(c2)) || (ccCero && /compra cero|\(cc\)/i.test(c2));
     const beer = has(/\b(cerveza|cervezas|regia|suprema|chela|chelas|750|330)\b/), cats = byCat.filter(([re]) => has(re));
     const prods = [has(/\b750\b/) ? "R750" : "", has(/\b330\b/) && !has(/suprema/) ? "R330" : "", has(/suprema/) ? "S330" : ""].filter(Boolean);
     const plans = cc === "caidos" ? ["Caídos"] : cc === "nunca" ? ["Nunca compra"] : ["Compra 0", "Nunca compra"];
@@ -4746,8 +5009,7 @@ function parseVoz(text){
     if (sel.length){ const ids = [...new Set(sel)]; seg("x:promo:has:" + ids.join(","), "Promo: " + ids.map(id => (promoById(id) || {}).n || id).slice(0, 2).join(" o ") + (ids.length > 2 ? "…" : "")); }
     else seg("conpromo", "Con promo dirigida");
   }
-  if (has(/\bvpo\b/)) seg(has(/\b(falta|cumplir|pendiente|no cumplen|no han cumplido)\b/) ? "vpopend" : "vpo");
-  else if (has(/\b(gambito|plan de cerveza|plan cerveza)\b/)) seg("x:vpp:has:VPO,Compra 0,Nunca compra,Caídos", "Con plan Gambito de cerveza");
+  if (!gambDone && has(/\bvpo\b/)) seg(has(/\b(falta|cumplir|pendiente|no cumplen|no han cumplido)\b/) ? "vpopend" : "vpo");
   if (has(/\b(sin visitar|no visitados|no he visitado|faltan de visitar|no he ido)\b/)) seg("novis", "Sin visitar hoy");
   else if (has(/\b(visitados|ya visite|ya fui)\b/)) seg("visto", "Visitados hoy");
   // ---- ruta(s) y supervisor
@@ -4759,9 +5021,20 @@ function parseVoz(text){
   // ---- sector / colonia / barrio (se busca en la dirección y en el mapa)
   const sm = t.match(/\b(sector|colonia|col|barrio|canton|caserio|residencial|reparto|lotificacion|urbanizacion|comunidad|calle|avenida|pasaje|zona|municipio|pueblo)\b\s+(.+?)(?=\s+\b(y|con|que|en el mapa|en la lista|en el listado|de hoy|hoy|del dia|ruta|para|les|los|las|sin)\b|\s*$)/);
   if (sm){ const w = sm[2].split(" ").filter(x => x && !["de","del","la","el","los","las"].includes(x)).slice(0, 3).join(" "); if (w){ c.sector = w; c.lab.push("Sector: " + w); } }
+  const left = vozLeft(t, c);
+  if (left){ c.q = left; c.lab.push(`Nombre o dirección: “${left}”`); }
   const any = c.clear || c.segs.length || c.emps.length || c.promos.length || c.dias.length || c.rutas.length || c.sup || c.sector || c.sort || c.tab && c.lab.length;
   if (!any && c.tab) return {act:"tab", tab:c.tab, lab:[c.tab === "map" ? "Mapa" : "Lista"]};
   return any ? c : null;
+}
+// palabras que entiende el filtro (se toman del propio código del intérprete) + muletillas
+let VOZ_VOCAB = null;
+const VOZ_STOP = new Set("quiero quisiera necesito ocupo ver veo mostrar muestra muestrame mostrame ensena ensename dame deme dime busca buscame buscar filtra filtrame filtrar filtro filtros lista listado mapa clientes cliente pdv puntos punto venta ventas que q esten estan este esta sean sea son tengan tienen tiene tenga con sin de del la el los las lo en y e o u a al para por mis mi mio todos todas todo toda solo sola solamente nada mas menos cual cuales cuantos cuantas hay tengo me le les se su sus un una unos unas favor porfa porfavor plan planes categoria categorias segmento segmentos tipo tipos ruta rutas cuyo cuya donde como cuando ya aun tambien ademas pero ni".split(" "));
+function vozLeft(t, c){
+  if (!VOZ_VOCAB) VOZ_VOCAB = new Set((parseVoz.toString() + vozNorm.toString()).replace(/\/\*[\s\S]*?\*\//g, " ").replace(/\/\/[^\n]*/g, " ").replace(/\\[a-z]/gi, " ").toLowerCase().match(/[a-z]{2,}/g));
+  const used = new Set([...qnorm(c.sector || "").split(" "), ...qnorm(c.sup || "").split(" ")]);
+  const w = t.trim().split(" ").filter(x => x && !VOZ_STOP.has(x) && !VOZ_VOCAB.has(x) && !used.has(x) && !c.rutas.some(r => r === x || r.endsWith(x)) && !/^\d{1,3}$/.test(x) && !/^\d{6}$/.test(x) && x.length > 1);
+  return w.join(" ");
 }
 // busca un cliente por lo que se dijo (nombre o código), con la búsqueda tolerante
 function vozCliente(who){
@@ -4784,23 +5057,51 @@ function runVozAct(c){
   return false;
 }
 function vozHablar(txt){ try{ if (!("speechSynthesis" in window)) return; const u = new SpeechSynthesisUtterance(txt); u.lang = "es-MX"; u.rate = 1.05; speechSynthesis.cancel(); speechSynthesis.speak(u); }catch(e){} }
+function vozSetF(c){
+  if (c.clear){ Object.assign(F, {segs:[], emps:[], promos:[], dias:[], sector:"", q:""}); if (DB.rutas.length > 1 && !c.rutas.length) F.rutas = []; }
+  F.segs = [...new Set(c.segs)]; F.emps = [...new Set(c.emps)]; F.promos = c.promos || []; F.modo = "and";
+  F.dias = [...c.dias]; F.sector = c.sector; F.q = c.q || "";
+  if (c.rutas.length) F.rutas = [...c.rutas];
+  if (c.sup){ F.sup = c.sup; if (!c.rutas.length) F.rutas = []; }
+  if (c.sort) F.sort = c.sort;
+  F.secGeo = null;
+}
+// cuántos clientes daría el filtro escrito, sin aplicarlo
+function vozCount(c){
+  const prev = Object.assign({}, F); vozSetF(c);
+  let n = filtered().length, dropQ = false;
+  if (!n && c.q){ F.q = ""; n = filtered().length; dropQ = true; }
+  const fl = focusLabel(), lab = [...scopeParts().filter(x => x.t !== "sup" || c.sup).map(x => x.l), ...(fl ? [fl] : [])];
+  if (c.sort) lab.push(c.lab.find(x => /^Ordenados/.test(x)) || "");
+  Object.assign(F, prev); return {n, dropQ, lab:lab.filter(Boolean)};
+}
+/* sugerencia en vivo mientras se escribe: "Filtrar: Gambito nunca compra o caídos · Ruta 265115 → 42 clientes" */
+let QSUG = null;
+function qSugHide(){ QSUG = null; const el = $("#qSug"); if (el) el.hidden = true; }
+function qSugUpdate(txt){
+  const el = $("#qSug"); if (!el) return;
+  txt = (txt || "").trim();
+  const c = txt.length >= 3 && typeof parseVoz === "function" ? parseVoz(txt) : null;
+  if (!c || c.act || (!c.segs.length && !c.emps.length && !c.promos.length && !c.dias.length && !c.rutas.length && !c.sup && !c.sector && !c.clear)){ qSugHide(); return; }
+  const r = vozCount(c);
+  QSUG = {c, txt};
+  el.hidden = false;
+  el.innerHTML = `<span class="vzi">⚡</span><span class="vzt"><b>Filtrar:</b> ${r.lab.map(esc).join(" · ")} → <b class="num">${fmt(r.n)}</b> cliente${r.n === 1 ? "" : "s"}</span><button class="btn sm pri" data-qsugok>Aplicar</button>`;
+}
 function applyVoz(c, text){
   if (c.act){ runVozAct(c); return; }
   VOZ_PREV = {segs:[...F.segs], emps:[...F.emps], promos:[...F.promos], modo:F.modo, dias:[...F.dias], rutas:[...F.rutas], sup:F.sup, sector:F.sector || "", sort:F.sort, q:F.q};
   if (c.clear){ Object.assign(F, {segs:[], emps:[], promos:[], dias:[], sector:"", q:""}); if (DB.rutas.length > 1 && !c.rutas.length) F.rutas = []; }
-  F.segs = [...new Set(c.segs)]; F.emps = [...new Set(c.emps)]; F.promos = c.promos || []; F.modo = "and";
-  F.dias = c.dias; F.sector = c.sector; F.q = ""; $("#q").value = "";
-  if (c.rutas.length) F.rutas = c.rutas;
-  if (c.sup){ F.sup = c.sup; if (!c.rutas.length) F.rutas = []; }
-  if (c.sort){ F.sort = c.sort; $("#sort").value = c.sort; if (c.sort === "dist" && !ME) startGps(); }
-  F.secGeo = null;
+  vozSetF(c); $("#q").value = ""; qSugHide();
+  if (c.sort){ $("#sort").value = c.sort; if (c.sort === "dist" && !ME) startGps(); }
+  if (c.q && !filtered().length){ F.q = ""; c.lab = c.lab.filter(x => !/^Nombre o direcci/.test(x)); }   // esas palabras no dieron resultado: se ignoran
   buildFilterUI(); needFit = true; SHOWN = 150; renderAll(); saveF();
   if (F.sector) sectorGeoApply();
   const n = current.length;
   VOZ_LAB = c.lab; vozBarTxt();
-  $("#vozBar").hidden = false;
+  $("#vozBar").hidden = true;   // lo aplicado queda en la barra de filtros de arriba (se quita tocando cada condición)
   if (c.tab) setTab(c.tab); else if (!$("#panelPane").hidden || window.innerWidth < 900) setTab("list");
-  toast(`${fmt(n)} cliente${n === 1 ? "" : "s"}: ${c.lab.slice(0, 3).join(" · ")}`);
+  toast(`${fmt(n)} cliente${n === 1 ? "" : "s"}${focusLabel() ? ": " + focusLabel() : ""}`);
   if (c.ask) vozHablar(`${n} cliente${n === 1 ? "" : "s"}`);
 }
 function undoVoz(){
@@ -4857,7 +5158,7 @@ async function sectorGeoApply(){
 // también se puede escribir la orden en el buscador y presionar Enter / Buscar
 document.addEventListener("keydown", e => {
   if (e.key !== "Enter" || e.target.id !== "q") return;
-  const txt = e.target.value.trim(); if (txt.split(/\s+/).length < 2) return;
+  const txt = e.target.value.trim(); if (txt.length < 3) return;
   const c = parseVoz(txt); if (!c) return;
   e.preventDefault(); e.target.blur(); applyVoz(c, txt);
 });
