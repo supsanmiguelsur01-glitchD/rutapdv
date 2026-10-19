@@ -4909,6 +4909,7 @@ function vozNorm(text){
   let t = " " + qnorm(text) + " ";
   t = t.replace(/\b(r|erre|ere)\s*(mas|y|\+)\s*(n|ene)\b/g, " rmasn ").replace(/\br\s*n\b/g, " rmasn ");
   t = t.replace(/\b(gu|w|u)e(l)?l?in(g)?t(o|u)n(g)?\b/g, " wellington ").replace(/\bgatorei(d)?\b/g, " gatorade ").replace(/\bmulti ?serv(e|er|i)?\b/g, " multi ").replace(/\bsingle ?serv(e|er|i)?|singel\b/g, " single ");
+  t = t.replace(/\b(ele|l)\s+(jota|j)\b/g, " lj ").replace(/\b(eme|m)\s+(ve|uve|v)\b/g, " mv ").replace(/\b(erre|ere|r)\s+(ese|s)\b/g, " rs ").replace(/\b(eme|m)\s+(erre|r)\b/g, " mr ");
   t = t.replace(/\b(a ?plus|aplus|a mas)\b/g, " aplus ").replace(/\bv ?p ?o\b/g, " vpo ").replace(/\bpepsi ?chat\b/g, " pepsichat ");
   t = t.replace(/\b(cero|un|uno|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|quince|veinte|treinta|cuarenta|cincuenta|cien)\b(?=\s+(cajas?|cj|coberturas?|estrellas?|empaques?|clientes?|equipos?|o mas|o menos|de|y|$))/g, m => " " + VOZ_NUM[m.trim()] + " ");
   return t.replace(/\s+/g, " ");
@@ -4934,8 +4935,18 @@ function parseVoz(text){
   // ---- día de visita
   if (has(/\b(hoy|este dia|el dia de hoy|de este dia|toca hoy|tocan hoy)\b/)) seg("hoy", "Programados hoy");
   else if (has(/\bmanana\b/) && !has(/pasado manana/)){ const d = new Date(Date.now() + 864e5).getDay(); const L = DAY_LETTERS[d === 0 ? 1 : d]; c.dias.push(L); c.lab.push("Visita del " + DAY_NAMES[L].toLowerCase()); }
-  const fm = t.match(/\bfrecuencia\s+(lj|mv|rs|l j|m v|r s|lunes( y)? jueves|martes( y)? viernes|miercoles( y)? sabado)\b/);
-  if (fm){ const f = fm[1].replace(/\s|y/g, "").replace("lunesjueves", "lj").replace("martesviernes", "mv").replace("miercolessabado", "rs").toUpperCase(); seg("x:fr:=:" + f); }
+  // frecuencia: "rs", "lj y mv", "frecuencia lunes y jueves", "frecuencia r" (letra sola solo si dice "frecuencia")
+  const FRW = {lj:"LJ", mv:"MV", rs:"RS", mr:"MR", rv:"RV", lmrjvs:"LMRJVS"}, FRD = {"lunes y jueves":"LJ", "lunes jueves":"LJ", "martes y viernes":"MV", "martes viernes":"MV", "miercoles y sabado":"RS", "miercoles sabado":"RS"};
+  const frs = [];
+  for (const m of t.matchAll(/\b(lj|mv|rs|mr|rv|lmrjvs)\b/g)) frs.push(FRW[m[1]]);
+  const fq = t.match(/\bfrecuencias?\s+(?:de\s+)?(.+?)(?=\s+\b(de la ruta|ruta|con|que|en el|del|sin|para|clientes)\b|\s*$)/);
+  if (fq){
+    let x = fq[1];
+    for (const [k, v] of Object.entries(FRD)) if (x.includes(k)){ frs.push(v); x = x.replace(k, " "); }
+    for (const w of x.split(/\s+|,/)) if (/^[lmrjvs]$/.test(w)) frs.push(w.toUpperCase());
+  }
+  const frU = [...new Set(frs)];
+  if (frU.length){ c.frs = frU; c.lab.push("Frecuencia " + frU.join(" o ")); }
   else for (const [n, L] of Object.entries(VOZ_DIAS)) if (has(new RegExp("\\b" + n + "\\b")) && !c.dias.includes(L)){ c.dias.push(L); c.lab.push("Visita del " + DAY_NAMES[L].toLowerCase()); }
   // ---- equipos de frío / R+N / Wellington
   const eq = has(/\b(equipo|equipos|enfriador|enfriadores|frio|frios|refri|refris|refrigerador|refrigeradores|nevera|neveras|rmasn|rojo|rojos|negro|negros)\b/);
@@ -5023,7 +5034,7 @@ function parseVoz(text){
   if (sm){ const w = sm[2].split(" ").filter(x => x && !["de","del","la","el","los","las"].includes(x)).slice(0, 3).join(" "); if (w){ c.sector = w; c.lab.push("Sector: " + w); } }
   const left = vozLeft(t, c);
   if (left){ c.q = left; c.lab.push(`Nombre o dirección: “${left}”`); }
-  const any = c.clear || c.segs.length || c.emps.length || c.promos.length || c.dias.length || c.rutas.length || c.sup || c.sector || c.sort || c.tab && c.lab.length;
+  const any = (c.frs || []).length || c.clear || c.segs.length || c.emps.length || c.promos.length || c.dias.length || c.rutas.length || c.sup || c.sector || c.sort || c.tab && c.lab.length;
   if (!any && c.tab) return {act:"tab", tab:c.tab, lab:[c.tab === "map" ? "Mapa" : "Lista"]};
   return any ? c : null;
 }
@@ -5033,7 +5044,7 @@ const VOZ_STOP = new Set("quiero quisiera necesito ocupo ver veo mostrar muestra
 function vozLeft(t, c){
   if (!VOZ_VOCAB) VOZ_VOCAB = new Set((parseVoz.toString() + vozNorm.toString()).replace(/\/\*[\s\S]*?\*\//g, " ").replace(/\/\/[^\n]*/g, " ").replace(/\\[a-z]/gi, " ").toLowerCase().match(/[a-z]{2,}/g));
   const used = new Set([...qnorm(c.sector || "").split(" "), ...qnorm(c.sup || "").split(" ")]);
-  const w = t.trim().split(" ").filter(x => x && !VOZ_STOP.has(x) && !VOZ_VOCAB.has(x) && !used.has(x) && !c.rutas.some(r => r === x || r.endsWith(x)) && !/^\d{1,3}$/.test(x) && !/^\d{6}$/.test(x) && x.length > 1);
+  const w = t.trim().split(" ").filter(x => x && !VOZ_STOP.has(x) && !VOZ_VOCAB.has(x) && !used.has(x) && !c.rutas.some(r => r === x || r.endsWith(x)) && !/^\d{1,3}$/.test(x) && !/^\d{6}$/.test(x) && x.length > 1 && !(c.frs || []).includes(x.toUpperCase()));
   return w.join(" ");
 }
 // busca un cliente por lo que se dijo (nombre o código), con la búsqueda tolerante
@@ -5061,7 +5072,14 @@ function vozSetF(c){
   if (c.clear){ Object.assign(F, {segs:[], emps:[], promos:[], dias:[], sector:"", q:""}); if (DB.rutas.length > 1 && !c.rutas.length) F.rutas = []; }
   F.segs = [...new Set(c.segs)]; F.emps = [...new Set(c.emps)]; F.promos = c.promos || []; F.modo = "and";
   F.dias = [...c.dias]; F.sector = c.sector; F.q = c.q || "";
-  if (c.rutas.length) F.rutas = [...c.rutas];
+  if (c.clear) F.frs = [];
+  if ((c.frs || []).length) F.frs = [...c.frs];
+  if (c.rutas.length){
+    F.rutas = [...c.rutas];
+    // si la ruta es de otro supervisor o agencia, se cambia el alcance para poder verla
+    if (F.sup && !c.sup && !c.rutas.every(r => DB.rutaSup.get(r) && DB.rutaSup.get(r).has(F.sup))) F.sup = "";
+    if (F.ag && !c.rutas.every(r => agenciaDe(r) === F.ag)) F.ag = "";
+  }
   if (c.sup){ F.sup = c.sup; if (!c.rutas.length) F.rutas = []; }
   if (c.sort) F.sort = c.sort;
   F.secGeo = null;
@@ -5070,6 +5088,7 @@ function vozSetF(c){
 function vozCount(c){
   const prev = Object.assign({}, F); vozSetF(c);
   let n = filtered().length, dropQ = false;
+  if (!n && c.q && F.segs.some(k => /^x:name:/.test(k))){ F.segs = F.segs.filter(k => !/^x:name:/.test(k)); n = filtered().length; }
   if (!n && c.q){ F.q = ""; n = filtered().length; dropQ = true; }
   const fl = focusLabel(), lab = [...scopeParts().filter(x => x.t !== "sup" || c.sup).map(x => x.l), ...(fl ? [fl] : [])];
   if (c.sort) lab.push(c.lab.find(x => /^Ordenados/.test(x)) || "");
@@ -5082,7 +5101,7 @@ function qSugUpdate(txt){
   const el = $("#qSug"); if (!el) return;
   txt = (txt || "").trim();
   const c = txt.length >= 3 && typeof parseVoz === "function" ? parseVoz(txt) : null;
-  if (!c || c.act || (!c.segs.length && !c.emps.length && !c.promos.length && !c.dias.length && !c.rutas.length && !c.sup && !c.sector && !c.clear)){ qSugHide(); return; }
+  if (!c || c.act || (!(c.frs || []).length && !c.segs.length && !c.emps.length && !c.promos.length && !c.dias.length && !c.rutas.length && !c.sup && !c.sector && !c.clear)){ qSugHide(); return; }
   const r = vozCount(c);
   QSUG = {c, txt};
   el.hidden = false;
@@ -5090,14 +5109,16 @@ function qSugUpdate(txt){
 }
 function applyVoz(c, text){
   if (c.act){ runVozAct(c); return; }
-  VOZ_PREV = {segs:[...F.segs], emps:[...F.emps], promos:[...F.promos], modo:F.modo, dias:[...F.dias], rutas:[...F.rutas], sup:F.sup, sector:F.sector || "", sort:F.sort, q:F.q};
+  VOZ_PREV = {segs:[...F.segs], emps:[...F.emps], promos:[...F.promos], modo:F.modo, dias:[...F.dias], rutas:[...F.rutas], frs:[...F.frs], sup:F.sup, ag:F.ag, sector:F.sector || "", sort:F.sort, q:F.q};
   if (c.clear){ Object.assign(F, {segs:[], emps:[], promos:[], dias:[], sector:"", q:""}); if (DB.rutas.length > 1 && !c.rutas.length) F.rutas = []; }
   vozSetF(c); $("#q").value = ""; qSugHide();
   if (c.sort){ $("#sort").value = c.sort; if (c.sort === "dist" && !ME) startGps(); }
+  if (c.q && !filtered().length && F.segs.some(k => /^x:name:/.test(k))){ F.segs = F.segs.filter(k => !/^x:name:/.test(k)); c.lab = c.lab.filter(x => !/^Tipo:/.test(x)); }
   if (c.q && !filtered().length){ F.q = ""; c.lab = c.lab.filter(x => !/^Nombre o direcci/.test(x)); }   // esas palabras no dieron resultado: se ignoran
   buildFilterUI(); needFit = true; SHOWN = 150; renderAll(); saveF();
   if (F.sector) sectorGeoApply();
   const n = current.length;
+  if (n === 1 && c.q && current[0]){ setTimeout(() => openPdv(current[0].c), 250); }
   VOZ_LAB = c.lab; vozBarTxt();
   $("#vozBar").hidden = true;   // lo aplicado queda en la barra de filtros de arriba (se quita tocando cada condición)
   if (c.tab) setTab(c.tab); else if (!$("#panelPane").hidden || window.innerWidth < 900) setTab("list");
@@ -5113,7 +5134,7 @@ function undoVoz(){
 document.addEventListener("click", e => { if (e.target.closest("[data-vozundo]")) undoVoz(); if (e.target.closest("[data-vozhelp]")){ $("#menu").hidden = true; vozHelp(); } });
 function vozHelp(){
   toast("Toca el micrófono o escribe en el buscador y presiona Enter, por ejemplo: \"compra cero de cerveza de la ruta 265115\"");
-  const ej = ["clientes de hoy con necesidad de equipo frío en el mapa", "los que les falta solo una cobertura", "les faltan 2 coberturas", "les falta cerveza y gatorade el lunes", "los que no han comprado este mes", "compra menor a 2 cajas", "mayor volumen de compra", "ruta 113 sector Bolívar", "clientes de Erick con R más N", "tiendas 5 estrellas con promo de Gatorade", "clientes con promoción de Lipton que estén en R más N de la ruta 265113", "clientes compra cero de la ruta 265114", "compra cero de cerveza de la ruta 265115", "compra cero de Gatorade", "los que nunca compran Regia 750", "clientes con plan Gambito", "sin lectura Wellington", "cuántos clientes tienen VPO por cumplir", "abre la ficha de tienda Rosita", "llévame a tacos el Taurino", "catálogo de tienda Rosita", "desafíos del día", "panel emergente", "quitar filtros"];
+  const ej = ["clientes de hoy con necesidad de equipo frío en el mapa", "los que les falta solo una cobertura", "les faltan 2 coberturas", "les falta cerveza y gatorade el lunes", "los que no han comprado este mes", "compra menor a 2 cajas", "mayor volumen de compra", "ruta 113 sector Bolívar", "clientes de Erick con R más N", "tiendas 5 estrellas con promo de Gatorade", "clientes con promoción de Lipton que estén en R más N de la ruta 265113", "clientes compra cero de la ruta 265114", "clientes gambito de la ruta 265113", "tienda blanca de la ruta 265119", "gambito rs de la ruta 265113", "ruta 265115 frecuencia lj y mv", "compra cero de cerveza de la ruta 265115", "compra cero de Gatorade", "los que nunca compran Regia 750", "clientes con plan Gambito", "sin lectura Wellington", "cuántos clientes tienen VPO por cumplir", "abre la ficha de tienda Rosita", "llévame a tacos el Taurino", "catálogo de tienda Rosita", "desafíos del día", "panel emergente", "quitar filtros"];
   $("#vozBar").innerHTML = `<span class="vzi">🎙</span><span class="vzt"><b>Puedes decir, por ejemplo:</b><br>${ej.map(x => "· " + esc(x)).join("<br>")}<br>O di el nombre o código del cliente.</span><button class="vzx" data-vozundo>Cerrar</button>`;
   $("#vozBar").hidden = false; setTab("list");
 }
