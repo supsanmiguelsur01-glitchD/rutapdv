@@ -2062,6 +2062,11 @@ function build(S){
   const supAg = new Map();
   for (const p of pdv.values()) if (p.ag !== "Otra" && p.sup){ const m = supAg.get(p.sup) || {}; m[p.ag] = (m[p.ag] || 0) + 1; supAg.set(p.sup, m); }
   for (const p of pdv.values()) if (p.ag === "Otra" && supAg.has(p.sup)){ const m = supAg.get(p.sup); p.ag = Object.keys(m).sort((a, b) => m[b] - m[a])[0]; }
+  // cada ruta pertenece a un solo supervisor: si unos pocos clientes vienen con otro supervisor en la maestra
+  // (p. ej. 3 clientes de la 265121 a nombre de Bladimir), se pasan al supervisor de la ruta. Así la ruta no
+  // se suma completa al equipo equivocado y no infla sus necesidades.
+  { const cnt = new Map(); for (const p of pdv.values()){ if (!p.ruta || !p.sup) continue; if (!cnt.has(p.ruta)) cnt.set(p.ruta, new Map()); const m = cnt.get(p.ruta); m.set(p.sup, (m.get(p.sup) || 0) + 1); }
+    for (const [r, m] of cnt){ if (m.size < 2) continue; const tot = [...m.values()].reduce((a, b) => a + b, 0), [top, n] = [...m.entries()].sort((a, b) => b[1] - a[1])[0]; if (n / tot < 0.8) continue; for (const p of pdv.values()) if (p.ruta === r && p.sup && p.sup !== top){ p.supOrig = p.sup; p.sup = top; } } }
   const sups = [...new Set([...pdv.values()].map(p=>p.sup).filter(Boolean))].sort();
   const rutaSup = new Map();
   for (const p of pdv.values()){ if (!p.ruta) continue; if (!rutaSup.has(p.ruta)) rutaSup.set(p.ruta, new Map()); const m = rutaSup.get(p.ruta); m.set(p.sup, (m.get(p.sup)||0)+1); }
@@ -2087,7 +2092,7 @@ function build(S){
 }
 /* ---------- R+N (rojo + negro) ---------- */
 // Meta R+N por agencia: % máximo de equipos fríos en rojo o negro. Norte = la meta que trae la hoja "Resumen Laterales" (5%); Sur = 5%.
-const RN_META_DEF = {"San Miguel Norte": 0.05, "San Miguel Sur": 0.05};
+const RN_META_DEF = {"San Miguel Norte": 0.05, "San Miguel Sur": 0.14};   // meta R+N oficial (R+N.xlsx, Resumen Laterales, columna Meta %)
 const RN_BUCKETS = [["3 a 1","Rojo 3 a 1"],["6 a 4","Rojo 6 a 4"],["10 a 7","Rojo 10 a 7"],["15 a 10","Rojo 15 a 10"],["15 +","Rojo 15+"]];
 function rnBucket(r){ r = str(r).replace(/\s+/g, " ").trim(); if (/^15\s*\+/.test(r)) return "15 +"; const b = RN_BUCKETS.find(([k]) => k === r); return b ? b[0] : "otro"; }
 const rnMetaPct = ruta => { const ag = agenciaDe(ruta); const m = DB.rn && DB.rn.meta ? DB.rn.meta[ag] : null; return m != null ? m : 0.05; };
