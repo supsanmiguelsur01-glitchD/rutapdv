@@ -4493,14 +4493,22 @@ async function toggleCompass(){
     if (on){ stop(); return; }
     rec = new SR(); rec.lang = "es-SV"; rec.interimResults = true; rec.maxAlternatives = 3; rec.continuous = false;
     let final = "";
+    let alts = [];
     rec.onresult = e => {
       let txt = ""; for (let i = 0; i < e.results.length; i++){ txt += e.results[i][0].transcript; if (e.results[i].isFinal) final = txt; }
+      { const last = e.results[e.results.length - 1], pre = [...e.results].slice(0, -1).map(r => r[0].transcript).join(""); alts = last && last.isFinal ? [...last].map(a => (pre + a.transcript).replace(/[.,;:¿?¡!]+$/g, "").trim()) : []; }
       txt = txt.replace(/[.,;:¿?¡!]+$/g, "").trim(); inp.value = txt;   // se ve lo que va entendiendo; se aplica al terminar
     };
     rec.onerror = e => { stop(); toast(e.error === "not-allowed" || e.error === "service-not-allowed" ? "Permite el micrófono para buscar por voz" : e.error === "no-speech" ? "No se escuchó nada, intenta de nuevo" : "No se pudo usar el dictado (" + e.error + ")"); };
     rec.onend = () => {
       const was = on; stop(); if (!was || !inp.value) return;
-      const said = inp.value, cmd = typeof parseVoz === "function" ? parseVoz(said) : null;
+      let said = inp.value;
+      if (alts.length > 1 && typeof parseVoz === "function"){   // de las versiones que entendió el dictado, la que más filtros reconoce
+        const sc = x => { const c = parseVoz(x); if (!c) return 0; if (c.act) return 5; return c.segs.length * 2 + c.emps.length * 2 + c.promos.length * 2 + c.rutas.length * 3 + (c.frs || []).length * 2 + c.dias.length + (c.sup ? 2 : 0) + (c.sector ? 1 : 0) - (c.q ? c.q.split(" ").length : 0) * 0.5; };
+        const best = alts.map(x => [x, sc(x)]).sort((a, b) => b[1] - a[1])[0];
+        if (best && best[1] > sc(said)){ said = best[0]; inp.value = said; }
+      }
+      const cmd = typeof parseVoz === "function" ? parseVoz(said) : null;
       if (cmd){ applyVoz(cmd, said); return; }                 // es un filtro dicho en palabras
       inp.dispatchEvent(new Event("input"));                    // si no, es un nombre o código de cliente
       setTimeout(() => { const n = current.length; toast(n ? `${fmt(n)} cliente${n === 1 ? "" : "s"} para "${inp.value}"` : `Sin resultados para "${inp.value}"`); if (n === 1 && current[0]) openPdv(current[0].c); else if (n && !$("#mapPane").hidden){ needFit = true; renderMap(); } }, 350);
@@ -4905,9 +4913,45 @@ function vozBarTxt(extra){
   $("#vozBar").innerHTML = `<span class="vzi">🎙</span><span class="vzt"><b>Entendí:</b> ${VOZ_LAB.map(esc).join(" · ")}${extra ? " · " + extra : ""} · <b>${fmt(n)}</b> cliente${n === 1 ? "" : "s"}</span><button class="vzx" data-vozundo>Quitar</button>`;
 }
 // normaliza lo dictado: sin tildes, números en palabras a cifras y variantes comunes del reconocedor
+/* números dichos en palabras: "doscientos sesenta y cinco mil ciento trece" → 265113 (solo cantidades de 100 en adelante) */
+const VOZ_NW = {cero:0, un:1, uno:1, una:1, dos:2, tres:3, cuatro:4, cinco:5, seis:6, siete:7, ocho:8, nueve:9, diez:10, once:11, doce:12, trece:13, catorce:14, quince:15, dieciseis:16, diecisiete:17, dieciocho:18, diecinueve:19, veinte:20, veintiun:21, veintiuno:21, veintidos:22, veintitres:23, veinticuatro:24, veinticinco:25, veintiseis:26, veintisiete:27, veintiocho:28, veintinueve:29, treinta:30, cuarenta:40, cincuenta:50, sesenta:60, setenta:70, ochenta:80, noventa:90, cien:100, ciento:100, doscientos:200, trescientos:300, cuatrocientos:400, quinientos:500, seiscientos:600, setecientos:700, ochocientos:800, novecientos:900};
+function vozNumWords(t){
+  const w = t.trim().split(" "), out = [];
+  for (let i = 0; i < w.length; ){
+    const isN = x => x in VOZ_NW || x === "mil" || /^\d{1,3}$/.test(x);
+    if (!isN(w[i]) || /^\d+$/.test(w[i]) && !(w[i + 1] === "mil")){ out.push(w[i]); i++; continue; }
+    let j = i, total = 0, cur = 0, words = 0, big = false;
+    while (j < w.length && (isN(w[j]) || (w[j] === "y" && j > i && j + 1 < w.length && w[j + 1] in VOZ_NW && VOZ_NW[w[j + 1]] < 10))){
+      const x = w[j];
+      if (x === "mil"){ cur = (cur || 1) * 1000; total += cur; cur = 0; big = true; words++; }
+      else if (x === "y"){}
+      else if (/^\d+$/.test(x)){ cur += +x; }
+      else { cur += VOZ_NW[x]; words++; if (VOZ_NW[x] >= 100) big = true; }
+      j++;
+    }
+    const v = total + cur;
+    if (words && big && v >= 100){ out.push(String(v)); i = j; } else { out.push(w[i]); i++; }
+  }
+  return " " + out.join(" ") + " ";
+}
+// palabras de filtro escritas con un error ("gambto", "covertura", "promocon", "wellintong") se corrigen solas
+const VOZ_KW = "gambito gambitos cobertura coberturas pendiente pendientes promocion promociones promo promos gatorade cerveza cervezas lipton frecuencia wellington lectura lecturas visitados visitar caidos nunca compra activados activar emergente equipos enfriadores refrigeradores negro rojo clientes ruta rutas supervisor sector colonia barrio estrellas tiendas descuento descuentos combo combos petit frutado aqua suprema regia visitado visite visitamos compran compro comprado activado activadas activo activos rojos negros caido caida caidas equipo cliente tienda lecturado leido leidos promocionar".split(" ");
+function vozFix(t){
+  return " " + t.trim().split(" ").map(w => {
+    if (w.length < 5 || /\d/.test(w) || VOZ_KW.includes(w)) return w;
+    const k = w.length >= 8 ? 2 : 1; let best = null, bd = k + 1;
+    for (const x of VOZ_KW){ if (Math.abs(x.length - w.length) > k) continue; const d = editDist(w, x, k); if (d < bd){ bd = d; best = x; } }
+    return best && bd <= k ? best : w;
+  }).join(" ") + " ";
+}
 function vozNorm(text){
   let t = " " + qnorm(text) + " ";
-  t = t.replace(/\b(r|erre|ere)\s*(mas|y|\+)\s*(n|ene)\b/g, " rmasn ").replace(/\br\s*n\b/g, " rmasn ");
+  t = t.replace(/\b(gamb?i?t?o|gambeto|gamvito|ganbito|gambito s)\b/g, m => m.length >= 5 ? "gambito" : m);
+  t = vozFix(t);
+  t = vozNumWords(t);
+  t = t.replace(/\b(\d{3}) (\d{3})\b/g, "$1$2");   // "265 113", "265,113", "265-113" → 265113
+  // R+N: "r + n", "erre más ene", "r y n", "erre ene", "rn", "r&n", "rojo más negro"…
+  t = t.replace(/\b(r|erre|ere|err)\s*(mas|y|plus|and)?\s*(n|ene|ne)\b/g, " rmasn ").replace(/\brojo (mas|y|o) negro\b/g, " rmasn ").replace(/\b(r mas|erre mas|ere mas)\b(?= de| en| la| ruta|\s*$)/g, " rmasn ");
   t = t.replace(/\b(gu|w|u)e(l)?l?in(g)?t(o|u)n(g)?\b/g, " wellington ").replace(/\bgatorei(d)?\b/g, " gatorade ").replace(/\bmulti ?serv(e|er|i)?\b/g, " multi ").replace(/\bsingle ?serv(e|er|i)?|singel\b/g, " single ");
   t = t.replace(/\b(ele|l)\s+(jota|j)\b/g, " lj ").replace(/\b(eme|m)\s+(ve|uve|v)\b/g, " mv ").replace(/\b(erre|ere|r)\s+(ese|s)\b/g, " rs ").replace(/\b(eme|m)\s+(erre|r)\b/g, " mr ");
   t = t.replace(/\b(a ?plus|aplus|a mas)\b/g, " aplus ").replace(/\bv ?p ?o\b/g, " vpo ").replace(/\bpepsi ?chat\b/g, " pepsichat ");
@@ -5024,8 +5068,10 @@ function parseVoz(text){
   if (has(/\b(sin visitar|no visitados|no he visitado|faltan de visitar|no he ido)\b/)) seg("novis", "Sin visitar hoy");
   else if (has(/\b(visitados|ya visite|ya fui)\b/)) seg("visto", "Visitados hoy");
   // ---- ruta(s) y supervisor
-  const rs = [...t.matchAll(/\b(\d{6})\b/g)].map(m => m[1]).filter(r => DB.rutas.includes(r));
-  const rs3 = !rs.length ? [...t.matchAll(/\bruta\s+(\d{3})\b/g)].map(m => DB.rutas.filter(r => r.endsWith(m[1]))).flat() : [];   // "ruta 113" = la que termina en 113
+  const rsAll = [...t.matchAll(/\b(\d{6})\b/g)].map(m => m[1]), rsBad = [];
+  const rs = rsAll.map(r => { if (DB.rutas.includes(r)) return r; const near = DB.rutas.filter(x => editDist(r, x, 1) <= 1); if (near.length === 1){ c.lab.push(`(entendí ${r}, uso la ${near[0]})`); return near[0]; } rsBad.push(r); return null; }).filter(Boolean);
+  if (rsBad.length){ c.lab.push(`Ruta ${rsBad.join(", ")} no está en tus datos`); if (!rs.length) c.rutas = ["__ninguna__"]; c.rutasBad = rsBad; }
+  const rs3 = !rs.length ? [...t.matchAll(/\bruta\s+(\d{3})\b/g)].map(m => { const all = DB.rutas.filter(r => r.endsWith(m[1])), mine = all.filter(r => F.sup && DB.rutaSup.get(r) && DB.rutaSup.get(r).has(F.sup)); return mine.length ? mine : all; }).flat() : [];   // "ruta 113": primero la de tu equipo   // "ruta 113" = la que termina en 113
   const rr = [...new Set(rs.length ? rs : rs3.length <= 3 ? rs3 : [])];
   if (rr.length){ c.rutas = rr; c.lab.push((rr.length > 1 ? "Rutas " : "Ruta ") + rr.join(", ")); }
   if (DB.sups.length > 1) for (const s of DB.sups){ const ws = qnorm(s).split(" ").filter(w => w.length >= 4); if (ws.some(w => t.includes(" " + w + " "))){ c.sup = s; c.lab.push("Supervisor " + s); break; } }
@@ -5109,6 +5155,7 @@ function qSugUpdate(txt){
 }
 function applyVoz(c, text){
   if (c.act){ runVozAct(c); return; }
+  if (c.rutas.includes("__ninguna__")){ toast(`No encontré la ruta ${(c.rutasBad || []).join(", ")} en tus datos. Revisa el número.`); return; }
   VOZ_PREV = {segs:[...F.segs], emps:[...F.emps], promos:[...F.promos], modo:F.modo, dias:[...F.dias], rutas:[...F.rutas], frs:[...F.frs], sup:F.sup, ag:F.ag, sector:F.sector || "", sort:F.sort, q:F.q};
   if (c.clear){ Object.assign(F, {segs:[], emps:[], promos:[], dias:[], sector:"", q:""}); if (DB.rutas.length > 1 && !c.rutas.length) F.rutas = []; }
   vozSetF(c); $("#q").value = ""; qSugHide();
@@ -5134,7 +5181,7 @@ function undoVoz(){
 document.addEventListener("click", e => { if (e.target.closest("[data-vozundo]")) undoVoz(); if (e.target.closest("[data-vozhelp]")){ $("#menu").hidden = true; vozHelp(); } });
 function vozHelp(){
   toast("Toca el micrófono o escribe en el buscador y presiona Enter, por ejemplo: \"compra cero de cerveza de la ruta 265115\"");
-  const ej = ["clientes de hoy con necesidad de equipo frío en el mapa", "los que les falta solo una cobertura", "les faltan 2 coberturas", "les falta cerveza y gatorade el lunes", "los que no han comprado este mes", "compra menor a 2 cajas", "mayor volumen de compra", "ruta 113 sector Bolívar", "clientes de Erick con R más N", "tiendas 5 estrellas con promo de Gatorade", "clientes con promoción de Lipton que estén en R más N de la ruta 265113", "clientes compra cero de la ruta 265114", "clientes gambito de la ruta 265113", "tienda blanca de la ruta 265119", "gambito rs de la ruta 265113", "ruta 265115 frecuencia lj y mv", "compra cero de cerveza de la ruta 265115", "compra cero de Gatorade", "los que nunca compran Regia 750", "clientes con plan Gambito", "sin lectura Wellington", "cuántos clientes tienen VPO por cumplir", "abre la ficha de tienda Rosita", "llévame a tacos el Taurino", "catálogo de tienda Rosita", "desafíos del día", "panel emergente", "quitar filtros"];
+  const ej = ["clientes de hoy con necesidad de equipo frío en el mapa", "los que les falta solo una cobertura", "les faltan 2 coberturas", "les falta cerveza y gatorade el lunes", "los que no han comprado este mes", "compra menor a 2 cajas", "mayor volumen de compra", "ruta 113 sector Bolívar", "clientes de Erick con R más N", "tiendas 5 estrellas con promo de Gatorade", "clientes con promoción de Lipton que estén en R más N de la ruta 265113", "clientes compra cero de la ruta 265114", "clientes gambito de la ruta 265113", "quiero ver los clientes de R más N de la ruta 265113", "tienda blanca de la ruta 265119", "gambito rs de la ruta 265113", "ruta 265115 frecuencia lj y mv", "compra cero de cerveza de la ruta 265115", "compra cero de Gatorade", "los que nunca compran Regia 750", "clientes con plan Gambito", "sin lectura Wellington", "cuántos clientes tienen VPO por cumplir", "abre la ficha de tienda Rosita", "llévame a tacos el Taurino", "catálogo de tienda Rosita", "desafíos del día", "panel emergente", "quitar filtros"];
   $("#vozBar").innerHTML = `<span class="vzi">🎙</span><span class="vzt"><b>Puedes decir, por ejemplo:</b><br>${ej.map(x => "· " + esc(x)).join("<br>")}<br>O di el nombre o código del cliente.</span><button class="vzx" data-vozundo>Cerrar</button>`;
   $("#vozBar").hidden = false; setTab("list");
 }
