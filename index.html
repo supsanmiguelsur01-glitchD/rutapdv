@@ -724,6 +724,20 @@ header.top{background:var(--bg2);border-bottom:1px solid var(--line2);padding:ca
 .tabs button.on{color:var(--cyan);border-bottom-color:var(--cyan)}
 main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr)}
 .pane{min-height:0;min-width:0;display:flex;flex-direction:column}
+/* fluidez: cambio de pestaña con un fundido corto, respuesta inmediata al toque y desplazamiento suave */
+@keyframes paneIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes paneFade{from{opacity:0}to{opacity:1}}
+#listPane:not([hidden]),#panelPane:not([hidden]){animation:paneIn .18s cubic-bezier(.2,.8,.2,1)}
+#mapPane:not([hidden]){animation:paneFade .15s ease-out}
+html{-webkit-tap-highlight-color:transparent}
+body{touch-action:manipulation}
+#side,#panelPane,#panelBody,#desBody,.drawer,#list{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+button,.card,.fopt,.fchip,.qa-it,.dtar button,.dpri button,.drow{transition:transform .08s ease,background-color .12s ease,border-color .12s ease}
+button:active,.card:active,.fopt:active,.fchip:active,.dtar button:active,.dpri button:active,.drow:active{transform:scale(.975)}
+.psec.acc .accb{animation:paneIn .16s ease-out}
+.qauto:not([hidden]){animation:paneFade .12s ease-out}
+.desv:not([hidden]) .desb{animation:paneIn .2s cubic-bezier(.2,.8,.2,1)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 #mapPane{position:relative}
 @media (min-width:900px){
   .tabs{justify-content:flex-end;padding-left:440px}
@@ -775,7 +789,7 @@ main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr)}
 .listtools h2{font:700 14px var(--f-tech);letter-spacing:0.6px;text-transform:uppercase;color:var(--cyan);margin:0;flex:1}
 select.sm{height:38px;border:1px solid var(--line);border-radius:10px;background:var(--field);padding:0 8px;font-size:13.5px;color:var(--ink)}
 #list{display:flex;flex-direction:column;gap:8px}
-.card{background:var(--panel);border:1px solid var(--line2);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;text-align:left;width:100%;color:var(--ink)}
+.card{content-visibility:auto;contain-intrinsic-size:auto 92px;background:var(--panel);border:1px solid var(--line2);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;text-align:left;width:100%;color:var(--ink)}
 .card:hover{border-color:var(--line);box-shadow:var(--glow)}
 .card.sel{border-color:var(--cyan);box-shadow:var(--glow)}
 .card .nm{font-weight:700;font-size:15px;line-height:1.25;overflow-wrap:anywhere;text-transform:uppercase;letter-spacing:.2px}
@@ -931,6 +945,12 @@ select.sm{height:38px;border:1px solid var(--line);border-radius:10px;background
 .qa-save b{color:var(--cyan)}
 .qa-row:first-child .qa-it[data-qa="0"] .qa-ic{color:var(--cyan)}
 .qdonde{color:var(--cyan)}
+.pcat{margin-top:6px;align-self:flex-start}
+@keyframes cfoco{0%,100%{box-shadow:0 0 0 0 rgba(31,78,140,0)}30%{box-shadow:0 0 0 4px rgba(31,78,140,.55)}}
+.ci.cfoco{animation:cfoco 1.6s ease-in-out}
+.pvw{width:100%}.pvh{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.pvw .plist{display:flex;flex-direction:column;gap:6px;max-height:55vh;overflow:auto}
+.pvcli{margin:-2px 0 6px;align-self:flex-start}.pvall{margin:-2px 0 6px}
 mark{background:rgba(224,161,0,.28);color:inherit;border-radius:3px;padding:0 1px}
 .qsug{display:flex;align-items:center;gap:8px;background:rgba(14,124,102,.08);border:1px solid rgba(14,124,102,.35);border-radius:12px;padding:8px 10px;font-size:13px;margin-top:8px}
 .qsug .vzt{flex:1;min-width:0;line-height:1.4}
@@ -2428,7 +2448,7 @@ function promoCardHTML(pr, v, i, check, p){
     ${pr1 ? `<div class="pp">${pr1}</div>` : ""}
     ${pr.mon ? `<div class="px"><b>Monedero:</b> ${esc(pr.mon)}</div>` : ""}
     ${pr.esc ? `<div class="px"><b>Detalle:</b> ${esc(pr.esc)}</div>` : ""}
-    ${pr.cond ? `<div class="px">${esc(pr.cond)}</div>` : ""}${(() => { const m = p && promoScope(pr) === "cli" ? promoCliDe(pr, p) : null; return m && (m.cj || m.un) ? `<div class="px"><b>Meta de este cliente:</b> ${m.cj != null ? esc(fmt(m.cj, 1)) + " CJ" : ""}${m.un != null ? ` (${esc(fmt(m.un))} UN)` : ""}</div>` : ""; })()}</div>`;
+    ${pr.cond ? `<div class="px">${esc(pr.cond)}</div>` : ""}${p && typeof CATALOGO !== "undefined" && CATALOGO && catItemsDePromo(pr.id).length ? `<button class="btn sm pcat" data-fcatpr="${esc(pr.id)}">🛒 Ver en el catálogo con este precio</button>` : ""}${(() => { const m = p && promoScope(pr) === "cli" ? promoCliDe(pr, p) : null; return m && (m.cj || m.un) ? `<div class="px"><b>Meta de este cliente:</b> ${m.cj != null ? esc(fmt(m.cj, 1)) + " CJ" : ""}${m.un != null ? ` (${esc(fmt(m.un))} UN)` : ""}</div>` : ""; })()}</div>`;
 }
 const empLabel = k => (COV_GROUPS.find(g => g.k === k) || {}).label || k;
 const focusN = () => F.segs.length + F.emps.length + F.promos.length;
@@ -2649,7 +2669,18 @@ function renderList(){
   $("#summary").innerHTML = `<span>${stampHTML("base")}</span><span>Mostrando <b class="num">${fmt(Math.min(n, SHOWN))}</b> de ${fmt(n)} · base ${fmt(DB.pdv.size)}</span>` + dupNote + `<span><b class="num">${fmt(current.filter(p=>p.lat!=null).length)}</b> en mapa</span><span>Cobertura promedio <b class="num">${fmt(avg,1)}/${nItems}</b></span>${F.sort==="dist"&&!ME?`<span>Activa GPS para ordenar por cercanía</span>`:""}${QFUZZY ? `<span style="color:var(--warn)">Sin coincidencia exacta: se muestran nombres parecidos</span>` : ""}`;
   const L = $("#list");
   if (!n){ L.innerHTML = `<div class="empty">No hay puntos de venta con estos filtros.<br>${!$("#qSug").hidden ? "Toca <b>Aplicar</b> arriba o presiona Enter para filtrar con lo que escribiste." : "Quita alguna condición de la barra de filtros de arriba."}</div>`; return; }
-  L.innerHTML = current.slice(0, SHOWN).map(cardHTML).join("") + (n > SHOWN ? `<button class="more" id="more">Mostrar ${Math.min(150, n-SHOWN)} más de ${fmt(n-SHOWN)}</button>` : "");
+  const vis0 = current.slice(0, SHOWN), sig = vis0.length + "|" + SHOWN + "|" + n + "|" + (F.q || "") + "|" + F.segs.join(",") + "|" + (ME ? Math.round(ME.lat * 2000) + "," + Math.round(ME.lng * 2000) : "") + "|" + todayKey() + "|" + (VIS[todayKey()] ? Object.keys(VIS[todayKey()]).length : 0) + "|" + vis0.slice(0, 40).map(p => p.c).join(",");
+  if (L._sig === sig && L.childElementCount) return;   // la misma lista: no se vuelve a dibujar
+  L._sig = sig;
+  L.innerHTML = vis0.map(cardHTML).join("") + (n > SHOWN ? `<button class="more" id="more">Mostrar ${Math.min(150, n-SHOWN)} más de ${fmt(n-SHOWN)}</button>` : "");
+  listMoreObs();
+}
+// al llegar al final de la lista se cargan más tarjetas solas
+let LIST_OBS = null;
+function listMoreObs(){
+  if (!("IntersectionObserver" in window)) return;
+  if (!LIST_OBS) LIST_OBS = new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting && e.target.id === "more"){ LIST_OBS.unobserve(e.target); SHOWN += 150; requestAnimationFrame(renderList); } }, {rootMargin:"600px 0px"});
+  const m = document.getElementById("more"); if (m) LIST_OBS.observe(m);
 }
 /* vista rápida: un toque para lo más usado en la calle */
 const QUICK = [
@@ -2727,7 +2758,13 @@ function onQuickSub(e){
   if (!F.segs.some(x => segFam(x) === "gamb")) F.segs.unshift("gamb");   // sin categoría marcada = todo Gambito
   focusChanged();
 }
-function renderAll(){ renderList(); renderMap(); renderFocusBar(); renderQuick(); if (CUR_TAB === "panel") renderPanel(); saveF(); }
+function renderAll(){
+  const listaVisible = window.innerWidth >= 900 || !$("#listPane").hidden;
+  if (listaVisible){ LIST_DIRTY = false; renderList(); } else { current = filtered(); LIST_DIRTY = true; }
+  renderMap(); renderFocusBar(); renderQuick();
+  if (CUR_TAB === "panel"){ clearTimeout(renderAll._p); renderAll._p = setTimeout(() => { if (CUR_TAB === "panel") renderPanel(); }, 0); }
+  saveF();
+}
 function scopeParts(){
   const P = [], dn = {HOY:"Hoy", L:"Lun", M:"Mar", R:"Mié", J:"Jue", V:"Vie", S:"Sáb"};
   if (F.ag) P.push({t:"ag", l:F.ag});
@@ -3368,14 +3405,19 @@ function renderMap(){
   if (!map) return;
   if ($("#mapPane").hidden){ mapDirty = true; return; }      // no redibujar el mapa si no se está viendo
   mapDirty = false;
-  layer.clearLayers();
   const pts = current.filter(p => p.lat != null);
-  const R = PTS;
+  const R = PTS, want = new Set();
+  if (!window.MK) window.MK = new Map();
   for (const p of pts){
-    const vis = visitedToday(p.c);
+    const vis = visitedToday(p.c), col = colorFor(p), key = (vis ? 1 : 0) + col;
     // los puntos no capturan toques: el toque lo resuelve pickAt() buscando el punto más cercano (funciona igual con 100 o 10,000 clientes)
-    layer.addLayer(L.circleMarker([p.lat, p.lng], {renderer:R, interactive:false, radius: vis ? 9 : 7, color: vis ? "#17803D" : "#FFFFFF", weight: vis ? 3 : 1.2, fillColor: colorFor(p), fillOpacity:.92}));
+    let m = MK.get(p.c);
+    if (!m){ m = L.circleMarker([p.lat, p.lng], {renderer:R, interactive:false, radius: vis ? 9 : 7, color: vis ? "#17803D" : "#FFFFFF", weight: vis ? 3 : 1.2, fillColor: col, fillOpacity:.92}); m._k = key; MK.set(p.c, m); }
+    else if (m._k !== key){ m.setStyle({radius: vis ? 9 : 7, color: vis ? "#17803D" : "#FFFFFF", weight: vis ? 3 : 1.2, fillColor: col}); m.setRadius(vis ? 9 : 7); m._k = key; }
+    want.add(m);
   }
+  const quitar = []; layer.eachLayer(l => { if (!want.has(l)) quitar.push(l); }); for (const l of quitar) layer.removeLayer(l);
+  for (const m of want) if (!layer.hasLayer(m)) layer.addLayer(m);
   renderLegend(pts, current.length - pts.length);
   if (needFit && pts.length){ fitPts(pts); needFit = false; }
 }
@@ -4280,7 +4322,7 @@ function openPdv(c){
   const vpoEsc = vpc ? (() => { const I = DB.vp.info || {};
     const rows = Object.entries(vpc.prods).map(([k, x]) => { const T = vpoTier({t:x.t, v:x.v || 0, min:vpc.min || 0, tot:Object.values(vpc.prods).reduce((a, y) => a + (y.v || 0), 0)}, 0);
       return `<div class="vrow"><div class="vh"><b>${esc(VPO_PROD[k] || k)}</b><span>${x.plan ? `<b>${esc(x.plan === "VPO" ? "Plan VPO" : x.plan)}</b>` : ""}${x.max ? ` · máx ${fmt(x.max)} CJ (primera compra)` : ""}${x.v ? ` · facturado <b>${fmt(x.v, 1)} CJ</b>` : ""}${(() => { if (!DB.gcb || !DB.gcb.cli.size) return ""; const e = gambEstado(p), it = e && e.items.find(i => i.k === k); return it ? (it.act ? ` · <b class="ok">✓ activado: ${fmt(it.cj, 1)} CJ</b>` : ` · <b class="warn">por activar</b>`) : ""; })()}</span></div><div class="vtiers">${x.t.map((t, i) => `<span class="vtier ${i === T.i ? "on" : ""}">${fmt(t[0])}+ CJ <b>$${t[1].toFixed(2)}</b></span>`).join("")}</div></div>`; }).join("");
-    return `<div class="vbox"><div class="vcap">${I.fuente === "Plan Gambito" ? "Plan Gambito cerveza" : "Plan VPO"} ${esc(I.periodo || "")} · precio por caja según las cajas del pedido <small>(archivo al ${esc(I.corte || "—")})</small></div>${rows}</div><p class="note" style="margin:0">${vpc.tipo ? `Tipo <b>${esc(vpc.tipo)}</b> · ` : ""}${vpc.min ? `compra mínima <b>${fmt(vpc.min)} CJ</b> de cerveza VPO por pedido · ` : ""}la escala se calcula con las cajas de cada pedido (no es acumulado del mes). Calcula el precio en <b>Catálogo</b>.</p><button class="btn cat" data-fcat>Ver precio VPO en el catálogo</button>`; })() : "";
+    return `<div class="vbox"><div class="vcap">${I.fuente === "Plan Gambito" ? "Plan Gambito cerveza" : "Plan VPO"} ${esc(I.periodo || "")} · precio por caja según las cajas del pedido <small>(archivo al ${esc(I.corte || "—")})</small></div>${rows}</div><p class="note" style="margin:0">${vpc.tipo ? `Tipo <b>${esc(vpc.tipo)}</b> · ` : ""}${vpc.min ? `compra mínima <b>${fmt(vpc.min)} CJ</b> de cerveza VPO por pedido · ` : ""}la escala se calcula con las cajas de cada pedido (no es acumulado del mes). Calcula el precio en <b>Catálogo</b>.</p><button class="btn cat" data-fcatpr="GAMBITO">🛒 Ver precio VPO en el catálogo</button>`; })() : "";
   if (p.vpo || vpc){
     const V = p.vpo || {din:vpc.tipo, clas:vpc.clase, real:Object.values(vpc.prods).reduce((a, y) => a + (y.v || 0), 0), meta:vpc.min || null, pct:vpc.min ? Object.values(vpc.prods).reduce((a, y) => a + (y.v || 0), 0) / vpc.min : 0, resp:""}, pc = Math.round((V.pct || 0) * 100), falta = V.meta != null ? Math.max(0, V.meta - (V.real || 0)) : null;
     const P = vpc ? null : DB.vpoPlan;
@@ -4483,9 +4525,11 @@ function setTab(t){
   if (!desk) $("#listPane").hidden = t !== "list";
   $("#mapPane").hidden = t !== "map"; $("#panelPane").hidden = t !== "panel";
   CUR_TAB = t;
-  if (t === "map"){ initMap(); setTimeout(() => { map && map.invalidateSize(); renderMap(); }, 30); }
-  if (t === "panel") renderPanel();
+  if (t === "map"){ initMap(); requestAnimationFrame(() => setTimeout(() => { map && map.invalidateSize(); renderMap(); }, 0)); }
+  if (t === "panel") requestAnimationFrame(() => setTimeout(() => { if (CUR_TAB === "panel") renderPanel(); }, 0));
+  if (t === "list" && LIST_DIRTY) requestAnimationFrame(() => setTimeout(() => { LIST_DIRTY = false; renderList(); }, 0));
 }
+let LIST_DIRTY = false;
 let CUR_TAB = "list";
 function wire(){
   $("#tabList").onclick = () => setTab("list");
@@ -4834,6 +4878,18 @@ function catItems(){
 }
 const hasPromo = ci => ci.opts.length > 0;
 
+// productos del catálogo que tienen una promo (Gambito/VPO: los empaques de cerveza del plan)
+function catItemsDePromo(id){
+  if (!CATALOGO) return [];
+  if (/^(GAMBITO|VPO)/i.test(id)){ const k = id.split(/[-:]/)[1]; return Object.entries(VPO_ITEM).filter(([, v]) => !k || v === k).map(([it]) => it); }
+  return CATALOGO.items.filter(it => (it.promos || []).includes(id)).map(it => it.id);
+}
+// abrir el catálogo directo en el producto de la promo (desde la ficha del cliente)
+function openCatalogPromo(c, id){
+  const ids = catItemsDePromo(id); if (!ids.length){ openCatalog(c); return; }
+  openCatalog(c); CATV.filtro = "pr:" + id; renderCatalog();
+  requestAnimationFrame(() => { const el = document.querySelector(`#cvList [data-ci="${CSS.escape(ids[0])}"]`); if (el){ el.scrollIntoView({block:"start", behavior:"smooth"}); el.classList.add("cfoco"); setTimeout(() => el.classList.remove("cfoco"), 1800); const inp = el.querySelector("input[type=number], input"); if (inp && window.innerWidth >= 900) inp.focus({preventScroll:true}); } });
+}
 function openCatalog(c){
   if (!CATALOGO){ toast("Catálogo no disponible en esta versión"); return; }
   const p = DB.pdv.get(Number(c)); if (!p) return;
@@ -4854,13 +4910,15 @@ function renderCatalog(){
   const nCart = all.filter(x => { const q = CATV.cart[x.it.id]; return q && (q.cj || q.un); }).length;
   const cats = CAT_ORDER.filter(k => all.some(x => x.it.cat === k));
   const chip = (k, l) => `<button data-cvf="${esc(k)}" class="${CATV.filtro === k ? "on" : ""}">${l}</button>`;
-  $("#cvChips").innerHTML = chip("todos", "Todos") + (nPromo ? chip("promo", `Con promo <b>${nPromo}</b>`) : "") + (nCart ? chip("cart", `Seleccionados <b>${nCart}</b>`) : "") + cats.map(k => chip(k, esc(k))).join("");
+  const prF = String(CATV.filtro).startsWith("pr:") ? CATV.filtro.slice(3) : null, prObj = prF ? (promoById(prF) || {n: prF.startsWith("GAMBITO") ? "Plan Gambito" : prF}) : null;
+  $("#cvChips").innerHTML = (prObj ? `<button data-cvf="${esc(CATV.filtro)}" class="on">🏷️ ${esc(prObj.n.length > 32 ? prObj.n.slice(0, 30) + "…" : prObj.n)}</button>` : "") + chip("todos", "Todos") + (nPromo ? chip("promo", `Con promo <b>${nPromo}</b>`) : "") + (nCart ? chip("cart", `Seleccionados <b>${nCart}</b>`) : "") + cats.map(k => chip(k, esc(k))).join("");
   document.querySelectorAll("#cvCanal button").forEach(b => b.classList.toggle("on", b.dataset.canal === CATV.canal));
   const q = low(CATV.q).normalize("NFD").replace(/[̀-ͯ]/g, "");
   let list = all.filter(({it, ci}) => {
     if (CATV.filtro === "promo" && !hasPromo(ci)) return false;
     if (CATV.filtro === "cart"){ const c = CATV.cart[it.id]; if (!(c && (c.cj || c.un))) return false; }
-    if (!["todos","promo","cart"].includes(CATV.filtro) && it.cat !== CATV.filtro) return false;
+    if (prF){ if (!catItemsDePromo(prF).includes(it.id)) return false; }
+    else if (!["todos","promo","cart"].includes(CATV.filtro) && it.cat !== CATV.filtro) return false;
     if (q && !low(it.n + " " + it.emp + " " + it.cat).normalize("NFD").replace(/[̀-ͯ]/g, "").includes(q)) return false;
     return true;
   });
@@ -4996,6 +5054,7 @@ function initCatalog(){
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#catView").hidden){ e.stopImmediatePropagation(); closeCatalog(); } }, true);
   // botón en la ficha (barra de abajo y sección de promociones)
   document.addEventListener("click", e => { const b = e.target.closest("[data-fcat]"); if (b && openC != null){ e.preventDefault(); openCatalog(openC); } });
+  document.addEventListener("click", e => { const b = e.target.closest("[data-fcatpr]"); if (b && openC != null){ e.preventDefault(); e.stopPropagation(); openCatalogPromo(openC, b.dataset.fcatpr); } });
 }
 initCatalog();
 
@@ -5262,6 +5321,19 @@ function vozCombinar(c, t){
   if (c.dias.length) o.segs = o.segs.filter(x => x !== "hoy");
   return o;
 }
+function promoVer(ids, titulo){
+  const P = ids.map(id => promoById(id)).filter(Boolean), el = $("#vozBar"); if (!el) return;
+  if (!P.length){ el.innerHTML = `<span class="vzi">🏷️</span><span class="vzt">No encontré promociones vigentes con ese empaque o precio.</span><button class="vzx" data-vozundo>Cerrar</button>`; el.hidden = false; return; }
+  el.innerHTML = `<div class="pvw"><div class="pvh"><b>🏷️ ${esc(titulo || "Promociones")}</b><button class="vzx" data-pvclose>Cerrar</button></div><div class="plist">${P.map((pr, i) => promoCardHTML(pr, null, "v" + i, false) + (["ac", "cli", "vpo"].includes(promoScope(pr)) ? `<button class="btn sm pvcli" data-pvcli="${esc(pr.id)}">Ver clientes con esta promo</button>` : `<p class="note pvall">Aplica a ${/toda/.test(pr.ap) ? "toda la base" : "los clientes que cumplan la condición"}</p>`)).join("")}</div></div>`;
+  el.hidden = false; el.scrollIntoView({block:"nearest"});
+}
+document.addEventListener("click", e => {
+  if (e.target.closest("[data-pvclose]")){ $("#vozBar").hidden = true; return; }
+  const b = e.target.closest("[data-pvcli]"); if (!b) return;
+  $("#vozBar").hidden = true;
+  const base = {segs:["x:promo:has:" + b.dataset.pvcli], emps:[], promos:[], dias:[], rutas:[], sup:"", sector:"", sort:"", tab:"", clear:false, lab:[], act:null, ask:false, frs:[]};
+  applyVoz(base, "promo " + b.dataset.pvcli);
+});
 function vozQuitar(txt){
   VOZ_MEM.stack.push(vozSnap()); if (VOZ_MEM.stack.length > 20) VOZ_MEM.stack.shift();
   const t = " " + txt + " ";
@@ -5327,7 +5399,7 @@ function vozFix(t){
   }).join(" ") + " ";
 }
 function vozNorm(text){
-  let t = " " + qnorm(text) + " ";
+  let t = " " + qnorm(String(text || "").replace(/(\d+)[.,](\d{1,2})(?!\d)/g, "$1punto$2")) + " ";
   t = t.replace(/\b(gamb?i?t?o|gambeto|gamvito|ganbito|gambito s)\b/g, m => m.length >= 5 ? "gambito" : m);
   t = vozFix(t);
   t = vozNumWords(t);
@@ -5370,7 +5442,7 @@ function parseVoz(text, inner){
   if (/\b(habla|respondeme|dime en voz|activa la voz|respuesta hablada)\b/.test(t)) return {act:"habla", on:true, lab:["Respuesta hablada activada"]};
   if (am) return {act:"ficha", who: am[am.length - 1].trim(), lab:["Abrir ficha"]};
   if (rm && !has(/\bruta\s+\d{6}\b/)) return {act:"ruta", who: rm[4].trim(), lab:["Ruta al cliente"]};
-  if (cm) return {act:"cat", who: cm[4].trim(), lab:["Catálogo del cliente"]};
+  if (cm && !/\b(regia|suprema|pepsi|gatorade|lipton|aqua|agua|petit|cubata|pary|amp|lata|latas|600|330|750|473|355|combo|combos|csd|cerveza)\b/.test(cm[4])) return {act:"cat", who: cm[4].trim(), lab:["Catálogo del cliente"]};
   // ---- pantallas
   if (has(/\b(desafio|desafios|metas del dia|que tengo que hacer hoy|que me toca hoy)\b/) && !has(/\bclientes?\b/)) return {act:"desafios", lab:["Desafíos del día"]};
   if (has(/\b(panel|seguimiento|indicadores|tablero)\b/) && !has(/\bclientes?\b/)) return {act:"panel", lab:["Panel de seguimiento"], sec: has(/emergente/) ? "em" : has(/everest/) ? "ev" : has(/cobertura(s)? de pago|pago/) ? "cp" : has(/rmasn|rojo/) ? "rn" : ""};
@@ -5460,8 +5532,30 @@ function parseVoz(text, inner){
   for (const [w, root] of Object.entries(TIPOS)) if (has(new RegExp("(^\\s|\\b(las|los|que sean|tipo|solo|en|mis|ver|unas|unos|puras|puros)\\s)" + w + "\\b"))){ seg("x:name:has:" + root, "Tipo: " + root); break; }
   if (has(/\bsin (coordenadas|ubicacion|gps|punto)\b/)) seg("x:gps:no:");
   // ---- otros indicadores
+  // empaques: "promos de lata", "las de 600", "1.5 litros", "vidrio", "12 onzas"…
+  const EMPQ = [[/\b600\b/, /600\s*ml/i], [/\b(lata|latas)\b/, /lata/i], [/\b(1 5|1punto5|uno punto cinco|litro y medio)\b/, /1\.5\s*l/i], [/\b(3 l|3 litros|tres litros|3l)\b/, /\b3\s*l\b|3\.0\s*l/i], [/\b750\b/, /750/], [/\b(330|12 oz|12 onzas|doce onzas)\b/, /330|12\s*oz/i], [/\b473\b/, /473/], [/\b355\b/, /355/], [/\b(300)\b/, /300\s*ml/i], [/\b500\b/, /500\s*ml/i], [/\b350\b/, /350\s*ml/i], [/\b(1 25|1punto25)\b/, /1\.25\s*l/i], [/\b(vidrio|retornable|retornables|vr)\b/, /vidrio|\bvr\b|retornable/i], [/\b(tetra)\b/, /tetra/i], [/\b(combo|combos)\b/, /combo/i]];
+  // precio: "a 20.60", "de 21 dolares", "menos de 15", "entre 10 y 15", "mas de 20"
+  const pnum = x => parseFloat(String(x).replace("punto", "."));
+  const pm = t.match(/\b(?:menos de|menor a|menores a|debajo de|hasta|maximo)\s+(\d+(?:punto\d+)?)\b/), pM = t.match(/\b(?:mas de|mayor a|mayores a|arriba de|desde)\s+(\d+(?:punto\d+)?)\b/), pe = t.match(/\bentre\s+(\d+(?:punto\d+)?)\s+y\s+(\d+(?:punto\d+)?)\b/), px = t.match(/\b(?:a|en|de|precio|por|cuesta|cuestan|vale)\s+(\d+punto\d{1,2})\b(?!\s*(l|lt|lts|litros?|ml|oz|onzas)\b)/) || (has(/\b(precio|precios|dolares|dolar|cuesta|cuestan|vale|valen|promo|promos|promocion|promociones)\b/) ? t.match(/\b(\d+punto\d{1,2})\b(?!\s*(l|lt|lts|litros?|ml|oz|onzas)\b)/) : null);
+  if (px && +pnum(px[1]) < 3) px = null;   /* 1.5, 2.5… son empaques, no precios */
+  const hayPrecio = has(/\b(precio|precios|dolares|dolar|cuesta|cuestan|vale|valen)\b/) || !!px || (has(/\b(promo|promos|promocion|promociones)\b/) && (pm || pM || pe));
+  const prRange = !hayPrecio ? null : pe ? [pnum(pe[1]), pnum(pe[2])] : px ? [pnum(px[1]) - 0.005, pnum(px[1]) + 0.005] : pm || pM ? [pM ? pnum(pM[1]) : 0, pm ? pnum(pm[1]) : 1e9] : null;
+  const empq = EMPQ.filter(([re]) => has(re)).map(([, rp]) => rp);
+  const prTxt = pr => pr.n + " " + (pr.esc || "") + " " + (pr.cond || "");
+  const precioOk = pr => !prRange || (pr.pa != null ? [pr.pa, pr.pp].some(v => v != null && v >= prRange[0] && v <= prRange[1]) : !!pr.esc && [...String(pr.esc).matchAll(/\$\s?(\d+(?:\.\d+)?)/g)].some(m => +m[1] >= 5 && +m[1] >= prRange[0] && +m[1] <= prRange[1]));   /* precios por caja (no el sugerido al público) */
+  if ((empq.length || prRange) && (has(/\b(promo|promos|promocion|promociones|descuento|descuentos|oferta|ofertas|precio|precios|combo|combos)\b/) || prRange)){
+    const prodRe = [[/\bgatorade\b/, /gatorade/i], [/\b(aqua|agua)\b/, /aqua/i], [/\blipton\b/, /lipton/i], [/\b(petit|nectar)\b/, /petit/i], [/\b(regia)\b/, /regia/i], [/\b(suprema)\b/, /suprema/i], [/\b(pepsi|csd|gaseosa|gaseosas|sabores)\b/, /pepsi|csd/i], [/\b(cubata)\b/, /cubata/i], [/\b(pary)\b/, /pary/i]].filter(([re]) => has(re)).map(([, rp]) => rp);
+    const vig = promosVig().filter(pr => !/info|incentivo/i.test(pr.tipo) || /gambito/i.test(pr.id));
+    const hits = vig.filter(pr => (!empq.length || empq.some(re => re.test(prTxt(pr)))) && (!prodRe.length || prodRe.some(re => re.test(prTxt(pr)))) && precioOk(pr));
+    if (hits.length){
+      c.verPromos = hits.map(pr => pr.id);
+      const dir = hits.filter(pr => promoScope(pr) === "ac" || promoScope(pr) === "cli" || promoScope(pr) === "vpo");
+      if (dir.length && !has(/\b(cuales|que promos|que promociones|ver promos|ver las promos|ver promociones|lista de promos|precios de)\b/)) seg("x:promo:has:" + dir.map(pr => pr.id).join(","), "Promo: " + dir.map(pr => pr.n).slice(0, 2).join(" o ") + (dir.length > 2 ? "…" : ""));
+      c.lab.push(`${hits.length} promo${hits.length === 1 ? "" : "s"}${empq.length ? "" : ""}${prRange ? ` · precio ${prRange[1] >= 1e8 ? "desde $" + prRange[0].toFixed(2) : prRange[0] <= 0 ? "hasta $" + prRange[1].toFixed(2) : px ? "$" + pnum(px[1]).toFixed(2) : "$" + prRange[0].toFixed(2) + " a $" + prRange[1].toFixed(2)}` : ""}`);
+    } else c.verPromos = [];
+  }
   const PROD_PROMO = [[/\b(combo|combos)\b/, /combo/i], [/\b(aqua|agua)\b/, /aqua/i], [/\bgatorade\b/, /gatorade/i], [/\blipton|te\b/, /lipton/i], [/\bpetit|nectar|nectares\b/, /petit/i], [/\bcubata\b/, /cubata/i], [/\b(glim|vip)\b/, /glim|vip/i], [/\bpary\b/, /pary/i], [/\bamp\b/, /amp/i], [/\b(1 5|uno punto cinco|litro y medio)\b/, /1\.5L/i], [/\b(lata|latas)\b/, /lata/i], [/\b600\b/, /600/i]];
-  if (has(/\b(promo|promos|promocion|promociones|descuento|descuentos|oferta|ofertas|combo|combos)\b/)){
+  if (!c.verPromos && has(/\b(promo|promos|promocion|promociones|descuento|descuentos|oferta|ofertas|combo|combos)\b/)){
     const pv = promosVig().filter(pr => pr.cols.length || promoScope(pr) === "cli");
     const sel = PROD_PROMO.filter(([re]) => has(re)).flatMap(([, rp]) => pv.filter(pr => rp.test(pr.n)).map(pr => pr.id));
     if (sel.length){ const ids = [...new Set(sel)]; seg("x:promo:has:" + ids.join(","), "Promo: " + ids.map(id => (promoById(id) || {}).n || id).slice(0, 2).join(" o ") + (ids.length > 2 ? "…" : "")); }
@@ -5489,7 +5583,7 @@ function parseVoz(text, inner){
   const BUY = [[/\b(cerveza|cervezas|regia|suprema)\b/, "Cerveza", "cerveza"], [/\b(gatorade|isotonicos?)\b/, "Isotonicos", "isotónicos"], [/\b(3 l|3 litros|tres litros)\b/, "3\\.0L", "3 L"], [/\b(1 5|litro y medio|uno punto cinco)\b/, "1\\.5L", "1.5 L"], [/\b(1 25)\b/, "1\\.25L", "1.25 L"], [/\b(lata|latas)\b/, "Lata", "lata"], [/\b(600)\b/, "600ML", "600 ml"]];
   if (has(/\b(que compran|que compra|compran|que llevan|llevan|que si compran|que piden)\b/) && !has(/\b(no compran|no compra|compra cero|nunca)\b/)){ for (const [re, k, l] of BUY) if (has(re)) seg("x:buy:has:" + k, "Compran " + l); }
   // tipo de negocio exacto de la maestra ("farmacias", "comedores", "mini super", "bares"…)
-  if (!c.segs.some(k => /^x:name:/.test(k))){ const tipos = [...new Set([...DB.pdv.values()].map(p => p.etq).filter(Boolean))]; const hit = tipos.filter(e => { const w = qnorm(e).split(" ").filter(x => x.length > 3); return w.length && (w.every(x => t.includes(" " + x.replace(/s$/, ""))) || new RegExp("\\s" + w[0].replace(/s$/, "") + "(s|es)?\\s").test(t)); }); if (hit.length && hit.length <= 4) seg("x:etq:has:" + hit.join("|"), "Tipo: " + hit.join(" o ")); }
+  if (!c.segs.some(k => /^x:name:/.test(k))){ const tipos = tiposNegocio(); const hit = tipos.filter(e => { const w = qnorm(e).split(" ").filter(x => x.length > 3); return w.length && (w.every(x => t.includes(" " + x.replace(/s$/, ""))) || new RegExp("\\s" + w[0].replace(/s$/, "") + "(s|es)?\\s").test(t)); }); if (hit.length && hit.length <= 4) seg("x:etq:has:" + hit.join("|"), "Tipo: " + hit.join(" o ")); }
   // "cerca de la iglesia", "cerca del parque central" → se ubica el lugar en el mapa
   const cm2 = !has(/\bcerca de (mi|mi ubicacion|aqui|donde estoy)\b/) && t.match(/\bcerca (?:de|del) (?:la |el |los |las )?(.+?)(?=\s+\b(y|con|que|en el mapa|de la ruta|ruta|para|los|las)\b|\s*$)/);
   if (cm2 && !c.sector){ c.sector = cm2[1].trim(); c.lab.push("Cerca de " + c.sector); }
@@ -5497,7 +5591,7 @@ function parseVoz(text, inner){
   if (sm){ const w = sm[2].split(" ").filter(x => x && !["de","del","la","el","los","las"].includes(x)).slice(0, 3).join(" "); if (w){ c.sector = w; c.lab.push("Sector: " + w); } }
   const left = inner ? "" : vozLeft(t, c);
   if (left){ c.q = left; c.lab.push(`Nombre o dirección: “${left}”`); }
-  const any = c.near || (c.frs || []).length || c.clear || c.segs.length || c.emps.length || c.promos.length || c.dias.length || c.rutas.length || c.sup || c.sector || c.sort || c.tab && c.lab.length;
+  const any = (c.verPromos !== undefined) || c.near || (c.frs || []).length || c.clear || c.segs.length || c.emps.length || c.promos.length || c.dias.length || c.rutas.length || c.sup || c.sector || c.sort || c.tab && c.lab.length;
   if (!any && c.tab) return {act:"tab", tab:c.tab, lab:[c.tab === "map" ? "Mapa" : "Lista"]};
   return any ? c : null;
 }
@@ -5507,7 +5601,7 @@ const VOZ_STOP = new Set("nuevo nueva empezar empieza olvida unicamente ahora ta
 function vozLeft(t, c){
   if (!VOZ_VOCAB) VOZ_VOCAB = new Set((parseVoz.toString() + vozNorm.toString()).replace(/\/\*[\s\S]*?\*\//g, " ").replace(/\/\/[^\n]*/g, " ").replace(/\\[a-z]/gi, " ").toLowerCase().match(/[a-z]{2,}/g));
   const used = new Set([...qnorm(c.sector || "").split(" "), ...qnorm(c.sup || "").split(" ")]);
-  const w = t.trim().split(" ").filter(x => x && !VOZ_STOP.has(x) && !VOZ_VOCAB.has(x) && !used.has(x) && !c.rutas.some(r => r === x || r.endsWith(x)) && !/^\d{1,3}$/.test(x) && !/^\d{6}$/.test(x) && x.length > 1 && !(c.frs || []).includes(x.toUpperCase()));
+  const w = t.trim().split(" ").filter(x => x && !VOZ_STOP.has(x) && !VOZ_VOCAB.has(x) && !used.has(x) && !c.rutas.some(r => r === x || r.endsWith(x)) && !/^\d{1,3}$/.test(x) && !/^\d{6}$/.test(x) && !/^\d+punto\d+$/.test(x) && x.length > 1 && !(x.length >= 3 && /^[a-z]+$/.test(x) && VOZ_KW.some(k => k.length > x.length && k.startsWith(x))) && !(c.frs || []).includes(x.toUpperCase()));
   return w.join(" ");
 }
 // busca un cliente por lo que se dijo (nombre o código), con la búsqueda tolerante
@@ -5607,10 +5701,14 @@ function qCatalogo(){
 const qTok = t => qnorm(t).trim().split(/\s+/).filter(Boolean);
 const qPref = (w, toks) => toks.some(x => x.startsWith(w) || (w.length >= 4 && fuzzyTok(w, x, 1)));
 let QA = {items:[], sel:-1};
+let _TIPOS = {db:null, v:[]};
+const tiposNegocio = () => { if (_TIPOS.db !== DB) _TIPOS = {db:DB, v:[...new Set([...DB.pdv.values()].map(p => p.etq).filter(Boolean))]}; return _TIPOS.v; };
 function qAutoHide(){ const el = $("#qAuto"); if (el) el.hidden = true; QA = {items:[], sel:-1}; }
 function qAutoRender(txt){
   const el = $("#qAuto"); if (!el) return;
   txt = (txt || "").trim();
+  const key = txt + "|" + JSON.stringify([F.segs, F.rutas, F.sup, F.frs, F.dias]) + "|" + recGet().length + favGet().length;
+  if (qAutoRender._k === key && !el.hidden && QA.items.length) return; qAutoRender._k = key;
   const items = [];
   if (!txt){
     const fav = favGet(), rec = recGet().filter(r => !fav.some(f => f.lab === r.lab)).slice(0, 6);
@@ -5626,11 +5724,15 @@ function qAutoRender(txt){
     // filtros e indicadores
     let nCmd = 0;
     for (const [l, cmd, ic] of qCatalogo()){ const toks = qTok(l + " " + (typeof cmd === "string" ? cmd : "")); if (qw.every(w => qPref(w, toks)) && nCmd < 5){ items.push({g:"Filtros", ic, l, act:{cmd, l}}); nCmd++; } }
+    // promociones: por nombre, empaque o precio (toca para ver precio, vigencia y condiciones)
+    { const pn = parseFloat(txt.replace(",", ".").replace(/[^\d.]/g, "")), esPrecio = /^\$?\s*\d+([.,]\d{0,2})?$/.test(txt.trim()) && pn > 3 && pn < 200;
+      const P = promosVig().filter(pr => !/incentivo/i.test(pr.tipo)).filter(pr => esPrecio ? [pr.pa, pr.pp].some(v => v != null && String(v.toFixed(2)).startsWith(String(pn).replace(/\.$/, ""))) || (pr.esc && pr.esc.includes(txt.trim().replace(",", "."))) : qw.every(w => qPref(w, qTok(pr.n + " " + (pr.cat || "") + " " + (pr.esc || "")))));
+      for (const pr of P.slice(0, 4)) items.push({g:"Promociones", ic:"🏷️", l:pr.n, sub:[pr.pa != null ? "$" + pr.pa.toFixed(2) + (pr.da ? ` (-${Math.round(pr.da * 1000) / 10}%)` : "") : "", pr.d2 ? "hasta " + fdm(pr.d2) : "", promoScope(pr) === "gen" ? "toda la base" : promoScope(pr) === "cli" ? "lista de clientes" : "clientes dirigidos"].filter(Boolean).join(" · "), act:{promo:pr.id}}); }
     // rutas y supervisores
     if (qd.length >= 3) for (const r of DB.rutas.filter(r => r.includes(qd)).slice(0, 4)) items.push({g:"Rutas", ic:"🛣️", l:"Ruta " + r, sub:[...(DB.rutaSup.get(r) || new Map()).keys()][0] || "", act:{cmd:{rutas:[r]}, l:"Ruta " + r}});
     if (DB.sups.length > 1 && !qd) for (const sp of DB.sups.filter(sp => qw.every(w => qPref(w, qTok(sp)))).slice(0, 3)) items.push({g:"Supervisores", ic:"👤", l:sp, act:{cmd:{sup:sp}, l:"Supervisor " + sp}});
     // tipos de negocio
-    if (!qd){ const tipos = [...new Set([...DB.pdv.values()].map(p => p.etq).filter(Boolean))].filter(e => qw.every(w => qPref(w, qTok(e)))).slice(0, 3); for (const e of tipos) items.push({g:"Tipo de negocio", ic:"🏪", l:e, act:{cmd:{segs:["x:etq:has:" + e]}, l:"Tipo: " + e}}); }
+    if (!qd){ const tipos = tiposNegocio().filter(e => qw.every(w => qPref(w, qTok(e)))).slice(0, 3); for (const e of tipos) items.push({g:"Tipo de negocio", ic:"🏪", l:e, act:{cmd:{segs:["x:etq:has:" + e]}, l:"Tipo: " + e}}); }
     // clientes (nombre, código, dirección, tipo, serie del equipo)
     const prev = F.q; F.q = txt; let L = []; try{ L = filtered(true); }catch(e){} F.q = prev;
     for (const p of L.slice(0, 6)) items.push({g:"Clientes", ic:"🏠", l:p.n || String(p.c), sub:`${p.c} · Ruta ${p.ruta}${p._d != null ? " · " + (p._d < 1 ? Math.round(p._d * 1000) + " m" : fmt(p._d, 1) + " km") : ""}`, act:{cli:p.c}, html: (() => { const q0 = F.q; F.q = txt; const h = qDonde(p); F.q = q0; return h; })()});
@@ -5650,6 +5752,7 @@ function qAutoPick(i){
   qAutoHide();
   if (it.act.rec){ recAplicar(it.act.rec); return; }
   if (it.act.c){ applyVoz(it.act.c, it.act.txt); return; }
+  if (it.act.promo){ $("#q").value = ""; F.q = ""; qSugHide(); renderList(); promoVer([it.act.promo], "Promoción"); return; }
   if (it.act.cli != null){ $("#q").value = ""; F.q = ""; qSugHide(); renderList(); openPdv(it.act.cli); return; }
   const cmd = it.act.cmd;
   if (typeof cmd === "string"){ const c = parseVozCtx(cmd); if (c){ $("#q").value = ""; applyVoz(c, cmd); } return; }
@@ -5660,7 +5763,7 @@ function qAutoWire(){
   const inp = $("#q"), el = $("#qAuto"); if (!inp || !el) return;
   let tq;
   inp.addEventListener("focus", () => qAutoRender(inp.value));
-  inp.addEventListener("input", () => { clearTimeout(tq); tq = setTimeout(() => qAutoRender(inp.value), 160); });
+  inp.addEventListener("input", () => { QA.sel = -1; clearTimeout(tq); tq = setTimeout(() => qAutoRender(inp.value), 160); });
   inp.addEventListener("blur", () => setTimeout(() => { if (document.activeElement !== inp) qAutoHide(); }, 250));
   inp.addEventListener("keydown", e => {
     if (el.hidden || !QA.items.length) return;
@@ -5693,6 +5796,8 @@ function applyVoz(c, text){
   if (text && F.q && vozNorm(F.q).trim() === vozNorm(text).trim()) F.q = "";   // lo escrito en el buscador era la orden, no un nombre
   if (c.act){ $("#q").value = ""; qSugHide(); qAutoHide(); runVozAct(c); return; }
   const porVoz = !!c.voz;
+  // solo ver promociones (sin clientes dirigidos ni otro filtro): se muestran y no se toca el filtro actual
+  if (c.verPromos !== undefined && !c.segs.length && !c.emps.length && !c.rutas.length && !c.dias.length && !(c.frs || []).length && !c.near && !c.q){ $("#q").value = ""; F.q = ""; qSugHide(); qAutoHide(); renderList(); promoVer(c.verPromos, `${c.verPromos.length} promoci${c.verPromos.length === 1 ? "ón" : "ones"}`); if (porVoz && vozHablaOn()) vozHablar(c.verPromos.length ? `${c.verPromos.length} promociones` : "No encontré promociones con eso"); return; }
   if (c.rutas.includes("__ninguna__")){ toast(`No encontré la ruta ${(c.rutasBad || []).join(", ")} en tus datos. Revisa el número.`); return; }
   VOZ_PREV = vozSnap(); VOZ_MEM.stack.push(VOZ_PREV); if (VOZ_MEM.stack.length > 20) VOZ_MEM.stack.shift();
   const c0 = c, D = vozDecidir(c, text); c = D.c;
@@ -5715,7 +5820,8 @@ function applyVoz(c, text){
   const resumen = [...scopeParts().filter(x => x.t !== "sup").map(x => x.l), ...(focusLabel() ? [focusLabel()] : [])].join(" · ");
   toast(`${D.merge ? "Afinado: " : ""}${fmt(n)} cliente${n === 1 ? "" : "s"}${resumen ? " · " + resumen : ""}`);
   recGuardar(resumen);
-  if (porVoz && vozHablaOn() && !c.ask) vozHablar(`${n} cliente${n === 1 ? "" : "s"}${D.merge ? "" : ""}. ${resumen.replace(/·/g, ",").replace(/\+/g, " más ").slice(0, 160)}`);
+  if (c.verPromos !== undefined){ promoVer(c.verPromos, `${c.verPromos.length} promoci${c.verPromos.length === 1 ? "ón" : "ones"} encontrada${c.verPromos.length === 1 ? "" : "s"}`); if (porVoz && vozHablaOn()) vozHablar(c.verPromos.length ? `${c.verPromos.length} promociones: ${c.verPromos.slice(0, 3).map(id => (promoById(id) || {}).n || "").join(", ")}` : "No encontré promociones con eso"); }
+  else if (porVoz && vozHablaOn() && !c.ask) vozHablar(`${n} cliente${n === 1 ? "" : "s"}${D.merge ? "" : ""}. ${resumen.replace(/·/g, ",").replace(/\+/g, " más ").slice(0, 160)}`);
   if (c.ask) vozHablar(`${n} cliente${n === 1 ? "" : "s"}`);
 }
 function undoVoz(){
@@ -5727,7 +5833,7 @@ function undoVoz(){
 document.addEventListener("click", e => { if (e.target.closest("[data-vozundo]")) undoVoz(); if (e.target.closest("[data-vozhelp]")){ $("#menu").hidden = true; vozHelp(); } });
 function vozHelp(){
   toast("Toca el micrófono o escribe en el buscador y presiona Enter, por ejemplo: \"compra cero de cerveza de la ruta 265115\"");
-  const ej = ["clientes de hoy con necesidad de equipo frío en el mapa", "los que les falta solo una cobertura", "les faltan 2 coberturas", "les falta cerveza y gatorade el lunes", "los que no han comprado este mes", "compra menor a 2 cajas", "mayor volumen de compra", "ruta 113 sector Bolívar", "clientes de Erick con R más N", "tiendas 5 estrellas con promo de Gatorade", "clientes con promoción de Lipton que estén en R más N de la ruta 265113", "clientes compra cero de la ruta 265114", "clientes gambito de la ruta 265113", "(paso a paso) clientes gambito → los compra cero → de la ruta 265122 → de la frecuencia de hoy", "(paso a paso) R más N → los de 15 o más → sin visitar → de la ruta 265113", "(paso a paso) con promo de lipton → y de gatorade → sin gambito", "(paso a paso) les falta cerveza → y gatorade → 5 estrellas → rs", "VPO por cumplir → los cumplidos", "Wellington pendiente → más de 60 días", "deshacer", "quita la ruta", "nuevo filtro: clientes con R más N", "quiero ver los clientes de R más N de la ruta 265113", "tienda blanca de la ruta 265119", "gambito rs de la ruta 265113", "ruta 265115 frecuencia lj y mv", "compra cero de cerveza de la ruta 265115", "compra cero de Gatorade", "los que nunca compran Regia 750", "clientes con plan Gambito", "sin lectura Wellington", "cuántos clientes tienen VPO por cumplir", "abre la ficha de tienda Rosita", "llévame a tacos el Taurino", "catálogo de tienda Rosita", "desafíos del día", "panel emergente", "quitar filtros"];
+  const ej = ["clientes de hoy con necesidad de equipo frío en el mapa", "los que les falta solo una cobertura", "les faltan 2 coberturas", "les falta cerveza y gatorade el lunes", "los que no han comprado este mes", "compra menor a 2 cajas", "mayor volumen de compra", "ruta 113 sector Bolívar", "clientes de Erick con R más N", "tiendas 5 estrellas con promo de Gatorade", "clientes con promoción de Lipton que estén en R más N de la ruta 265113", "clientes compra cero de la ruta 265114", "clientes gambito de la ruta 265113", "promociones de lata", "promos de 600", "promo a 20.60", "promos de menos de 15 dólares", "precios de regia 330", "(paso a paso) clientes gambito → los compra cero → de la ruta 265122 → de la frecuencia de hoy", "(paso a paso) R más N → los de 15 o más → sin visitar → de la ruta 265113", "(paso a paso) con promo de lipton → y de gatorade → sin gambito", "(paso a paso) les falta cerveza → y gatorade → 5 estrellas → rs", "VPO por cumplir → los cumplidos", "Wellington pendiente → más de 60 días", "deshacer", "quita la ruta", "nuevo filtro: clientes con R más N", "quiero ver los clientes de R más N de la ruta 265113", "tienda blanca de la ruta 265119", "gambito rs de la ruta 265113", "ruta 265115 frecuencia lj y mv", "compra cero de cerveza de la ruta 265115", "compra cero de Gatorade", "los que nunca compran Regia 750", "clientes con plan Gambito", "sin lectura Wellington", "cuántos clientes tienen VPO por cumplir", "abre la ficha de tienda Rosita", "llévame a tacos el Taurino", "catálogo de tienda Rosita", "desafíos del día", "panel emergente", "quitar filtros"];
   $("#vozBar").innerHTML = `<span class="vzi">🎙</span><span class="vzt"><b>Puedes decir, por ejemplo:</b><br>${ej.map(x => "· " + esc(x)).join("<br>")}<br>O di el nombre o código del cliente.</span><button class="vzx" data-vozundo>Cerrar</button>`;
   $("#vozBar").hidden = false; setTab("list");
 }
