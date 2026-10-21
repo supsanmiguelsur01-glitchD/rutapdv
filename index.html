@@ -5122,8 +5122,10 @@ function desLogrado(rutas){
   // lo hecho hoy: marcas de la app (coberturas, R+N, lecturas) + el reporte de volúmenes que llena el vendedor
   const rs = new Set(rutas), o = {cov:{multi:0, single:0, gatorade:0, cerveza:0}, rn:0, wl:0, ac:0, vis:0, rep:{}, hayRep:false};
   try{ const st = (liveKeys() && LIVE.data) ? new Map([...liveLocal(), ...LIVE.data.st]) : liveLocal();   /* supervisor: también lo que marca el equipo en vivo */
-    for (const e of st.values()){ if (!rs.has(e.r) || !e.v) continue; if (e.k === "cov"){ const g = covGroupOf(e.i); if (g && o.cov[g] != null) o.cov[g]++; } else if (o[e.k] != null && typeof o[e.k] === "number") o[e.k]++; } }catch(err){}
-  for (const r of rutas){ const R = ls.get(repKey(r), null); if (!R || typeof R !== "object") continue; for (const [k, v] of Object.entries(R)){ const n = parseFloat(v); if (isFinite(n)){ o.rep[k] = (o.rep[k] || 0) + n; o.hayRep = true; } } }
+    for (const e of st.values()){ if (!rs.has(e.r) || !e.v) continue;
+      if (e.k === "rep"){ if (typeof e.v === "object" && !o._repR) o._repR = {}; if (typeof e.v === "object") o._repR[e.r] = e.v; continue; }   /* reporte de Mi día que mandó cada vendedor */
+      if (e.k === "cov"){ const g = covGroupOf(e.i); if (g && o.cov[g] != null) o.cov[g]++; } else if (o[e.k] != null && typeof o[e.k] === "number") o[e.k]++; } }catch(err){}
+  for (const r of rutas){ const R = (o._repR && o._repR[r]) || ls.get(repKey(r), null); if (!R || typeof R !== "object") continue; for (const [k, v] of Object.entries(R)){ const n = parseFloat(v); if (isFinite(n)){ o.rep[k] = (o.rep[k] || 0) + n; o.hayRep = true; } } }
   return o;
 }
 function desItems(rutas, Lby){
