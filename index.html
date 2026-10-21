@@ -676,6 +676,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 		}
 	}
 .avtab tr.sub td{background:var(--sub-bg,rgba(79,179,232,.10));border-top:1px solid rgba(79,179,232,.35)} .avtab tr.avsup:hover td{background:rgba(79,179,232,.08)}
+.dirb{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line,rgba(127,127,127,.25));border-radius:12px;margin-bottom:10px}.dirb>svg{flex:none;color:var(--acc,#1f5fa8)}.dirb>div{flex:1;min-width:0}.dirb .l{font-size:11px;opacity:.7;text-transform:uppercase;letter-spacing:.03em}.dirb .v{font-weight:600;line-height:1.3;overflow-wrap:anywhere}.dirb.nod .v{font-weight:500;opacity:.6}.dirb.nod>svg{opacity:.5}.dirb>.btn{flex:none;width:auto;margin:0}.dirb>div{flex:1 1 auto}
 </style>
 <style>
 :root{
@@ -1594,6 +1595,7 @@ const SHEETS = {
   ac:        {names:["AC BASE"],   key:"nombre cliente", also:"sap"},
   rn:        {names:["Base"],      key:"codigo de cliente", also:"necesidad real amarilla"},
   mon:       {names:["MONITOREO"], key:"codigo cliente", also:"status"},
+  dir:       {names:["DIRECCIONES"], key:"cliente", also:"dirección"},   // direcciones de los puntos de venta (laboral\direcciones\direcciones.xlsx)
   vpo:       {names:["VPO"],       key:"cliente_id", also:"meta (cj)"},
   ev:        {names:["EVEREST","Sheet1"], key:"meta pepsi ms"},
   promos:    {names:["PROMOS"],    key:"promoción", also:"hasta"},
@@ -1958,7 +1960,7 @@ function pickSheets(wbIn){
 }
 function fromEmbed(e){
   e = e || {};
-  return {gcb:e["GAMBCOMPRA"]||[], gcbInfo:e.gcbInfo||null, inc:e["INCENT"]||[], incInfo:e.incInfo||null, maestra:e["maestra"]||[], listados:e["LISTADOS"]||[], ac:e["AC BASE"]||[], rn:e["Base"]||[], mon:e["MONITOREO"]||[], vpo:e["VPO"]||[], ev:e["EVEREST"]||[], evInfo:e.evInfo||null, baseInfo:e.baseInfo||null, promosInfo:e.promosInfo||null, promos:e["PROMOS"]||[], promocli:e["PROMOCLI"]||[], cp:e["COBPAGO"]||[], cpInfo:e.cpInfo||null, em:e["EMERGENTE"]||[], emInfo:e.emInfo||null, md:e["METAS"]||[], mdInfo:e.mdInfo||null, vp:e["VPOPLAN"]||[], vpInfo:e.vpInfo||null};
+  return {gcb:e["GAMBCOMPRA"]||[], gcbInfo:e.gcbInfo||null, inc:e["INCENT"]||[], incInfo:e.incInfo||null, maestra:e["maestra"]||[], listados:e["LISTADOS"]||[], ac:e["AC BASE"]||[], rn:e["Base"]||[], mon:e["MONITOREO"]||[], dir:e["DIRECCIONES"]||[], vpo:e["VPO"]||[], ev:e["EVEREST"]||[], evInfo:e.evInfo||null, baseInfo:e.baseInfo||null, promosInfo:e.promosInfo||null, promos:e["PROMOS"]||[], promocli:e["PROMOCLI"]||[], cp:e["COBPAGO"]||[], cpInfo:e.cpInfo||null, em:e["EMERGENTE"]||[], emInfo:e.emInfo||null, md:e["METAS"]||[], mdInfo:e.mdInfo||null, vp:e["VPOPLAN"]||[], vpInfo:e.vpInfo||null};
 }
 
 /* ---------- modelo ---------- */
@@ -2051,7 +2053,7 @@ function build(S){
   let rnSem = false; const rnRutas = new Map();
   if (S.rn.length){
     const I = idx(S.rn[0]);
-    const cC=I("codigo de cliente"), cM=I("material"), cSe=I("numero serie"), cNr=I("necesidad real amarilla"), cN=I("establecimiento");
+    const cC=I("codigo de cliente"), cM=I("material"), cSe=I("numero serie"), cNr=I("necesidad real amarilla"), cN=I("establecimiento"), cDr=I("dirección") ?? I("direccion");
     const cSem = S.rn[0].findIndex(x => /semaforo real/i.test(str(x))), cRg = S.rn[0].findIndex(x => low(x) === "rango hoy");
     const cR = I("ruta"), cSup = I("supervisor");
     rnSem = cSem >= 0;
@@ -2067,7 +2069,7 @@ function build(S){
         else if (sem === "NEGRO") o.negro++;
         else if (sem === "ROJO"){ o.rojo++; const k = rnBucket(rango); o.b[k] = (o.b[k] || 0) + 1; }
       }
-      const p = get(c); if (!p.n) p.n = str(r[cN]);
+      const p = get(c); if (!p.n) p.n = str(r[cN]); if (!p.dir && cDr != null) p.dir = str(r[cDr]);
       p.rn.push({mat:str(r[cM]), serie:str(r[cSe]), nec:num(r[cNr]), sem, rango});
     }
   }
@@ -2083,6 +2085,11 @@ function build(S){
       if (!p.dir) p.dir = str(r[cD]);
       if (p.lat == null && gps){ const [a,b] = gps.split(",").map(num); if (a && b){ p.lat=a; p.lng=b; } }
     }
+  }
+  // Direcciones del punto de venta (no crea clientes nuevos: solo completa los que ya existen)
+  if (S.dir && S.dir.length){
+    const I = idx(S.dir[0]), cC = I("cliente"), cD = I("dirección") ?? I("direccion");
+    if (cC != null && cD != null) for (const r of S.dir.slice(1)){ const c0 = code(r[cC]); if (c0 == null) continue; const p = pdv.get(ALIASC.get(c0) ?? c0); if (!p) continue; const d = str(r[cD]); if (d) p.dir = d; }
   }
   // Plan VPO
   let vpoPlan = null;
@@ -2712,7 +2719,7 @@ function renderQuick(){
 /* al elegir Gambito aparecen sus categorías: se pueden marcar varias a la vez (nunca compra + compra 0 + caídos…) */
 const COND_GROUPS = [
   ["Plan Gambito", () => DB.vp && DB.vp.cli.size, [...GAMB_SUB]],
-  ["Activación Gambito", () => DB.gcb && DB.gcb.cli.size, [...GAMB_ST]],
+  ["Activación Gambito", () => DB.vp && DB.vp.cli.size, [...GAMB_ST]],
   ["Coberturas", () => true, [["covpend", "Pendiente"], ["cov1", "Falta solo 1"], ["covok", "Completas"]]],
   ["Equipo frío", () => true, [["rnrn", "Rojo o negro"], ["nec", "Necesidad"], ["well", "Wellington pendiente"], ["well60", "Wellington +60 días"]]],
   ["Promos y VPO", () => true, [["conpromo", "Con promo"], ["vpopend", "VPO por cumplir"]]],
@@ -2748,7 +2755,7 @@ function renderQuickSub(){
   const L = filtered(true), base = L.filter(SEG_FN.gamb);
   const has = k => F.segs.includes(k);
   const b = ([k, l], pool) => { const n = pool.filter(SEG_FN[k]).length; return `<button class="fopt ${has(k) ? "on" : ""} ${n ? "" : "zero"}" data-gsub="${k}">${l} <small class="num">${fmt(n)}</small></button>`; };
-  const st = DB.gcb && DB.gcb.cli.size ? `<span class="qsep"></span>` + GAMB_ST.map(x => b(x, base)).join("") : "";
+  const st = DB.vp && DB.vp.cli.size ? `<span class="qsep"></span>` + GAMB_ST.map(x => b(x, base)).join("") : "";
   el.hidden = false; el.innerHTML = GAMB_SUB.map(x => b(x, L)).join("") + st;
 }
 function onQuickSub(e){
@@ -3818,6 +3825,7 @@ async function liveFlush(){
   finally{ LIVE.busy = false; }
 }
 window.addEventListener("online", () => liveFlush());
+document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-copydir]"); if (!b) return; const t = b.dataset.copydir; (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast("Dirección copiada"), () => toast(t)); });
 setTimeout(() => { try{ if (LIVE.q.length) liveFlush(); }catch(e){} }, 4000);
 // supervisor: trae las marcas de hoy de su equipo (o equipos) y se queda con la última de cada cosa
 let LIVE_P = null;
@@ -3852,7 +3860,7 @@ async function liveFetch(force){
 function liveLocal(){
   const st = new Map(), d = VIS[todayKey()] || {};
   for (const [c, v] of Object.entries(d)){ const p = DB.pdv.get(Number(c)); if (!p) continue;
-    for (const kind of ["cov", "ac", "wl", "rn"]) for (const [i, on] of Object.entries(v[kind] || {})) st.set(c + "|" + kind + "|" + i, {c:Number(c), r:p.ruta, k:kind, i, v:!!on, t:v.t || 0});
+    for (const kind of ["cov", "ac", "wl", "rn", "gmb"]) for (const [i, on] of Object.entries(v[kind] || {})) st.set(c + "|" + kind + "|" + i, {c:Number(c), r:p.ruta, k:kind, i, v:!!on, t:v.t || 0});
     if (v.t) st.set(c + "|vis|1", {c:Number(c), r:p.ruta, k:"vis", i:"1", v:true, t:v.t}); }
   const cart = ls.get("rutapdv_cart", {}); if (cart.day === todayKey()) for (const [c, items] of Object.entries(cart.c || {})){ const p = DB.pdv.get(Number(c)); if (p) st.set(c + "|cart|cj", {c:Number(c), r:p.ruta, k:"cart", i:"cj", v:cartCj(items), t:0}); }
   return st;
@@ -3924,14 +3932,14 @@ function avSum(L){
 function supDeRuta(r){ const m = DB.rutaSup && DB.rutaSup.get(r); return m && m.size ? [...m.entries()].sort((a, b) => b[1] - a[1])[0][0] : ""; }
 function avSupTabla(rutas, PR, st){
   const S = new Map();
-  for (const x of repConsolidado(rutas)){ const s = supDeRuta(x.r) || "Sin supervisor"; const o = S.get(s) || {n:0, rep:0, cj:0, cov:0, ac:0, wl:0, rn:0, vis:0, cart:0, t:0}; S.set(s, o);
-    o.n++; if (x.rep) o.rep++; o.cj += +x.o.total || 0; const p = PR.get(x.r); if (p){ o.cov += p.cov; o.ac += p.ac; o.wl += p.wl; o.rn += p.rn; o.vis += p.vis; o.cart += p.cj; o.t = Math.max(o.t, p.t); } }
+  for (const x of repConsolidado(rutas)){ const s = supDeRuta(x.r) || "Sin supervisor"; const o = S.get(s) || {n:0, rep:0, cj:0, cov:0, ac:0, wl:0, rn:0, gmb:0, vis:0, cart:0, t:0}; S.set(s, o);
+    o.n++; if (x.rep) o.rep++; o.cj += +x.o.total || 0; const p = PR.get(x.r); if (p){ o.cov += p.cov; o.ac += p.ac; o.wl += p.wl; o.rn += p.rn; o.gmb += p.gmb || 0; o.vis += p.vis; o.cart += p.cj; o.t = Math.max(o.t, p.t); } }
   if (S.size < 2) return "";
   const hhmm = t => t ? new Date(t).toLocaleTimeString("es-SV", {hour:"2-digit", minute:"2-digit"}) : "—";
   const rows = [...S.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-  return `<div class="avh" style="margin-top:6px"><b>Cierre del día por supervisor</b><span>toca un supervisor para ver el cierre de sus rutas</span></div><div class="tw keep"><table class="rt avtab"><thead><tr><th>Supervisor</th><th>Reportaron</th><th>CJ reportadas</th><th>Cob.</th><th>Promos</th><th>R+N</th><th>Lect.</th><th>Clientes</th><th>Última</th></tr></thead><tbody>` +
-    rows.map(([s, o]) => `<tr class="avsup" data-avsup="${esc(s)}" style="cursor:pointer"><td><b>${esc(s)}</b> ›</td><td class="num ${o.rep === o.n ? "ok" : o.rep ? "" : "warn"}">${o.rep} de ${o.n}</td><td class="num">${fmt(o.cj, 1)}</td><td class="num">${fmt(o.cov)}</td><td class="num">${fmt(o.ac)}</td><td class="num">${fmt(o.rn)}</td><td class="num">${fmt(o.wl)}</td><td class="num">${fmt(o.vis)}</td><td class="num">${hhmm(o.t)}</td></tr>`).join("") +
-    `<tr class="tot"><td><b>Total</b></td><td class="num"><b>${rows.reduce((a, [, o]) => a + o.rep, 0)} de ${rows.reduce((a, [, o]) => a + o.n, 0)}</b></td><td class="num"><b>${fmt(rows.reduce((a, [, o]) => a + o.cj, 0), 1)}</b></td>${["cov","ac","rn","wl","vis"].map(k => `<td class="num"><b>${fmt(rows.reduce((a, [, o]) => a + o[k], 0))}</b></td>`).join("")}<td></td></tr></tbody></table></div>`;
+  return `<div class="avh" style="margin-top:6px"><b>Cierre del día por supervisor</b><span>toca un supervisor para ver el cierre de sus rutas</span></div><div class="tw keep"><table class="rt avtab"><thead><tr><th>Supervisor</th><th>Reportaron</th><th>CJ reportadas</th><th>Cob.</th><th>Promos</th><th>R+N</th><th>Gamb.</th><th>Lect.</th><th>Clientes</th><th>Última</th></tr></thead><tbody>` +
+    rows.map(([s, o]) => `<tr class="avsup" data-avsup="${esc(s)}" style="cursor:pointer"><td><b>${esc(s)}</b> ›</td><td class="num ${o.rep === o.n ? "ok" : o.rep ? "" : "warn"}">${o.rep} de ${o.n}</td><td class="num">${fmt(o.cj, 1)}</td><td class="num">${fmt(o.cov)}</td><td class="num">${fmt(o.ac)}</td><td class="num">${fmt(o.rn)}</td><td class="num">${fmt(o.gmb)}</td><td class="num">${fmt(o.wl)}</td><td class="num">${fmt(o.vis)}</td><td class="num">${hhmm(o.t)}</td></tr>`).join("") +
+    `<tr class="tot"><td><b>Total</b></td><td class="num"><b>${rows.reduce((a, [, o]) => a + o.rep, 0)} de ${rows.reduce((a, [, o]) => a + o.n, 0)}</b></td><td class="num"><b>${fmt(rows.reduce((a, [, o]) => a + o.cj, 0), 1)}</b></td>${["cov","ac","rn","gmb","wl","vis"].map(k => `<td class="num"><b>${fmt(rows.reduce((a, [, o]) => a + o[k], 0))}</b></td>`).join("")}<td></td></tr></tbody></table></div>`;
 }
 function renderAvance(L){
   const rutas = [...new Set(L.map(p => p.ruta))].filter(Boolean).sort(), rs = new Set(rutas);
@@ -3939,7 +3947,7 @@ function renderAvance(L){
   // 1) en vivo: lo que marcan en ruta
   const K = liveKeys(), st = (K && LIVE.data) ? new Map([...liveLocal(), ...LIVE.data.st]) : liveLocal();
   if (K && !LIVE_P && (!LIVE.tried || Date.now() - LIVE.tried > 45000)) setTimeout(liveFetchBg, 0);
-  const T = {cov:0, ac:0, wl:0, rn:0, vis:0, cj:0}, G = {cerveza:0, gatorade:0, multi:0, single:0}, PR = new Map();
+  const T = {cov:0, ac:0, wl:0, rn:0, vis:0, cj:0, gmb:0}, G = {cerveza:0, gatorade:0, multi:0, single:0}, PR = new Map();
   for (const e of st.values()){
     if (!rs.has(e.r)) continue; const pr = PR.get(e.r) || {cov:0, ac:0, wl:0, rn:0, vis:0, cj:0, t:0}; PR.set(e.r, pr); pr.t = Math.max(pr.t, e.t || 0);
     if (e.k === "cart"){ T.cj += +e.v || 0; pr.cj += +e.v || 0; continue; }
@@ -3948,10 +3956,10 @@ function renderAvance(L){
   }
   const hhmm = t => t ? new Date(t).toLocaleTimeString("es-SV", {hour:"2-digit", minute:"2-digit"}) : "—";
   h += `<div class="avh"><b>En vivo · lo que van marcando hoy</b><span>${K ? (LIVE.err ? `<span class="warn">${esc(LIVE.err)}</span>` : LIVE.loading || LIVE_P ? "cargando…" : LIVE.t ? `actualizado ${hhmm(LIVE.t)} · se actualiza solo cada minuto` : "todavía no hay datos") : "solo las marcas de este teléfono"}</span>${K ? `<button class="btn sm" data-avref>Actualizar</button>` : ""}</div>`;
-  h += `<div class="avg">` + avTile("Coberturas marcadas", fmt(T.cov), `Cerveza ${G.cerveza} · Gatorade ${G.gatorade} · Multi ${G.multi} · Single ${G.single}`) + avTile("Promociones vendidas", fmt(T.ac), "") + avTile("Lecturas Wellington", fmt(T.wl), "equipos lecturados") + avTile("Sacados de R+N", fmt(T.rn), "equipos") + avTile("Clientes atendidos", fmt(T.vis), "con al menos una marca") + avTile("Pedidos en catálogo", fmt(T.cj, 1) + " CJ", "lo que llevan cargado hoy") + `</div>`;
+  h += `<div class="avg">` + avTile("Coberturas marcadas", fmt(T.cov), `Cerveza ${G.cerveza} · Gatorade ${G.gatorade} · Multi ${G.multi} · Single ${G.single}`) + avTile("Promociones vendidas", fmt(T.ac), "") + avTile("Lecturas Wellington", fmt(T.wl), "equipos lecturados") + avTile("Sacados de R+N", fmt(T.rn), "equipos") + avTile("Clientes atendidos", fmt(T.vis), "con al menos una marca") + avTile("Pedidos en catálogo", fmt(T.cj, 1) + " CJ", "lo que llevan cargado hoy") + (DB.vp && DB.vp.cli.size ? avTile("Activaciones Gambito", fmt(T.gmb || 0), "empaques activados hoy") : "") + `</div>`;
   if (rutas.length > 1){
     const rows = rutas.map(r => [r, PR.get(r) || {cov:0, ac:0, wl:0, rn:0, vis:0, cj:0, t:0}]).sort((a, b) => (b[1].cov + b[1].ac + b[1].wl + b[1].rn) - (a[1].cov + a[1].ac + a[1].wl + a[1].rn));
-    h += `<div class="tw"><table class="rt avtab"><thead><tr><th>Ruta</th><th>Cob.</th><th>Promos</th><th>Lect.</th><th>R+N</th><th>Clientes</th><th>CJ</th><th>Última</th></tr></thead><tbody>` + rows.map(([r, o]) => `<tr><td><b>${esc(r)}</b></td><td class="num">${fmt(o.cov)}</td><td class="num">${fmt(o.ac)}</td><td class="num">${fmt(o.wl)}</td><td class="num">${fmt(o.rn)}</td><td class="num">${fmt(o.vis)}</td><td class="num">${fmt(o.cj, 1)}</td><td class="num">${hhmm(o.t)}</td></tr>`).join("") + `</tbody></table></div>`;
+    h += `<div class="tw"><table class="rt avtab"><thead><tr><th>Ruta</th><th>Cob.</th><th>Promos</th><th>Lect.</th><th>R+N</th><th>Gamb.</th><th>Clientes</th><th>CJ</th><th>Última</th></tr></thead><tbody>` + rows.map(([r, o]) => `<tr><td><b>${esc(r)}</b></td><td class="num">${fmt(o.cov)}</td><td class="num">${fmt(o.ac)}</td><td class="num">${fmt(o.wl)}</td><td class="num">${fmt(o.rn)}</td><td class="num">${fmt(o.gmb || 0)}</td><td class="num">${fmt(o.vis)}</td><td class="num">${fmt(o.cj, 1)}</td><td class="num">${hhmm(o.t)}</td></tr>`).join("") + `</tbody></table></div>`;
   }
   const supT = rutas.length > 1 ? avSupTabla(rutas, PR, st) : "";
   if (supT) h = h.replace(`<div class="tw"><table class="rt avtab"><thead><tr><th>Ruta</th>`, supT + `<div class="avh" style="margin-top:6px"><b>Por ruta</b></div><div class="tw"><table class="rt avtab"><thead><tr><th>Ruta</th>`);
@@ -3987,10 +3995,10 @@ setInterval(async () => {   // con el panel abierto, se refresca solo
 /* indicadores del día por ruta: salen solos de lo que se marca en las fichas (coberturas, R+N, lecturas) */
 const REP_AUTO = ["cfam", "css", "cgat", "ccvz", "rn"];
 function repInd(r, st){
-  const o = {cfam:0, css:0, cgat:0, ccvz:0, rn:0, wl:0, cli:new Set()};
+  const o = {cfam:0, css:0, cgat:0, ccvz:0, rn:0, wl:0, gmb:0, cli:new Set()};
   for (const e of st.values()){ if (e.r !== r || !e.v || e.k === "rep") continue;
     if (e.k === "cov"){ const k = {multi:"cfam", single:"css", gatorade:"cgat", cerveza:"ccvz"}[covGroupOf(e.i)]; if (k) o[k]++; }
-    else if (e.k === "rn") o.rn++; else if (e.k === "wl") o.wl++;
+    else if (e.k === "rn") o.rn++; else if (e.k === "wl") o.wl++; else if (e.k === "gmb") o.gmb++;
     if (e.c) o.cli.add(e.c); }
   o.cli = o.cli.size; return o;
 }
@@ -4002,7 +4010,7 @@ function repCard(r){
   let h = `<div class="mdcard"><div class="avh"><b>Mi día · Ruta ${esc(r)}</b><span id="mdState">${v._t ? "Enviado " + new Date(v._t).toLocaleTimeString("es-SV", {hour:"2-digit", minute:"2-digit"}) : "Escribe tus volúmenes: se guardan y se envían solos"}</span></div>`;
   h += `<h4>Volumen del día (CJ)</h4><div class="repg">` + REP_COLS.filter(c => c.g === "vol" && !c.tot).map(inp).join("") + `<label><span>Total</span><input type="number" inputmode="decimal" step="0.01" min="0" data-mdk="total" data-mdr="${esc(r)}" value="${v.total ?? ""}" placeholder="0"></label></div>`;
   h += `<h4>Empaques emergentes (CJ)</h4><div class="repg">` + REP_COLS.filter(c => c.g === "eme").map(inp).join("") + `</div>`;
-  h += `<h4>Indicadores de hoy <small>(se suman solos con lo que marcas en cada cliente)</small></h4><div class="avg">` + avTile("Cob familiares", fmt(ind.cfam), "") + avTile("Cob SS", fmt(ind.css), "") + avTile("Cob Gatorade", fmt(ind.cgat), "") + avTile("Cob CVZ", fmt(ind.ccvz), "") + avTile("R+N sacados", fmt(ind.rn), "") + avTile("Lecturas Wellington", fmt(ind.wl), "") + `</div>`;
+  h += `<h4>Indicadores de hoy <small>(se suman solos con lo que marcas en cada cliente)</small></h4><div class="avg">` + avTile("Cob familiares", fmt(ind.cfam), "") + avTile("Cob SS", fmt(ind.css), "") + avTile("Cob Gatorade", fmt(ind.cgat), "") + avTile("Cob CVZ", fmt(ind.ccvz), "") + avTile("R+N sacados", fmt(ind.rn), "") + avTile("Lecturas Wellington", fmt(ind.wl), "") + (DB.vp && DB.vp.cli.size ? avTile("Activaciones Gambito", fmt(ind.gmb), "") : "") + `</div>`;
   h += `<div class="repg">` + inp(REP_COLS.find(c => c.k === "etp")) + `</div><p class="note">Todo empieza en cero cada día: lo de ayer queda guardado solo como historial.</p></div>`;
   return h;
 }
@@ -4241,39 +4249,52 @@ function gambInicio(){
 }
 const GPROD = {R750:"Regia 750", R330:"Regia 330", S330:"Suprema 330"};
 // por cliente: cada empaque de su plan, si ya compró desde el inicio y cuántas cajas
+/* activaciones marcadas por el vendedor en la ficha ("Lo activé"): se guardan en el teléfono hasta que la compra aparece en los datos,
+   y viajan en vivo al supervisor (marca "gmb"). Un cliente cuenta activado con la compra en los datos O con la marca, sin contar doble. */
+const GMB_KEY = "rutapdv_gmbact";
+let GMB_LOC = ls.get(GMB_KEY, {}) || {}, GMB_V = 0, GMB_C = {v:-1, t:-1, m:null};
+function gmbSet(c, k, on){ const key = c + "|" + k; if (on) GMB_LOC[key] = todayKey(); else delete GMB_LOC[key]; ls.set(GMB_KEY, GMB_LOC); GMB_V++; }
+function gmbMarcas(){   // "cliente|empaque" -> fecha de la marca
+  if (GMB_C.v === GMB_V && GMB_C.t === LIVE.t) return GMB_C.m;
+  const ini = gambInicio(), m = new Map();
+  for (const [key, f] of Object.entries(GMB_LOC)) if (f >= ini) m.set(key, f);
+  if (LIVE.data) for (const e of LIVE.data.st.values()) if (e.k === "gmb"){ const key = e.c + "|" + e.i; if (e.v) m.set(key, e.d || todayKey()); else if (!GMB_LOC[key]) m.delete(key); }
+  GMB_C = {v:GMB_V, t:LIVE.t, m}; return m;
+}
 function gambEstado(p){
   const x = DB.vp && DB.vp.cli.get(p.c); if (!x) return null;
-  const ini = gambInicio().slice(5), c = (DB.gcb && DB.gcb.cli.get(p.c)) || {}, items = [];
+  const ini = gambInicio().slice(5), c = (DB.gcb && DB.gcb.cli.get(p.c)) || {}, items = [], GM = gmbMarcas();
   for (const [k, o] of Object.entries(x.prods)){
-    const b = c[k], cj = b ? b.compras.filter(([md]) => md >= ini).reduce((a, [, v]) => a + v, 0) : 0;
-    items.push({k, plan:o.plan || "VPO", cj, act: cj > 0, drop: o.t && o.t[0] ? o.t[0][0] : 1, ok: cj >= ((o.t && o.t[0] && o.t[0][0]) || 1) - 1e-6, max:o.max || 0, ult: b ? b.ultima : ""});
+    const b = c[k], cj = b ? b.compras.filter(([md]) => md >= ini).reduce((a, [, v]) => a + v, 0) : 0, mk = GM.get(p.c + "|" + k) || "";
+    items.push({k, plan:o.plan || "VPO", cj, dat: cj > 0, campo: !(cj > 0) && !!mk, fmk: mk, act: cj > 0 || !!mk, drop: o.t && o.t[0] ? o.t[0][0] : 1, ok: cj >= ((o.t && o.t[0] && o.t[0][0]) || 1) - 1e-6, max:o.max || 0, ult: b ? b.ultima : ""});
   }
   return {items, act: items.some(i => i.act), all: items.every(i => i.act)};
 }
 Object.assign(SEG_FN, {gambact: p => { const e = gambEstado(p); return !!e && e.act; }, gambpend: p => { const e = gambEstado(p); return !!e && !e.act; }});
 Object.assign(SEG_LABEL, {gambact:"Gambito · ya se activaron", gambpend:"Gambito · por activar"});
 function gmbSum(L){
-  if (!DB.vp || !DB.vp.cli.size || !DB.gcb || !DB.gcb.cli.size) return "";
+  if (!DB.vp || !DB.vp.cli.size) return "";
   let n = 0, a = 0; for (const p of L){ const e = gambEstado(p); if (!e) continue; n++; if (e.act) a++; }
   return n ? `<b>${fmt(a)}</b> de ${fmt(n)} clientes activados · <b>${Math.round(a / n * 100)}%</b>` : "";
 }
 function renderGambito(L){
-  const ini = gambInicio(), hasta = (DB.gcb.info || {}).hasta || "";
-  const P = {}, PR = {}, RT = new Map(); let n = 0, a = 0, cj = 0, hoyA = 0;
+  const ini = gambInicio(), hasta = ((DB.gcb && DB.gcb.info) || {}).hasta || "";
+  const P = {}, PR = {}, RT = new Map(); let n = 0, a = 0, cj = 0, hoyA = 0, aC = 0, aH = 0; const hoy = todayKey();
   const ayer = hasta;
   for (const p of L){ const e = gambEstado(p); if (!e) continue; n++; if (e.act) a++;
-    const r = RT.get(p.ruta) || {n:0, a:0, cj:0, nc:0, nca:0}; RT.set(p.ruta, r); r.n++; if (e.act) r.a++;
+    const soloC = e.act && !e.items.some(i => i.dat); if (soloC) aC++; if (e.items.some(i => i.fmk === hoy)) aH++;
+    const r = RT.get(p.ruta) || {n:0, a:0, cj:0, nc:0, nca:0, ac:0, ah:0}; RT.set(p.ruta, r); r.n++; if (e.act) r.a++; if (soloC) r.ac++; if (e.items.some(i => i.fmk === hoy)) r.ah++;
     for (const it of e.items){ const pk = it.plan; P[pk] = P[pk] || {n:0, a:0, cj:0}; P[pk].n++; if (it.act) P[pk].a++; P[pk].cj += it.cj; const q = it.k; PR[q] = PR[q] || {n:0, a:0, cj:0}; PR[q].n++; if (it.act) PR[q].a++; PR[q].cj += it.cj; cj += it.cj; r.cj += it.cj; if (it.plan === "Nunca compra"){ r.nc++; if (it.act) r.nca++; }
       if (it.act && it.ult === ayer) hoyA++; } }
   if (!n) return `<p class="note">No hay clientes con plan Gambito en este alcance.</p>`;
   const fd = k => k ? `${+k.slice(8)}/${+k.slice(5, 7)}` : "";
-  let h = `<p class="note">Plan desde el <b>${fd(ini)}</b> · compras hasta el <b>${fd(hasta)}</b> (archivos de incentivos). Un cliente se cuenta activado cuando compra el empaque de su plan desde el inicio.</p>`;
+  let h = `<p class="note">Plan desde el <b>${fd(ini)}</b> · compras hasta el <b>${fd(hasta)}</b> (archivos de incentivos). Un cliente cuenta activado cuando compra el empaque de su plan desde el inicio <b>o</b> cuando el vendedor lo marca «Lo activé» en la ficha (mientras la compra llega a los datos; no se cuenta doble).</p>`;
   const pa = a / n;
-  h += `<div class="avg">` + avTile("Clientes activados", `${fmt(a)} / ${fmt(n)}`, `${Math.round(pa * 100)}% del plan · faltan ${fmt(n - a)}`, pa, pa >= .5 ? "ok" : pa >= .25 ? "warn" : "bad") + avTile("Cajas vendidas en el plan", fmt(cj, 1), "Regia 750, Regia 330 y Suprema 330") + avTile(`Compraron el ${fd(ayer)}`, fmt(hoyA), "último día de datos") + `</div>`;
+  h += `<div class="avg">` + avTile("Clientes activados", `${fmt(a)} / ${fmt(n)}`, `${Math.round(pa * 100)}% del plan · faltan ${fmt(n - a)}`, pa, pa >= .5 ? "ok" : pa >= .25 ? "warn" : "bad") + avTile("Cajas vendidas en el plan", fmt(cj, 1), "Regia 750, Regia 330 y Suprema 330") + avTile("Activados hoy en ruta", fmt(aH), "marcados por los vendedores hoy") + avTile("Marcados, por confirmar", fmt(aC), "aún sin la compra en los datos") + (hasta ? avTile(`Compraron el ${fd(ayer)}`, fmt(hoyA), "último día de datos") : "") + `</div>`;
   h += `<h4 class="cpt">Por tipo de plan</h4><div class="avg">` + ["VPO", "Nunca compra", "Compra 0", "Caídos"].filter(k => P[k]).map(k => { const o = P[k], q = o.a / o.n; return avTile(k === "VPO" ? "VPO por escalas" : k, `${fmt(o.a)} / ${fmt(o.n)}`, `${Math.round(q * 100)}% · ${fmt(o.cj, 1)} CJ`, q, q >= .5 ? "ok" : q >= .25 ? "warn" : "bad"); }).join("") + `</div>`;
   h += `<h4 class="cpt">Por empaque</h4><div class="avg">` + Object.keys(GPROD).filter(k => PR[k]).map(k => { const o = PR[k], q = o.a / o.n; return avTile(GPROD[k], `${fmt(o.a)} / ${fmt(o.n)}`, `${Math.round(q * 100)}% · ${fmt(o.cj, 1)} CJ`, q, q >= .5 ? "ok" : q >= .25 ? "warn" : "bad"); }).join("") + `</div>`;
   const rows = [...RT.entries()].sort((x, y) => y[1].a / y[1].n - x[1].a / x[1].n);
-  if (rows.length > 1) h += `<h4 class="cpt">Por ruta</h4><div class="tw"><table class="rt avtab"><thead><tr><th>Ruta</th><th>Clientes</th><th>Activados</th><th>%</th><th>Nunca compra activados</th><th>CJ</th></tr></thead><tbody>` + rows.map(([r, o]) => `<tr><td><b>${esc(r)}</b></td><td class="num">${fmt(o.n)}</td><td class="num">${fmt(o.a)}</td><td class="num"><b class="${o.a / o.n >= .5 ? "ok" : o.a / o.n >= .25 ? "warn" : "bad"}">${Math.round(o.a / o.n * 100)}%</b></td><td class="num">${o.nc ? `${fmt(o.nca)} / ${fmt(o.nc)}` : "—"}</td><td class="num">${fmt(o.cj, 1)}</td></tr>`).join("") + `</tbody></table></div>`;
+  if (rows.length > 1) h += `<h4 class="cpt">Por ruta</h4><div class="tw"><table class="rt avtab"><thead><tr><th>Ruta</th><th>Clientes</th><th>Activados</th><th>%</th><th>Hoy en ruta</th><th>Por confirmar</th><th>Nunca compra activados</th><th>CJ</th></tr></thead><tbody>` + rows.map(([r, o]) => `<tr><td><b>${esc(r)}</b></td><td class="num">${fmt(o.n)}</td><td class="num">${fmt(o.a)}</td><td class="num"><b class="${o.a / o.n >= .5 ? "ok" : o.a / o.n >= .25 ? "warn" : "bad"}">${Math.round(o.a / o.n * 100)}%</b></td><td class="num">${fmt(o.ah)}</td><td class="num">${fmt(o.ac)}</td><td class="num">${o.nc ? `${fmt(o.nca)} / ${fmt(o.nc)}` : "—"}</td><td class="num">${fmt(o.cj, 1)}</td></tr>`).join("") + `</tbody></table></div>`;
   h += `<div class="bact"><button class="btn sm pri" data-gseg="gambpend">Ver los ${fmt(n - a)} por activar</button><button class="btn sm" data-gseg="gambact">Ver los ${fmt(a)} activados</button></div>`;
   return h;
 }
@@ -4325,7 +4346,7 @@ function openPdv(c){
   const d = (ME && p.lat != null) ? fmtDist(haversine(ME.lat,ME.lng,p.lat,p.lng)) : null;
   const kv = (l, val, cls="") => `<div><div class="l">${l}</div><div class="v ${cls}">${val}</div></div>`;
 
-  let h = "";
+  let h = `<div class="dirb${p.dir ? "" : " nod"}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><div><div class="l">Dirección</div><div class="v">${p.dir ? esc(p.dir) : "Sin dirección registrada"}</div></div>${p.dir ? `<button class="btn sm" data-copydir="${esc(p.dir)}">Copiar</button>` : ""}</div>`;
   // identidad + ubicación
   h += `<div class="sec"><h3>Identidad<span class="r" id="dDist">${d ?? (p.lat==null ? "Sin coordenadas" : "")}</span></h3><div class="in">
     <div class="kv2">
@@ -4333,7 +4354,6 @@ function openPdv(c){
       ${kv("Tipo", esc(p.etq||"—"))}${kv("EF", esc(p.ef||"—"))}
       ${kv("Frecuencia", esc(p.fr||"—") + (days?`<span class="note" style="font-weight:500"> · ${days}</span>`:""))}${kv("Coordenadas", p.lat!=null?`<span class="num">${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</span>`:"—")}
     </div>
-    ${p.dir ? `<p class="note" style="margin:0">${esc(p.dir)}</p>` : ""}
     ${gmaps ? `<button class="btn pri" data-route="${p.c}">Trazar ruta en el mapa</button>
       <div class="row3"><a class="btn sm" href="${gmaps}" target="_blank" rel="noopener">Google Maps</a><a class="btn sm" href="${waze}" target="_blank" rel="noopener">Waze</a><button class="btn sm" data-center="${p.c}">Ver punto</button></div>` : `<p class="note">Este cliente no tiene latitud/longitud en la maestra ni en monitoreo.</p>`}
   </div></div>`;
@@ -4366,7 +4386,7 @@ function openPdv(c){
   const vpc = DB.vp && DB.vp.cli.get(p.c);
   const vpoEsc = vpc ? (() => { const I = DB.vp.info || {};
     const rows = Object.entries(vpc.prods).map(([k, x]) => { const T = vpoTier({t:x.t, v:x.v || 0, min:vpc.min || 0, tot:Object.values(vpc.prods).reduce((a, y) => a + (y.v || 0), 0)}, 0);
-      return `<div class="vrow"><div class="vh"><b>${esc(VPO_PROD[k] || k)}</b><span>${x.plan ? `<b>${esc(x.plan === "VPO" ? "Plan VPO" : x.plan)}</b>` : ""}${x.max ? ` · máx ${fmt(x.max)} CJ (primera compra)` : ""}${x.v ? ` · facturado <b>${fmt(x.v, 1)} CJ</b>` : ""}${(() => { if (!DB.gcb || !DB.gcb.cli.size) return ""; const e = gambEstado(p), it = e && e.items.find(i => i.k === k); return it ? (it.act ? ` · <b class="ok">✓ activado: ${fmt(it.cj, 1)} CJ</b>` : ` · <b class="warn">por activar</b>`) : ""; })()}</span></div><div class="vtiers">${x.t.map((t, i) => `<span class="vtier ${i === T.i ? "on" : ""}">${fmt(t[0])}+ CJ <b>$${t[1].toFixed(2)}</b></span>`).join("")}</div></div>`; }).join("");
+      return `<div class="vrow"><div class="vh"><b>${esc(VPO_PROD[k] || k)}</b><span>${x.plan ? `<b>${esc(x.plan === "VPO" ? "Plan VPO" : x.plan)}</b>` : ""}${x.max ? ` · máx ${fmt(x.max)} CJ (primera compra)` : ""}${x.v ? ` · facturado <b>${fmt(x.v, 1)} CJ</b>` : ""}${(() => { const e = gambEstado(p), it = e && e.items.find(i => i.k === k); return it ? (it.dat ? ` · <b class="ok">✓ activado: ${fmt(it.cj, 1)} CJ</b>` : it.campo ? ` · <b class="ok gst">✓ activado en ruta${it.fmk === todayKey() ? " hoy" : " el " + it.fmk.slice(8) + "/" + it.fmk.slice(5, 7)}</b>` : ` · <b class="warn gst">por activar</b>`) : ""; })()}</span></div>${(() => { const e = gambEstado(p), it = e && e.items.find(i => i.k === k); if (!it || it.dat) return ""; const on = !!it.fmk; return `<label class="chk gact ${on ? "done" : ""}" for="gm_${esc(k)}"><input type="checkbox" id="gm_${esc(k)}" data-kind="gmb" data-k="${esc(k)}" ${on ? "checked" : ""}><span class="t">Lo activé: el cliente compró ${esc(VPO_PROD[k] || GPROD[k] || k)}</span></label>`; })()}<div class="vtiers">${x.t.map((t, i) => `<span class="vtier ${i === T.i ? "on" : ""}">${fmt(t[0])}+ CJ <b>$${t[1].toFixed(2)}</b></span>`).join("")}</div></div>`; }).join("");
     return `<div class="vbox"><div class="vcap">${I.fuente === "Plan Gambito" ? "Plan Gambito cerveza" : "Plan VPO"} ${esc(I.periodo || "")} · precio por caja según las cajas del pedido <small>(archivo al ${esc(I.corte || "—")})</small></div>${rows}</div><p class="note" style="margin:0">${vpc.tipo ? `Tipo <b>${esc(vpc.tipo)}</b> · ` : ""}${vpc.min ? `compra mínima <b>${fmt(vpc.min)} CJ</b> de cerveza VPO por pedido · ` : ""}la escala se calcula con las cajas de cada pedido (no es acumulado del mes). Calcula el precio en <b>Catálogo</b>.</p><button class="btn cat" data-fcatpr="GAMBITO">🛒 Ver precio VPO en el catálogo</button>`; })() : "";
   if (p.vpo || vpc){
     const V = p.vpo || {din:vpc.tipo, clas:vpc.clase, real:Object.values(vpc.prods).reduce((a, y) => a + (y.v || 0), 0), meta:vpc.min || null, pct:vpc.min ? Object.values(vpc.prods).reduce((a, y) => a + (y.v || 0), 0) / vpc.min : 0, resp:""}, pc = Math.round((V.pct || 0) * 100), falta = V.meta != null ? Math.max(0, V.meta - (V.real || 0)) : null;
@@ -4422,6 +4442,7 @@ function onCheck(e){
   const t = e.target; if (!t.matches("input[type=checkbox][data-kind]") || openC == null) return;
   const v = visit(openC, true);
   v[t.dataset.kind] = v[t.dataset.kind] || {}; v[t.dataset.kind][t.dataset.k] = t.checked;
+  if (t.dataset.kind === "gmb"){ gmbSet(openC, t.dataset.k, t.checked); if (t.checked) toast("Activación Gambito registrada"); const g = t.closest(".vrow") && t.closest(".vrow").querySelector(".gst"); if (g){ g.className = (t.checked ? "ok" : "warn") + " gst"; g.textContent = t.checked ? "✓ activado en ruta hoy" : "por activar"; } }
   if (!v.t && t.checked){ v.t = Date.now(); liveMark(openC, "vis", "1", true); }
   saveVis(); liveMark(openC, t.dataset.kind, t.dataset.k, t.checked);
   const box = t.closest(".chk, .pcard"); if (box) box.classList.toggle("done", t.checked);
