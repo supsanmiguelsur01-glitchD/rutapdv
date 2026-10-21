@@ -675,6 +675,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 		print-color-adjust: exact;
 		}
 	}
+.avtab tr.sub td{background:var(--sub-bg,rgba(79,179,232,.10));border-top:1px solid rgba(79,179,232,.35)} .avtab tr.avsup:hover td{background:rgba(79,179,232,.08)}
 </style>
 <style>
 :root{
@@ -2734,7 +2735,7 @@ function compactNotes(root){
   });
   // tablas largas: plegadas, se abren al tocar
   root.querySelectorAll(".tw").forEach(t => {
-    if (t.closest("details")) return;
+    if (t.closest("details") || t.classList.contains("keep")) return;
     const n = t.querySelectorAll("tbody tr").length; if (n <= 5) return;
     const d = document.createElement("details"); d.className = "tfold";
     d.innerHTML = `<summary>Ver tabla (${n} filas)</summary>`; t.replaceWith(d); d.appendChild(t);
@@ -3823,14 +3824,15 @@ async function liveFetch(force){
   if (!force && LIVE.data && Date.now() - LIVE.t < 45000) return LIVE.data;
   const st = new Map(), d = todayKey(); let n = 0;
   try{
-    for (const [s, k] of Object.entries(K)){
-      const r = await fetch(`${DB.live.url}?a=get&ch=${await liveChan(k)}&d=${d}&t=${Date.now()}`, {cache:"no-store"});
-      if (!r.ok) throw new Error("http " + r.status);
-      const j = await r.json();
-      for (const row of (j.rows || [])){ let evs; try{ evs = await liveDec(k, row[1]); }catch(e){ continue; }
-        for (const e of evs){ if (e.d !== d) continue; n++; const key = e.c + "|" + e.k + "|" + e.i, o = st.get(key); if (!o || o.t <= e.t) st.set(key, e); } }
-    }
-    LIVE.data = {st, n}; LIVE.t = Date.now(); LIVE.err = "";
+    /* todos los canales a la vez (acceso total = un canal por supervisor) */
+    const res = await Promise.all(Object.entries(K).map(async ([s, k]) => {
+      try{ const r = await fetch(`${DB.live.url}?a=get&ch=${await liveChan(k)}&d=${d}&t=${Date.now()}`, {cache:"no-store"});
+        if (!r.ok) return {s, k, err:1}; const j = await r.json(); return {s, k, rows: j.rows || []}; }catch(e){ return {s, k, err:1}; } }));
+    const fail = res.filter(x => x.err).length; if (fail === res.length && res.length) throw new Error("sin buzón");
+    for (const {k, rows} of res){ if (!rows) continue;
+      for (const row of rows){ let evs; try{ evs = await liveDec(k, row[1]); }catch(e){ continue; }
+        for (const e of evs){ if (e.d !== d) continue; n++; const key = e.c + "|" + e.k + "|" + e.i, o = st.get(key); if (!o || o.t <= e.t) st.set(key, e); } } }
+    LIVE.data = {st, n}; LIVE.t = Date.now(); LIVE.err = fail ? `No se pudo leer ${fail} de ${res.length} equipos; reintenta` : "";
   }catch(e){ LIVE.err = "No se pudo leer el buzón en vivo (revisa la conexión)"; }
   return LIVE.data;
 }
@@ -3907,6 +3909,18 @@ function avSum(L){
   for (const e of st.values()){ if (!rs.has(e.r) || !e.v) continue; if (e.k === "cov") cov++; if (e.k === "vis") vis++; }
   return `Hoy: <b>${fmt(cov)}</b> coberturas marcadas · <b>${fmt(vis)}</b> clientes atendidos`;
 }
+function supDeRuta(r){ const m = DB.rutaSup && DB.rutaSup.get(r); return m && m.size ? [...m.entries()].sort((a, b) => b[1] - a[1])[0][0] : ""; }
+function avSupTabla(rutas, PR, st){
+  const S = new Map();
+  for (const x of repConsolidado(rutas)){ const s = supDeRuta(x.r) || "Sin supervisor"; const o = S.get(s) || {n:0, rep:0, cj:0, cov:0, ac:0, wl:0, rn:0, vis:0, cart:0, t:0}; S.set(s, o);
+    o.n++; if (x.rep) o.rep++; o.cj += +x.o.total || 0; const p = PR.get(x.r); if (p){ o.cov += p.cov; o.ac += p.ac; o.wl += p.wl; o.rn += p.rn; o.vis += p.vis; o.cart += p.cj; o.t = Math.max(o.t, p.t); } }
+  if (S.size < 2) return "";
+  const hhmm = t => t ? new Date(t).toLocaleTimeString("es-SV", {hour:"2-digit", minute:"2-digit"}) : "—";
+  const rows = [...S.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  return `<div class="avh" style="margin-top:6px"><b>Cierre del día por supervisor</b><span>toca un supervisor para ver el cierre de sus rutas</span></div><div class="tw keep"><table class="rt avtab"><thead><tr><th>Supervisor</th><th>Reportaron</th><th>CJ reportadas</th><th>Cob.</th><th>Promos</th><th>R+N</th><th>Lect.</th><th>Clientes</th><th>Última</th></tr></thead><tbody>` +
+    rows.map(([s, o]) => `<tr class="avsup" data-avsup="${esc(s)}" style="cursor:pointer"><td><b>${esc(s)}</b> ›</td><td class="num ${o.rep === o.n ? "ok" : o.rep ? "" : "warn"}">${o.rep} de ${o.n}</td><td class="num">${fmt(o.cj, 1)}</td><td class="num">${fmt(o.cov)}</td><td class="num">${fmt(o.ac)}</td><td class="num">${fmt(o.rn)}</td><td class="num">${fmt(o.wl)}</td><td class="num">${fmt(o.vis)}</td><td class="num">${hhmm(o.t)}</td></tr>`).join("") +
+    `<tr class="tot"><td><b>Total</b></td><td class="num"><b>${rows.reduce((a, [, o]) => a + o.rep, 0)} de ${rows.reduce((a, [, o]) => a + o.n, 0)}</b></td><td class="num"><b>${fmt(rows.reduce((a, [, o]) => a + o.cj, 0), 1)}</b></td>${["cov","ac","rn","wl","vis"].map(k => `<td class="num"><b>${fmt(rows.reduce((a, [, o]) => a + o[k], 0))}</b></td>`).join("")}<td></td></tr></tbody></table></div>`;
+}
 function renderAvance(L){
   const rutas = [...new Set(L.map(p => p.ruta))].filter(Boolean).sort(), rs = new Set(rutas);
   let h = "";
@@ -3926,6 +3940,9 @@ function renderAvance(L){
     const rows = rutas.map(r => [r, PR.get(r) || {cov:0, ac:0, wl:0, rn:0, vis:0, cj:0, t:0}]).sort((a, b) => (b[1].cov + b[1].ac + b[1].wl + b[1].rn) - (a[1].cov + a[1].ac + a[1].wl + a[1].rn));
     h += `<div class="tw"><table class="rt avtab"><thead><tr><th>Ruta</th><th>Cob.</th><th>Promos</th><th>Lect.</th><th>R+N</th><th>Clientes</th><th>CJ</th><th>Última</th></tr></thead><tbody>` + rows.map(([r, o]) => `<tr><td><b>${esc(r)}</b></td><td class="num">${fmt(o.cov)}</td><td class="num">${fmt(o.ac)}</td><td class="num">${fmt(o.wl)}</td><td class="num">${fmt(o.rn)}</td><td class="num">${fmt(o.vis)}</td><td class="num">${fmt(o.cj, 1)}</td><td class="num">${hhmm(o.t)}</td></tr>`).join("") + `</tbody></table></div>`;
   }
+  const supT = rutas.length > 1 ? avSupTabla(rutas, PR, st) : "";
+  if (supT) h = h.replace(`<div class="tw"><table class="rt avtab"><thead><tr><th>Ruta</th>`, supT + `<div class="avh" style="margin-top:6px"><b>Por ruta</b></div><div class="tw"><table class="rt avtab"><thead><tr><th>Ruta</th>`);
+  if (F.sup && DB.sups.length > 1) h = `<div class="avh"><b>Supervisor ${esc(F.sup)}</b><span>cierre del día de sus ${rutas.length} rutas</span><button class="btn sm" data-avsupx>Ver todos</button></div>` + h;
   if (!K) h += `<p class="note">Para que el supervisor vea en su teléfono lo que marca cada vendedor, activa <b>Seguimiento en vivo</b> en el Publicador y vuelve a publicar.</p>`;
   if (rutas.length === 1) h = repCard(rutas[0]) + h;
   else if (rutas.length > 1) h += repTabla(rutas);
@@ -3942,6 +3959,8 @@ function renderAvance(L){
 }
 document.addEventListener("click", async e => {
   const f = e.target.closest && e.target.closest("[data-avf]"), r = e.target.closest && e.target.closest("[data-avref]");
+  const sp = e.target.closest && e.target.closest("[data-avsup]"), spx = e.target.closest && e.target.closest("[data-avsupx]");
+  if (sp || spx){ F.sup = sp ? sp.dataset.avsup : ""; F.rutas = []; F.frs = []; needFit = true; buildFilterUI(); renderAll(); return; }
   if (!f && !r) return; const box = e.target.closest(".accb"); if (f) LOGV.f = f.dataset.avf;
   if (r){ r.disabled = true; await liveFetch(true); }
   if (box) box.innerHTML = renderAvance(filtered(true));
@@ -4046,28 +4065,41 @@ function repConsolidado(rutas){
     const em = DB.em && DB.em.rutas.get(r);
     rows.push({r, rep, o, em: em ? em.real / em.meta : null});
   }
-  return rows;
+  const sp = new Set(rows.map(x => x.s = supDeRuta(x.r) || ""));
+  if (sp.size > 1) rows.sort((a, b) => a.s.localeCompare(b.s) || a.r.localeCompare(b.r));
+  rows.sups = sp; return rows;
+}
+/* filas con subtotal por supervisor (solo si hay más de uno) */
+function repConSub(R){
+  if (!R.sups || R.sups.size < 2) return R.map(x => ({t:"r", x}));
+  const G = new Map();
+  for (const x of R){ let g = G.get(x.s); if (!g){ g = {o:{}, n:0, rep:0, emR:0, emM:0, xs:[]}; G.set(x.s, g); }
+    g.xs.push(x); g.n++; if (x.rep) g.rep++; for (const c of REP_COLS) g.o[c.k] = (g.o[c.k] || 0) + (+x.o[c.k] || 0);
+    const e = DB.em && DB.em.rutas.get(x.r); if (e){ g.emR += e.real; g.emM += e.meta; } }
+  const out = []; for (const [s, g] of G){ out.push({t:"s", s, o:g.o, n:g.n, rep:g.rep, em:g.emM ? g.emR / g.emM : null}); for (const x of g.xs) out.push({t:"r", x}); }
+  return out;
 }
 function repTabla(rutas){
   const R = repConsolidado(rutas), nRep = R.filter(x => x.rep).length;
   const tot = {}; for (const c of REP_COLS) tot[c.k] = R.reduce((a, x) => a + (+x.o[c.k] || 0), 0);
   const emR = R.map(x => DB.em && DB.em.rutas.get(x.r)).filter(Boolean), emTot = emR.length ? Math.round(emR.reduce((a, e) => a + e.real, 0) / emR.reduce((a, e) => a + e.meta, 0) * 100) + "%" : "—";
   let h = `<div class="avh" style="margin-top:6px"><b>Consolidado del día</b><span>${nRep} de ${R.length} rutas reportadas</span><button class="btn sm pri" data-repimg>Generar imagen</button></div>`;
-  h += `<div class="tw"><table class="rt avtab"><thead><tr><th>Ruta</th>${REP_COLS.map(c => `<th>${esc(c.l)}</th>` + (c.k === "black" ? "<th>Emerg. alcance mes</th>" : "")).join("")}</tr></thead><tbody>` + R.map(x => `<tr class="${x.rep ? "" : "norep"}"><td><b>${esc(x.r)}</b>${x.rep ? "" : "<small> sin reporte</small>"}</td>${REP_COLS.map(c => `<td class="num">${x.o[c.k] != null ? fmt(x.o[c.k], 2) : "—"}</td>` + (c.k === "black" ? `<td class="num">${x.em != null ? Math.round(x.em * 100) + "%" : "—"}</td>` : "")).join("")}</tr>`).join("") + `<tr class="tot"><td><b>Total</b></td>${REP_COLS.map(c => `<td class="num"><b>${fmt(tot[c.k], 2)}</b></td>` + (c.k === "black" ? `<td class="num"><b>${emTot}</b></td>` : "")).join("")}</tr></tbody></table></div>`;
+  h += `<div class="tw"><table class="rt avtab"><thead><tr><th>Ruta</th>${REP_COLS.map(c => `<th>${esc(c.l)}</th>` + (c.k === "black" ? "<th>Emerg. alcance mes</th>" : "")).join("")}</tr></thead><tbody>` + repConSub(R).map(y => y.t === "s" ? `<tr class="sub"><td><b>${esc(y.s || "Sin supervisor")}</b><small> ${y.rep} de ${y.n}</small></td>${REP_COLS.map(c => `<td class="num"><b>${fmt(y.o[c.k], 2)}</b></td>` + (c.k === "black" ? `<td class="num"><b>${y.em != null ? Math.round(y.em * 100) + "%" : "—"}</b></td>` : "")).join("")}</tr>` : (x => `<tr class="${x.rep ? "" : "norep"}"><td><b>${esc(x.r)}</b>${x.rep ? "" : "<small> sin reporte</small>"}</td>${REP_COLS.map(c => `<td class="num">${x.o[c.k] != null ? fmt(x.o[c.k], 2) : "—"}</td>` + (c.k === "black" ? `<td class="num">${x.em != null ? Math.round(x.em * 100) + "%" : "—"}</td>` : "")).join("")}</tr>`)(y.x)).join("") + `<tr class="tot"><td><b>Total</b></td>${REP_COLS.map(c => `<td class="num"><b>${fmt(tot[c.k], 2)}</b></td>` + (c.k === "black" ? `<td class="num"><b>${emTot}</b></td>` : "")).join("")}</tr></tbody></table></div>`;
   return h;
 }
 // imagen para WhatsApp (mismo estilo del consolidado que se manda al grupo)
 async function repImagen(rutas){
-  const R = repConsolidado(rutas), nRep = R.filter(x => x.rep).length;
+  const R = repConsolidado(rutas), nRep = R.filter(x => x.rep).length, RS = repConSub(R);
+  const supUno = R.sups && R.sups.size === 1 ? [...R.sups][0] : "";
   const cols = [...REP_COLS]; cols.splice(cols.findIndex(c => c.k === "black") + 1, 0, {k:"_em", l:"Alcance mes", g:"eme", pct:1});   // el alcance del emergente va dentro de su segmento
   const W0 = 130, CW = 86, padX = 34, top = 110, hh = 64, rh = 46;
-  const W = padX * 2 + W0 + cols.length * CW, H = top + 34 + hh + rh * (R.length + 1) + 50, sc = 2;
+  const W = padX * 2 + W0 + cols.length * CW, H = top + 34 + hh + rh * (RS.length + 1) + 50, sc = 2;
   const cv = document.createElement("canvas"); cv.width = W * sc; cv.height = H * sc; const g = cv.getContext("2d"); g.scale(sc, sc);
   const F = (w, s) => `${w} ${s}px Inter, "Segoe UI", Roboto, Arial, sans-serif`;
   g.fillStyle = "#0E141C"; g.fillRect(0, 0, W, H);
   g.fillStyle = "#FFFFFF"; g.font = F(800, 26); g.fillText("CONSOLIDADO DE VENTA · PREVENTA", padX, 52);
   const d = new Date(), dia = d.toLocaleDateString("es-SV", {weekday:"long"}); g.fillStyle = "#9AA6B5"; g.font = F(500, 14);
-  g.fillText(`${dia.charAt(0).toUpperCase() + dia.slice(1)} ${d.toLocaleDateString("es-SV")}  ·  ${nRep} de ${R.length} rutas reportadas${(DB.sups.length === 1 ? "  ·  " + DB.sups[0] : "")}`, padX, 80);
+  g.fillText(`${dia.charAt(0).toUpperCase() + dia.slice(1)} ${d.toLocaleDateString("es-SV")}  ·  ${nRep} de ${R.length} rutas reportadas${supUno ? "  ·  Sup. " + supUno : R.sups && R.sups.size > 1 ? "  ·  " + R.sups.size + " supervisores" : ""}`, padX, 80);
   const x0 = padX + W0, groups = [["vol", "VOLUMEN", "#4FB3E8"], ["eme", "EMERGENTES", "#E8B44F"], ["cob", "COBERTURAS", "#6FCF7F"]];
   let gx = x0; for (const [k, t, col] of groups){ const n = cols.filter(c => c.g === k).length; if (!n) continue; g.fillStyle = col; g.font = F(800, 12); g.textAlign = "center"; g.fillText(t, gx + n * CW / 2, top + 12); g.fillRect(gx + 4, top + 22, n * CW - 8, 2); gx += n * CW; }
   const y0 = top + 34; g.fillStyle = "#172030"; g.fillRect(padX, y0, W - padX * 2, hh);
@@ -4076,14 +4108,17 @@ async function repImagen(rutas){
     const words = c.l.toUpperCase().split(" "); const lines = words.length > 1 && c.l.length > 9 ? [words.slice(0, Math.ceil(words.length / 2)).join(" "), words.slice(Math.ceil(words.length / 2)).join(" ")] : [c.l.toUpperCase()];
     lines.forEach((ln, j) => g.fillText(ln, cx, y0 + hh / 2 + 4 + (j - (lines.length - 1) / 2) * 14)); });
   const tot = {}; const val = (x, c) => c.k === "_em" ? (x.em != null ? Math.round(x.em * 100) + "%" : "—") : x.o[c.k] != null ? String(Math.round(x.o[c.k] * 100) / 100) : "—";
-  R.forEach((x, i) => { const y = y0 + hh + i * rh; g.fillStyle = i % 2 ? "#131B26" : "#0F1620"; g.fillRect(padX, y, W - padX * 2, rh);
+  RS.forEach((it, i) => { const y = y0 + hh + i * rh;
+    if (it.t === "s"){ g.fillStyle = "#1E2A3A"; g.fillRect(padX, y, W - padX * 2, rh); g.textAlign = "left"; g.fillStyle = "#79C8F2"; g.font = F(800, 12); const nm = (it.s || "Sin supervisor").toUpperCase(); g.fillText(nm.length > 16 ? nm.slice(0, 15) + "…" : nm, padX + 12, y + rh / 2 + 1); g.fillStyle = "#9AA6B5"; g.font = F(600, 10); g.fillText(it.rep + " de " + it.n + " rutas", padX + 12, y + rh - 7);
+      cols.forEach((c, j) => { const v = c.k === "_em" ? (it.em != null ? Math.round(it.em * 100) + "%" : "—") : String(Math.round((it.o[c.k] || 0) * 100) / 100); g.textAlign = "center"; g.font = F(800, 14); g.fillStyle = "#BFE3F7"; g.fillText(v, x0 + j * CW + CW / 2, y + rh / 2 + 5); }); return; }
+    const x = it.x; g.fillStyle = i % 2 ? "#131B26" : "#0F1620"; g.fillRect(padX, y, W - padX * 2, rh);
     g.textAlign = "left"; g.fillStyle = "#FFFFFF"; g.font = F(800, 15); g.fillText(x.r, padX + 12, y + rh / 2 + 5); if (!x.rep){ g.fillStyle = "#E08A6B"; g.font = F(600, 10); g.fillText("sin reporte", padX + 12, y + rh - 6); }
     cols.forEach((c, j) => { const cx = x0 + j * CW + CW / 2; if (c.tot){ g.fillStyle = "rgba(242,201,76,.10)"; g.fillRect(x0 + j * CW, y, CW, rh); } const v = val(x, c); g.textAlign = "center"; g.font = F(c.tot ? 800 : 500, 15); g.fillStyle = c.tot ? "#F2C94C" : v === "0" || v === "—" ? "#5E6B7A" : "#E6ECF2"; g.fillText(v, cx, y + rh / 2 + 5); if (c.k !== "_em") tot[c.k] = (tot[c.k] || 0) + (+x.o[c.k] || 0); }); });
-  const yt = y0 + hh + R.length * rh; g.fillStyle = "#3A3312"; g.fillRect(padX, yt, W - padX * 2, rh); g.fillStyle = "#C9A227"; g.fillRect(padX, yt, W - padX * 2, 2);
+  const yt = y0 + hh + RS.length * rh; g.fillStyle = "#3A3312"; g.fillRect(padX, yt, W - padX * 2, rh); g.fillStyle = "#C9A227"; g.fillRect(padX, yt, W - padX * 2, 2);
   g.textAlign = "left"; g.fillStyle = "#F2C94C"; g.font = F(800, 15); g.fillText("TOTAL", padX + 12, yt + rh / 2 + 5);
   const emR = R.map(x => DB.em && DB.em.rutas.get(x.r)).filter(Boolean), emTot = emR.length ? Math.round(emR.reduce((a, e) => a + e.real, 0) / emR.reduce((a, e) => a + e.meta, 0) * 100) + "%" : "—";
   cols.forEach((c, j) => { g.textAlign = "center"; g.fillText(c.k === "_em" ? emTot : String(Math.round((tot[c.k] || 0) * 100) / 100), x0 + j * CW + CW / 2, yt + rh / 2 + 5); });
-  const xs = x0 + cols.filter(c => c.g === "vol" || c.g === "eme").length * CW; g.fillStyle = "#3E7A4A"; g.fillRect(xs, y0, 1.5, hh + rh * (R.length + 1));
+  const xs = x0 + cols.filter(c => c.g === "vol" || c.g === "eme").length * CW; g.fillStyle = "#3E7A4A"; g.fillRect(xs, y0, 1.5, hh + rh * (RS.length + 1));
   g.textAlign = "left"; g.fillStyle = "#5E6B7A"; g.font = F(500, 11); g.fillText("Ruta PDV · generado " + d.toLocaleTimeString("es-SV", {hour:"2-digit", minute:"2-digit"}) + " · Alcance mes = avance acumulado del desafío emergente (documento emergente)", padX, H - 18);
   const blob = await new Promise(res => cv.toBlob(res, "image/png"));
   const name = `consolidado_${todayKey()}.png`, file = new File([blob], name, {type:"image/png"});
