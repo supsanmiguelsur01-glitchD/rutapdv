@@ -797,7 +797,14 @@ select.sm{height:38px;border:1px solid var(--line);border-radius:10px;background
 .card .nm{font-weight:700;font-size:15px;line-height:1.25;overflow-wrap:anywhere;text-transform:uppercase;letter-spacing:.2px}
 .card .meta{grid-column:1/2;color:var(--muted);font-size:12.5px;display:flex;gap:8px;flex-wrap:wrap}
 .card .side{grid-row:1/3;grid-column:2;display:flex;flex-direction:column;align-items:flex-end;gap:5px;justify-content:center}
-.dist{font:700 14px/1 var(--f-tech);color:var(--cyan)}
+.dist{font:700 14px/1 var(--f-tech);color:var(--cyan);display:inline-flex;align-items:center;gap:4px}
+.darr{display:inline-flex;width:22px;height:22px;flex:none;transform:rotate(calc(var(--b, 0deg) - var(--hd, 0deg)));transition:transform .3s ease-out;will-change:transform}
+.darr svg{width:100%;height:100%;fill:currentColor}
+.dirbar{display:flex;align-items:center;gap:10px;padding:8px 12px;margin:0 0 8px;border-radius:12px;background:var(--panel2, rgba(0,160,200,.08));color:var(--ink2, inherit);font-size:13px;line-height:1.3}
+.dirbar .dirdial{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;border:1.5px solid var(--cyan);color:var(--bad, #d33);flex:none}
+.dirbar .dirdial .darr{width:18px;height:18px;transform:rotate(calc(0deg - var(--hd, 0deg)))}
+.dirbar .dirtx{flex:1}
+@media (prefers-reduced-motion: reduce){ .darr{transition:none} }
 .pill{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700;white-space:nowrap;border:1px solid transparent}
 .pill.ok{background:var(--ok-soft);color:var(--ok);border-color:rgba(23,128,61,.3)}
 .pill.warn{background:var(--warn-soft);color:var(--warn);border-color:rgba(178,94,9,.3)}
@@ -1376,7 +1383,7 @@ body.cat-open .toast{bottom:calc(env(safe-area-inset-bottom,0px) + 110px)}
 .qwrap{position:relative}.qwrap input{padding-right:56px!important}
 .qmic{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:10px;border:0;background:transparent;color:var(--cyan);display:flex;align-items:center;justify-content:center}
 .qmic:hover{background:var(--chip)}
-.qmic.rec{background:var(--bad);color:#fff;animation:micp 1.2s ease-in-out infinite}
+.qmic.rec{background:var(--bad);color:#fff;animation:micp 1.2s ease-in-out infinite}#btnMapSave.dl{position:relative}#btnMapSave.dl::after{content:"";position:absolute;right:3px;top:3px;width:8px;height:8px;border-radius:50%;background:var(--ok,#1f8a4c);animation:micp 1.2s ease-in-out infinite}.qmic.hf{background:var(--ok,#1f8a4c);color:#fff;box-shadow:0 0 0 3px rgba(31,138,76,.35)}.qmic.hf.rec{background:var(--ok,#1f8a4c);animation:micp 1.2s ease-in-out infinite}
 @keyframes micp{0%,100%{box-shadow:0 0 0 0 rgba(192,53,47,.45)}50%{box-shadow:0 0 0 8px rgba(192,53,47,0)}}
 .vozbar{display:flex;align-items:flex-start;gap:8px;background:rgba(31,78,140,.07);border:1px solid rgba(31,78,140,.25);border-radius:12px;padding:8px 10px;font-size:13px;color:var(--ink)}
 .vozbar .vzt{flex:1;min-width:0;line-height:1.4}.vozbar .vzi{flex:none}
@@ -2562,8 +2569,10 @@ function editDist(a, b, k){
 const fuzzyTok = (w, x, k) => editDist(w, x, k) <= k || (x.length > w.length && editDist(w, x.slice(0, w.length), k) <= k);
 const qnorm = s => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ");
 let QFUZZY = false;
+/* cómo suena: "Bilma" = "Vilma", "Zelaya" = "Selaya", "Yanet" = "Llanet", "Ernesto" = "Hernesto", "Kike" = "Quique" */
+const fon = s => qnorm(s).replace(/ch/g, "§").replace(/qu(?=[ei])/g, "k").replace(/c(?=[ei])/g, "s").replace(/c/g, "k").replace(/z/g, "s").replace(/v/g, "b").replace(/w/g, "u").replace(/ll/g, "y").replace(/y\b/g, "i").replace(/h/g, "").replace(/gu(?=[ei])/g, "G").replace(/g(?=[ei])/g, "j").replace(/G/g, "g").replace(/x/g, "s").replace(/n(?=[bp])/g, "m").replace(/([a-z])\1+/g, "$1").replace(/§/g, "ch");
 function filtered(noFocus){
-  const qq = qnorm(F.q).trim(), qw = qq.split(/\s+/).filter(Boolean), qd = qq.replace(/\D/g, "");
+  const qq = qnorm(F.q).trim(), qw = qq.split(/\s+/).filter(Boolean), qd = qq.replace(/\D/g, ""), qwp = qw.map(fon);
   // búsqueda sin tildes, por palabras (en cualquier orden) o por código (también dictado con espacios: "2 018 441")
   // tolerante a errores de escritura en el nombre registrado (ej. "taurino" encuentra "TURINO"): se marca _qs = 0 exacto, 1 aproximado
   let fuzzyOK = false;
@@ -2578,14 +2587,19 @@ function filtered(noFocus){
     const t = p._qn || (p._qn = qnorm(p.n + " " + (p.dir || "") + " " + c + " " + (p.etq || "") + " " + (p.est || "") + " " + p.eq.map(e => (e.serie || "") + " " + (e.modelo || "") + " " + (e.dir || "")).join(" ") + " " + p.rn.map(e => (e.serie || "") + " " + (e.mat || "")).join(" ")));   // nombre, dirección, código, tipo de negocio, estrellas, serie y modelo del equipo frío
     if (qw.every(w => t.includes(w))){ const tn = p._qnn || (p._qnn = qnorm(p.n)); if (!qw.every(w => tn.includes(w))) p._qs = 0.5; return true; }   // primero los que coinciden en el nombre
     const tk = p._qt || (p._qt = t.split(" ").filter(Boolean));
+    { const tn = p._qnn || (p._qnn = qnorm(p.n)), np = p._qnp || (p._qnp = tn.split(" ").filter(Boolean).map(fon));   // nombre que suena igual: "Ernandes" = "Hernández", "Bilma" = "Vilma"
+      if (qw.every((w, i) => t.includes(w) || (qwp[i].length >= 3 && !/\d/.test(w) && np.some(x => x === qwp[i] || (qwp[i].length >= 4 && x.startsWith(qwp[i])))))){ p._qs = 0.4; return true; } }
     if (!fuzzyOK) return false;
-    const fz = (tt, tks) => { let ds = 0;
-      for (const w of qw){ if (tt.includes(w)) continue; const k = /\d/.test(w) ? 0 : w.length >= 8 ? 2 : w.length >= 4 ? 1 : 0; if (!k) return -1;
+    const fz = (tt, tks, tkp) => { let ds = 0;
+      for (let i = 0; i < qw.length; i++){ const w = qw[i]; if (tt.includes(w)) continue;
+        const pw = qwp[i]; if (pw.length >= 3 && tkp.some(x => x === pw || (pw.length >= 4 && x.startsWith(pw)))){ ds += 0.3; continue; }   // suena igual
+        const k = /\d/.test(w) ? 0 : w.length >= 8 ? 2 : w.length >= 4 ? 1 : 0; if (!k) return -1;
         let best = k + 1; for (const x of tks){ if (/\d/.test(x)) continue; const d = Math.min(editDist(w, x, k), x.length > w.length ? editDist(w, x.slice(0, w.length), k) + 0.5 : 9); if (d < best) best = d; if (!best) break; }
         if (best > k) return -1; ds += best; }
       return ds; };
-    const dAll = fz(t, tk); if (dAll < 0) return false;
-    const tn = p._qnn || (p._qnn = qnorm(p.n)), dName = fz(tn, tn.split(" ").filter(Boolean));
+    const tkp = p._qtp || (p._qtp = tk.map(fon));
+    const dAll = fz(t, tk, tkp); if (dAll < 0) return false;
+    const tn = p._qnn || (p._qnn = qnorm(p.n)), tnk = tn.split(" ").filter(Boolean), dName = fz(tn, tnk, p._qnp || (p._qnp = tnk.map(fon)));
     p._qs = 1 + (dName < 0 ? dAll + 5 : dName) / 10; return true;
   };
   const dias = F.dias.map(d => d === "HOY" ? todayLetter() : d).filter(Boolean);
@@ -2651,7 +2665,7 @@ const qMarca = n => { const qw = qnorm(F.q || "").trim().split(/\s+/).filter(w =
 function cardHTML(p){
   const cc = covClass(p), pct = covPct(p);
   const covTxt = pct == null ? "Sin cobertura" : `${p.cov.okN}/${p.cov.n} cob.`;
-  const dist = p._d != null ? `<span class="dist num">${p._d < 1 ? Math.round(p._d*1000)+" m" : fmt(p._d,1)+" km"}</span>` : "";
+  const dist = p._d != null ? `<span class="dist num">${dirActivo() && p.lat != null ? `<i class="darr" data-la="${p.lat}" data-lo="${p.lng}" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.5l7 18-7-4.2-7 4.2z"/></svg></i>` : ""}<span class="dtx">${p._d < 1 ? Math.round(p._d*1000)+" m" : fmt(p._d,1)+" km"}</span></span>` : "";
   const nec = rnNec(p), wp = wellPend(p).length;
   const segN = (nec > 0 ? `<span class="pill warn" title="Necesidad real amarilla">Nec ${fmt(nec)}</span>` : "") + (wp ? `<span class="pill bad" title="Equipos sin lectura Wellington">Well ${wp}</span>` : "") + (DB.rn && DB.rn.sem && rnEq(p).length ? `<span class="pill bad" title="Equipos fríos en rojo o negro">R+N ${rnEq(p).length}</span>` : "") + (() => { const g = gambPlans(p); if (!g.length) return ""; const e = DB.gcb && DB.gcb.cli.size ? gambEstado(p) : null; return `<span class="pill ${e && e.act ? "ok" : "acc"}" title="Plan Gambito de cerveza${e ? (e.act ? ": ya se activó" : ": por activar") : ""}">🍺 ${esc(g.join(" · "))}${e && e.act ? " ✓" : ""}</span>`; })();
   const acN = segN + (nPromosCliente(p) ? `<span class="pill acc" title="Promociones vigentes para este cliente">${nPromosCliente(p)} promo</span>` : "") + (p.vpo ? `<span class="pill ${p.vpo.pct >= 1 ? "ok" : "warn"}">VPO ${p.vpo.pct != null ? Math.round(p.vpo.pct*100)+"%" : "0%"}</span>` : "");
@@ -2677,11 +2691,11 @@ function renderList(){
   $("#summary").innerHTML = `<span>${stampHTML("base")}</span><span>Mostrando <b class="num">${fmt(Math.min(n, SHOWN))}</b> de ${fmt(n)} · base ${fmt(DB.pdv.size)}</span>` + dupNote + `<span><b class="num">${fmt(current.filter(p=>p.lat!=null).length)}</b> en mapa</span><span>Cobertura promedio <b class="num">${fmt(avg,1)}/${nItems}</b></span>${F.sort==="dist"&&!ME?`<span>Activa GPS para ordenar por cercanía</span>`:""}${QFUZZY ? `<span style="color:var(--warn)">Sin coincidencia exacta: se muestran nombres parecidos</span>` : ""}`;
   const L = $("#list");
   if (!n){ L.innerHTML = `<div class="empty">No hay puntos de venta con estos filtros.<br>${!$("#qSug").hidden ? "Toca <b>Aplicar</b> arriba o presiona Enter para filtrar con lo que escribiste." : "Quita alguna condición de la barra de filtros de arriba."}</div>`; return; }
-  const vis0 = current.slice(0, SHOWN), sig = vis0.length + "|" + SHOWN + "|" + n + "|" + (F.q || "") + "|" + F.segs.join(",") + "|" + (ME ? Math.round(ME.lat * 2000) + "," + Math.round(ME.lng * 2000) : "") + "|" + todayKey() + "|" + (VIS[todayKey()] ? Object.keys(VIS[todayKey()]).length : 0) + "|" + vis0.slice(0, 40).map(p => p.c).join(",");
-  if (L._sig === sig && L.childElementCount) return;   // la misma lista: no se vuelve a dibujar
+  const vis0 = current.slice(0, SHOWN), sig = (dirActivo() ? "D|" : "") + vis0.length + "|" + SHOWN + "|" + n + "|" + (F.q || "") + "|" + F.segs.join(",") + "|" + (ME ? Math.round(ME.lat * 2000) + "," + Math.round(ME.lng * 2000) : "") + "|" + todayKey() + "|" + (VIS[todayKey()] ? Object.keys(VIS[todayKey()]).length : 0) + "|" + vis0.slice(0, 40).map(p => p.c).join(",");
+  if (L._sig === sig && L.childElementCount){ dirSync(); return; }   // la misma lista: no se vuelve a dibujar
   L._sig = sig;
-  L.innerHTML = vis0.map(cardHTML).join("") + (n > SHOWN ? `<button class="more" id="more">Mostrar ${Math.min(150, n-SHOWN)} más de ${fmt(n-SHOWN)}</button>` : "");
-  listMoreObs();
+  L.innerHTML = (dirActivo() ? dirBarHTML() : "") + vis0.map(cardHTML).join("") + (n > SHOWN ? `<button class="more" id="more">Mostrar ${Math.min(150, n-SHOWN)} más de ${fmt(n-SHOWN)}</button>` : "");
+  listMoreObs(); dirSync();
 }
 // al llegar al final de la lista se cargan más tarjetas solas
 let LIST_OBS = null;
@@ -3288,18 +3302,19 @@ function colorFor(p){
   const c = covClass(p); return {ok:"#16A34A", warn:"#E59A0B", bad:"#DC2626", na:"#9AA6B2"}[c];
 }
 /* ---------- mapa sin conexión: cada cuadro del mapa que se ve se guarda en el teléfono (Cache Storage) y,
-   sin señal, se muestra desde ahí. "Guardar mi zona" baja de una vez los cuadros del área de tus clientes. ---------- */
-const TILE_CACHE = "mapa-teselas-v1"   /* no empieza con "rutapdv-": el service worker borra esos cachés al publicar */, TILE_MAX = 9000;
+   sin señal, se muestra desde ahí. Con conexión, la app baja sola (en segundo plano) el mapa de la zona de tus clientes. ---------- */
+const TILE_CACHE = "mapa-teselas-v1"   /* no empieza con "rutapdv-": el service worker borra esos cachés al publicar */, TILE_MAX = 16000;
 const tilesOK = () => typeof caches !== "undefined" && window.isSecureContext && location.protocol !== "file:";
+const TILE_HD = (window.devicePixelRatio || 1) > 1.2;   // pantallas de celular: cuadros al doble de resolución (letras nítidas)
 let TILE_PUTS = 0;
 async function tileTrim(c){
-  try{ const ks = await c.keys(); if (ks.length > TILE_MAX) for (const k of ks.slice(0, ks.length - TILE_MAX + 500)) await c.delete(k); }catch(e){}
+  try{ const ks = await c.keys(); if (ks.length > TILE_MAX) for (const k of ks.slice(0, ks.length - TILE_MAX + 800)) await c.delete(k); }catch(e){}
 }
 async function tileFetchPut(c, url){
   const r = await fetch(url, {mode:"cors", credentials:"omit"}); if (!r.ok) throw new Error("http " + r.status);
   const b = await r.blob(); if (!b.size || !/^image\//.test(b.type || "image/")) throw new Error("tipo");
   await c.put(url, new Response(b, {headers:{"content-type": b.type || "image/png", "x-t": String(Date.now())}}));
-  if (++TILE_PUTS % 300 === 0) tileTrim(c);
+  if (++TILE_PUTS % 400 === 0) tileTrim(c);
   return b;
 }
 async function tileBlob(url){
@@ -3312,44 +3327,133 @@ async function tileBlob(url){
   if (!navigator.onLine) return null;
   return tileFetchPut(c, url);
 }
+// dirección exacta de un cuadro (la misma que pide el mapa, para que lo bajado en segundo plano sí se use)
+function tileUrlFor(l, x, y, z){ return L.Util.template(l._url, L.extend({}, l.options, {s: l._getSubdomain ? l._getSubdomain({x, y}) : "a", x, y, z, r: ""})); }
+// sin señal y sin ese cuadro guardado: se recorta y amplía el cuadro de menos detalle que sí esté guardado (en vez de dejar el hueco gris)
+async function tileAncestro(l, co){
+  try{
+    const c = await caches.open(TILE_CACHE);
+    for (let d = 1; d <= 6 && co.z - d >= 0; d++){
+      const px = co.x >> d, py = co.y >> d, hit = await c.match(tileUrlFor(l, px, py, co.z - d)); if (!hit) continue;
+      const bmp = await createImageBitmap(await hit.blob()), S = bmp.width, part = S / (1 << d);
+      const cv = document.createElement("canvas"); cv.width = cv.height = S; const g = cv.getContext("2d"); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = "high";
+      g.drawImage(bmp, (co.x - (px << d)) * part, (co.y - (py << d)) * part, part, part, 0, 0, S, S);
+      return await new Promise(r => cv.toBlob(r, "image/png"));
+    }
+  }catch(e){}
+  return null;
+}
 if (typeof L !== "undefined") L.TileLayer.Guardado = L.TileLayer.extend({
   createTile(coords, done){
     const tile = document.createElement("img");
     L.DomEvent.on(tile, "load", L.Util.bind(this._tileOnLoad, this, done, tile));
     L.DomEvent.on(tile, "error", L.Util.bind(this._tileOnError, this, done, tile));
-    tile.alt = ""; tile.setAttribute("role", "presentation");
+    tile.alt = ""; tile.setAttribute("role", "presentation"); tile.decoding = "async";
     const url = this.getTileUrl(coords);
     if (!tilesOK()){ tile.src = url; return tile; }
-    tileBlob(url).then(b => { if (!b){ tile.src = url; return; } const u = URL.createObjectURL(b); tile.addEventListener("load", () => setTimeout(() => URL.revokeObjectURL(u), 1000), {once:true}); tile.src = u; })
-      .catch(() => { tile.src = url; });   // si el servidor no deja guardar, se muestra normal
+    const poner = b => { const u = URL.createObjectURL(b); tile.addEventListener("load", () => setTimeout(() => URL.revokeObjectURL(u), 1000), {once:true}); tile.src = u; };
+    tileBlob(url).then(async b => { if (!b) b = await tileAncestro(this, coords); if (!b){ tile.src = url; return; } poner(b); })
+      .catch(async () => { const b = await tileAncestro(this, coords); if (b) poner(b); else tile.src = url; });   // falló la descarga: el de menos detalle guardado, o normal
     return tile;
   }
 });
-// guardar de una vez el mapa del área de tus clientes (zoom 12 a 16; en Calles y Satélite hasta 17)
+/* tipos de mapa. Calles / Claro / Oscuro (CARTO) vienen al doble de resolución y con detalle hasta zoom 20:
+   los nombres de calles y negocios se ven nítidos al acercar. Si CARTO no responde, se pasa solo a Calles Esri. */
+let BASES_M = null;
+function mapaBases(){
+  if (BASES_M) return BASES_M;
+  const opt0 = {maxZoom:21, keepBuffer:4, updateWhenZooming:false};
+  const esri = (svc, opt={}) => new L.TileLayer.Guardado(`https://server.arcgisonline.com/ArcGIS/rest/services/${svc}/MapServer/tile/{z}/{y}/{x}`, Object.assign({}, opt0, {maxNativeZoom:19, attribution:"© Esri"}, opt));
+  const carto = (path, opt={}) => new L.TileLayer.Guardado(`https://{s}.basemaps.cartocdn.com/${path}/{z}/{x}/{y}${TILE_HD ? "@2x" : ""}.png`, Object.assign({}, opt0, {subdomains:"abcd", maxNativeZoom:20, attribution:"© OpenStreetMap · © CARTO"}, opt));
+  BASES_M = [
+    ["Calles", carto("rastertiles/voyager"), "Calles Esri"],
+    ["Claro", carto("light_all"), "Calles Esri"],
+    ["Oscuro", carto("dark_all"), "Calles Esri"],
+    ["Satélite", L.layerGroup([esri("World_Imagery"), carto("rastertiles/voyager_only_labels")]), "Calles Esri"],   // foto + nombres nítidos encima
+    ["Calles Esri", esri("World_Street_Map"), "Calles"],
+    ["Topográfico", esri("World_Topo_Map"), "Calles"],
+    // calles de OpenStreetMap: las mismas de donde salen los sentidos. No se guarda sin conexión (reglas de OSM).
+    ["Calles OSM", L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", Object.assign({}, opt0, {maxNativeZoom:19, attribution:"© OpenStreetMap"})), "Calles"]
+  ];
+  return BASES_M;
+}
+function mapaBaseNombre(){ const B = mapaBases(); let n = ls.get("rutapdv_base5", null); if (!n){ const o = ls.get("rutapdv_base4", "Calles"); n = ({Claro:"Claro", Oscuro:"Oscuro", "Satélite":"Satélite", "Topográfico":"Topográfico", "Calles OSM":"Calles OSM"})[o] || "Calles"; } return B.some(b => b[0] === n) ? n : "Calles"; }
+// cuadros que se pueden guardar del mapa elegido (aunque el mapa todavía no se haya abierto)
+function mapaCapasGuardables(){
+  const b = mapaBases().find(x => x[0] === mapaBaseNombre()); if (!b) return [];
+  const out = []; const add = l => { if (l instanceof L.TileLayer.Guardado) out.push(l); else if (l instanceof L.LayerGroup) l.eachLayer(add); }; add(b[1]); return out;
+}
+// lista de cuadros por prioridad: los clientes de hoy (hasta zoom 17), luego todos tus clientes (15-16) y la zona completa (10-14)
+function mapaCuadros(P, layers, cap){
+  const keys = [], seen = new Set(), push = (z, x, y) => { const k = `${z}/${x}/${y}`; if (!seen.has(k)){ seen.add(k); keys.push([z, x, y]); } };
+  const tl = todayLetter(), hoy = tl ? P.filter(p => frDays(p.fr).includes(tl)) : [];
+  const alrededor = (L0, zs) => { for (const z of zs) for (const p of L0){ const [x, y] = owTile(p.lat, p.lng, z); for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) push(z, x + dx, y + dy); } };
+  alrededor(hoy, [15, 16, 17]);
+  alrededor(P, [15, 16]);
+  let s = 90, n = -90, w = 180, e = -180; for (const p of P){ if (p.lat < s) s = p.lat; if (p.lat > n) n = p.lat; if (p.lng < w) w = p.lng; if (p.lng > e) e = p.lng; }
+  s -= .01; n += .01; w -= .01; e += .01;
+  for (let z = 10; z <= 14; z++){ const [x0, y0] = owTile(n, w, z), [x1, y1] = owTile(s, e, z); if ((x1 - x0 + 1) * (y1 - y0 + 1) > 2500) continue; for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) push(z, x, y); }
+  alrededor(P.filter(p => !hoy.includes(p)), [17]);   // al final, el detalle fino del resto (si cabe)
+  const urls = [];
+  for (const [z, x, y] of keys){ for (const l of layers) if (z <= (l.options.maxNativeZoom || 19)) urls.push(tileUrlFor(l, x, y, z)); if (urls.length >= cap) break; }
+  return {urls, b:[s, w, n, e]};
+}
+const MAPA_AUTO = {run:false, pause:0, hecho:0, total:0};
+const dormir = ms => new Promise(r => setTimeout(r, ms));
+// baja los cuadros con calma: se detiene mientras mueves el mapa, con la app en segundo plano o al perder la señal
+async function mapaBajar(urls, prog){
+  const c = await caches.open(TILE_CACHE); let i = 0, done = 0, nuevos = 0, fallos = 0, seguidos = 0;
+  const lane = async () => { while (i < urls.length){
+    while ((Date.now() < MAPA_AUTO.pause || document.visibilityState === "hidden") && navigator.onLine) await dormir(400);
+    if (!navigator.onLine || seguidos > 25) return;
+    const u = urls[i++];
+    try{ const hit = await c.match(u); if (!hit || Date.now() - +(hit.headers.get("x-t") || 0) > 30 * 864e5){ await tileFetchPut(c, u); nuevos++; await dormir(NAV.on ? 120 : 25); } seguidos = 0; }
+    catch(err){ fallos++; seguidos++; }
+    done++; if (prog && done % 20 === 0) prog(done, nuevos);
+  } };
+  await Promise.all([lane(), lane(), lane()]);
+  tileTrim(c);
+  return {done, nuevos, fallos, corto: done < urls.length};
+}
+function mapaAlcance(){ return [...DB.pdv.values()].filter(p => p.lat != null && (!F.ag || p.ag === F.ag) && (!F.sup || p.sup === F.sup) && (!F.rutas.length || F.rutas.includes(p.ruta))); }
+// con conexión: guarda solo el mapa de tu zona (cada 3 días o al cambiar el tipo de mapa / alcance). Sin datos móviles lentos ni ahorro de datos.
+async function mapaAuto(force){
+  try{
+    if (MAPA_AUTO.run || !tilesOK() || !navigator.onLine || !DB || !DB.pdv || !DB.pdv.size || typeof L === "undefined") return;
+    const cn = navigator.connection; if (!force && cn && (cn.saveData || /(^|-)2g$/.test(cn.effectiveType || ""))) return;
+    const layers = mapaCapasGuardables(); if (!layers.length) return;
+    const P = mapaAlcance(); if (!P.length) return;
+    const sig = mapaBaseNombre() + "|" + (F.sup || "") + "|" + F.rutas.join(",") + "|" + P.length, st = ls.get("rutapdv_mapa_auto", {}) || {};
+    if (!force && st.sig === sig && Date.now() - (st.t || 0) < 3 * 864e5 && st.ok) return;
+    MAPA_AUTO.run = true;
+    const {urls, b} = mapaCuadros(P, layers, 7000);
+    const btn = $("#btnMapSave"); if (btn) btn.classList.add("dl");
+    const r = await mapaBajar(urls, (d) => { MAPA_AUTO.hecho = d; MAPA_AUTO.total = urls.length; if (btn) btn.title = `Guardando el mapa de tu zona en segundo plano: ${Math.round(d / urls.length * 100)}%`; });
+    if (btn){ btn.classList.remove("dl"); btn.title = "Mapa de tu zona guardado para usar sin conexión (toca para actualizarlo)"; }
+    if (!r.corto) await owGuardarZona(b[0], b[1], b[2], b[3]).catch(() => {});
+    ls.set("rutapdv_mapa_auto", {sig, t: Date.now(), ok: !r.corto && r.fallos < urls.length / 3, n: urls.length});
+    if (!r.corto && r.nuevos > 50 && !st.avisado){ toast("Listo: el mapa de tu zona quedó guardado para usarlo sin señal"); st.avisado = 1; }
+  }catch(e){ console.warn(e); }
+  finally{ MAPA_AUTO.run = false; }
+}
+window.addEventListener("online", () => setTimeout(() => mapaAuto(), 6000));
+setTimeout(function mapaAutoIni(){ if (!DB || !DB.pdv || !DB.pdv.size){ setTimeout(mapaAutoIni, 8000); return; } mapaAuto(); }, 15000);
+// botón: guardar ahora el mapa de la zona del filtro (con avance a la vista)
 async function mapaGuardarZona(){
-  if (!map) return;
   if (!tilesOK()){ toast("Para guardar el mapa abre la app desde su enlace (https), no como archivo"); return; }
   if (!navigator.onLine){ toast("Necesitas conexión para guardar el mapa"); return; }
+  if (MAPA_AUTO.run){ toast(`Ya se está guardando el mapa de tu zona: ${MAPA_AUTO.total ? Math.round(MAPA_AUTO.hecho / MAPA_AUTO.total * 100) : 0}%`); return; }
   const P = filtered(true).filter(p => p.lat != null); if (!P.length){ toast("No hay clientes con ubicación en este filtro"); return; }
-  let s = 90, n = -90, w = 180, e = -180; for (const p of P){ if (p.lat < s) s = p.lat; if (p.lat > n) n = p.lat; if (p.lng < w) w = p.lng; if (p.lng > e) e = p.lng; }
-  const pad = 0.01; s -= pad; n += pad; w -= pad; e += pad;
-  const layers = []; map.eachLayer(l => { if (l instanceof L.TileLayer.Guardado && l._url) layers.push(l); });
-  if (!layers.length){ toast("Este tipo de mapa no se puede guardar: cambia a Claro, Oscuro, Calles o Satélite"); return; }
-  // zoom 12 a 14: todo el recuadro de la zona; 15 y 16: solo alrededor de cada cliente (unos 600 m), que es donde se navega
-  const keys = new Set();
-  for (let z = 12; z <= 14; z++){ const [x0, y0] = owTile(n, w, z), [x1, y1] = owTile(s, e, z); if ((x1 - x0 + 1) * (y1 - y0 + 1) > 1500) continue; for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) keys.add(`${z}/${x}/${y}`); }
-  for (const z of [15, 16]){ const r = z === 16 ? 1 : 1; for (const p of P){ const [x, y] = owTile(p.lat, p.lng, z); for (let dx = -r; dx <= r; dx++) for (let dy = -r; dy <= r; dy++) keys.add(`${z}/${x + dx}/${y + dy}`); } }
-  const urls = [];
-  for (const l of layers) for (const k of keys){ const [z, x, y] = k.split("/").map(Number); if (z <= (l.options.maxNativeZoom || 19)) urls.push(L.Util.template(l._url, {x, y, z})); }
-  if (urls.length > 12000){ toast(`Son ${fmt(urls.length)} cuadros de mapa: filtra una ruta o supervisor y vuelve a intentar`); return; }
-  const c = await caches.open(TILE_CACHE); let done = 0, nuevos = 0, fallos = 0, i = 0;
-  const bar = $("#gpsBar"); gpsBar("wait", `Guardando el mapa de tu zona… 0 de ${fmt(urls.length)}`);
-  const lane = async () => { while (i < urls.length){ const u = urls[i++]; try{ if (!(await c.match(u))){ await tileFetchPut(c, u); nuevos++; } }catch(err){ fallos++; } done++; if (done % 25 === 0) gpsBar("wait", `Guardando el mapa de tu zona… ${fmt(done)} de ${fmt(urls.length)}`); } };
-  await Promise.all([lane(), lane(), lane(), lane()]);
-  await owGuardarZona(s, w, n, e);
-  tileTrim(c);
-  ls.set("rutapdv_mapa_zona", {t: Date.now(), n: urls.length, b:[s, w, n, e]});
-  gpsBar(fallos > urls.length / 2 ? "bad" : "ok", fallos > urls.length / 2 ? `No se pudo guardar el mapa (${fmt(fallos)} cuadros fallaron). Revisa tu conexión.` : `Mapa guardado para usar sin conexión: ${fmt(urls.length)} cuadros (${fmt(nuevos)} nuevos)${OW.on ? " y el sentido de las calles" : ""}. Se guarda en este teléfono.`);
+  const layers = mapaCapasGuardables();
+  if (!layers.length){ toast("Este tipo de mapa no se puede guardar: cambia a Calles, Claro, Oscuro o Satélite"); return; }
+  const {urls, b} = mapaCuadros(P, layers, 12000);
+  MAPA_AUTO.run = true; const bar = $("#gpsBar"); gpsBar("wait", `Guardando el mapa de tu zona… 0 de ${fmt(urls.length)}`);
+  try{
+    const r = await mapaBajar(urls, (d) => gpsBar("wait", `Guardando el mapa de tu zona… ${fmt(d)} de ${fmt(urls.length)}`));
+    await owGuardarZona(b[0], b[1], b[2], b[3]).catch(() => {});
+    ls.set("rutapdv_mapa_zona", {t: Date.now(), n: urls.length, b});
+    gpsBar(r.fallos > urls.length / 2 ? "bad" : "ok", r.fallos > urls.length / 2 ? `No se pudo guardar el mapa (${fmt(r.fallos)} cuadros fallaron). Revisa tu conexión.` : `Mapa guardado para usar sin conexión: ${fmt(r.done)} cuadros (${fmt(r.nuevos)} nuevos)${OW.on ? " y el sentido de las calles" : ""}.`);
+  } finally { MAPA_AUTO.run = false; }
   setTimeout(() => { if (bar.classList.contains("ok")) gpsBar(null); }, 8000);
 }
 function initMap(){
@@ -3357,27 +3461,19 @@ function initMap(){
   // un solo lienzo para todos los puntos: evita capas que tapan los toques; tolerance agranda el área de toque en celular
   PTS = L.canvas({padding:.5, tolerance: L.Browser.mobile ? 14 : 6});
   map = L.map("map", {preferCanvas:true, renderer:PTS, zoomControl:true, tapTolerance:20, maxZoom:21, rotate:true, bearing:0, touchRotate:false, rotateControl:false, compassBearing:false}).setView([13.48,-88.18], 11);
-  const esri = (svc, opt={}) => new L.TileLayer.Guardado(`https://server.arcgisonline.com/ArcGIS/rest/services/${svc}/MapServer/tile/{z}/{y}/{x}`, Object.assign({maxZoom:21, maxNativeZoom:19, attribution:"© Esri"}, opt));   // se puede acercar más allá del detalle del mapa (amplía la última imagen)
-  const BASES = [
-    ["Claro", L.layerGroup([esri("Canvas/World_Light_Gray_Base",{maxNativeZoom:16}), esri("Canvas/World_Light_Gray_Reference",{maxNativeZoom:16})])],
-    ["Oscuro", L.layerGroup([esri("Canvas/World_Dark_Gray_Base",{maxNativeZoom:16}), esri("Canvas/World_Dark_Gray_Reference",{maxNativeZoom:16})])],
-    ["Calles", esri("World_Street_Map")],
-    ["Topográfico", esri("World_Topo_Map")],
-    ["Satélite", esri("World_Imagery")],
-    // calles de OpenStreetMap: las mismas de donde salen los sentidos (las flechas calzan exacto). No se guarda sin conexión (reglas de OSM).
-    ["Calles OSM", L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:21, maxNativeZoom:19, attribution:"© OpenStreetMap"})]
-  ];
-  const saved = ls.get("rutapdv_base4", "Claro");
-  let bi = Math.max(0, BASES.findIndex(b => b[0] === saved));
+  const BASES = mapaBases();
+  let bi = Math.max(0, BASES.findIndex(b => b[0] === mapaBaseNombre()));
   BASES[bi][1].addTo(map);
-  L.control.layers(Object.fromEntries(BASES), null, {position:"topleft"}).addTo(map);
-  map.on("baselayerchange", e => ls.set("rutapdv_base4", e.name));
+  L.control.layers(Object.fromEntries(BASES.map(b => [b[0], b[1]])), null, {position:"topleft"}).addTo(map);
+  map.on("baselayerchange", e => { ls.set("rutapdv_base5", e.name); setTimeout(() => mapaAuto(), 4000); });   // el mapa nuevo también se guarda solo
+  map.on("movestart zoomstart", () => { MAPA_AUTO.pause = Date.now() + 2500; });   // mientras te mueves, primero lo que estás viendo
+  map.on("moveend zoomend", () => { MAPA_AUTO.pause = Date.now() + 900; });
   // si un proveedor falla, pasar automáticamente al siguiente
-  BASES.forEach(([name, lyr], i) => {
-    let ok = 0, bad = 0;
-    if (!lyr.on || lyr instanceof L.LayerGroup && !(lyr instanceof L.TileLayer)) return;
-    lyr.on("tileload", () => ok++);
-    lyr.on("tileerror", () => { bad++; if (!ok && bad === 6 && map.hasLayer(lyr)){ const nx = BASES[(i+1) % BASES.length]; map.removeLayer(lyr); nx[1].addTo(map); toast("Mapa cambiado a " + nx[0]); } });
+  BASES.forEach(([name, lyr, alt]) => {
+    let ok = 0, bad = 0; const L0 = lyr instanceof L.LayerGroup && !(lyr instanceof L.TileLayer) ? lyr.getLayers()[0] : lyr;
+    if (!L0 || !L0.on) return;
+    L0.on("tileload", () => ok++);
+    L0.on("tileerror", () => { bad++; if (!ok && bad === 6 && navigator.onLine && map.hasLayer(lyr)){ const nx = BASES.find(b => b[0] === alt) || BASES[0]; map.removeLayer(lyr); nx[1].addTo(map); ls.set("rutapdv_base5", nx[0]); toast("Mapa cambiado a " + nx[0]); } });
   });
   layer = L.layerGroup().addTo(map);
   map.on("zoomend", () => owDraw(true));
@@ -3498,6 +3594,8 @@ function startGps(){
       setTimeout(() => { if ($("#gpsBar").classList.contains("ok")) gpsBar(null); }, 6000);
     }
     renderList(); updateOpenDist(); routeOnMove();
+    { const c = pos.coords; if (c.heading != null && !isNaN(c.heading) && (c.speed || 0) > 1.2 && Date.now() - DIRL.tB > 2500) dirHeading(c.heading, "gps"); }
+    dirUpdate();
   };
   const fail = err => {
     if (watchId != null) navigator.geolocation.clearWatch(watchId);
@@ -3825,6 +3923,8 @@ async function liveFlush(){
   finally{ LIVE.busy = false; }
 }
 window.addEventListener("online", () => liveFlush());
+/* deja listo en segundo plano cómo suena cada nombre (la primera búsqueda por voz ya sale rápida) */
+setTimeout(function fonWarm(){ try{ if (!DB || !DB.pdv || !DB.pdv.size){ setTimeout(fonWarm, 5000); return; } const it = [...DB.pdv.values()]; let i = 0; const step = () => { const end = Math.min(it.length, i + 1500); for (; i < end; i++){ const p = it[i]; if (!p._qnp){ p._qnn = p._qnn || qnorm(p.n); p._qnp = p._qnn.split(" ").filter(Boolean).map(fon); } } if (i < it.length) setTimeout(step, 30); }; step(); }catch(e){} }, 4000);
 document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-copydir]"); if (!b) return; const t = b.dataset.copydir; (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast("Dirección copiada"), () => toast(t)); });
 setTimeout(() => { try{ if (LIVE.q.length) liveFlush(); }catch(e){} }, 4000);
 // supervisor: trae las marcas de hoy de su equipo (o equipos) y se queda con la última de cada cosa
@@ -4776,6 +4876,53 @@ function showWelcome(){
   if (ios){ $("#instTxt").textContent = "En Safari toca Compartir (cuadro con flecha) y luego \"Agregar a inicio\"."; $("#instGo").textContent = "Cómo"; $("#btnInstall").hidden = false; setTimeout(show, 1500); }
 })();
 
+/* ---------- flechas de dirección en la lista (ordenada por cercanía): apuntan a cada cliente sin abrir el mapa ----------
+   Con brújula, la flecha se orienta según hacia dónde apunta el teléfono (como un GPS); caminando o en moto, según tu rumbo;
+   sin ninguno de los dos, con el norte arriba. */
+const DIRL = {on:false, ev:null, h:null, src:"", tB:0, raf:0, perm:false};
+const dirActivo = () => !!ME && (F.sort === "dist" || !!F.near);
+const dirRumbo = (la1, lo1, la2, lo2) => { const r = Math.PI / 180, y = Math.sin((lo2 - lo1) * r) * Math.cos(la2 * r), x = Math.cos(la1 * r) * Math.sin(la2 * r) - Math.sin(la1 * r) * Math.cos(la2 * r) * Math.cos((lo2 - lo1) * r); return (Math.atan2(y, x) / r + 360) % 360; };
+const DIR_CARD = ["norte", "noreste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"];
+function dirBarHTML(){
+  const ios = typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function" && !DIRL.perm;
+  return `<div class="dirbar" id="dirBar"><span class="dirdial"><i class="darr" style="--b:0deg"><svg viewBox="0 0 24 24"><path d="M12 2.5l7 18-7-4.2-7 4.2z"/></svg></i></span><span class="dirtx" id="dirTxt">${dirTexto()}</span>${ios ? `<button class="btn sm" data-dirperm>Usar brújula</button>` : ""}</div>`;
+}
+function dirTexto(){ return DIRL.src === "brujula" ? "Las flechas apuntan a cada cliente según hacia dónde apuntas el teléfono" : DIRL.src === "gps" ? "Las flechas siguen tu rumbo mientras avanzas" : "Flechas con el norte arriba · gira el teléfono o avanza para orientarlas"; }
+function dirHeading(h, src){
+  if (src === "brujula") DIRL.tB = Date.now();
+  else if (Date.now() - DIRL.tB < 2500) return;   // la brújula manda si está viva
+  const d = DIRL.h == null ? 0 : ((h - DIRL.h + 540) % 360) - 180;
+  DIRL.h = DIRL.h == null ? h : (DIRL.h + d * (src === "gps" ? 0.6 : 0.3) + 360) % 360;   // suavizado: sin temblor
+  if (DIRL.src !== src){ DIRL.src = src; const t = document.getElementById("dirTxt"); if (t) t.textContent = dirTexto(); }
+  if (!DIRL.raf) DIRL.raf = requestAnimationFrame(() => { DIRL.raf = 0; const L = $("#list"); if (L) L.style.setProperty("--hd", (DIRL.h || 0).toFixed(1) + "deg"); });
+}
+function dirOri(e){ const h = compassHeading(e); if (h != null) dirHeading(h, "brujula"); }
+function dirSync(){
+  const want = dirActivo() && !$("#listPane").hidden && document.visibilityState === "visible";
+  if (want && !DIRL.on && ("ondeviceorientationabsolute" in window || "ondeviceorientation" in window)){
+    if (typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function" && !DIRL.perm){ /* iPhone: espera el toque en "Usar brújula" */ }
+    else { DIRL.ev = "ondeviceorientationabsolute" in window ? "deviceorientationabsolute" : "deviceorientation"; window.addEventListener(DIRL.ev, dirOri, true); DIRL.on = true; }
+  } else if (!want && DIRL.on){ window.removeEventListener(DIRL.ev, dirOri, true); DIRL.on = false; }
+  if (want) dirUpdate();
+}
+// rumbo y distancia de cada tarjeta desde donde estás (sin volver a dibujar la lista)
+function dirUpdate(){
+  if (!ME) return; const L = $("#list"); if (!L) return;
+  if (DIRL.h != null) L.style.setProperty("--hd", DIRL.h.toFixed(1) + "deg");
+  for (const a of L.querySelectorAll(".card .darr")){
+    const la = +a.dataset.la, lo = +a.dataset.lo, b = dirRumbo(ME.lat, ME.lng, la, lo), d = haversine(ME.lat, ME.lng, la, lo);
+    a.style.setProperty("--b", b.toFixed(1) + "deg");
+    const t = a.nextElementSibling; if (t) t.textContent = d < 1 ? Math.round(d * 1000) + " m" : fmt(d, 1) + " km";
+    const card = a.closest(".card"); if (card) card.title = `Al ${DIR_CARD[Math.round(b / 45) % 8]} · ${d < 1 ? Math.round(d * 1000) + " m" : fmt(d, 1) + " km"}`;
+  }
+}
+document.addEventListener("click", async e => {
+  if (!e.target.closest || !e.target.closest("[data-dirperm]")) return;
+  e.preventDefault(); e.stopPropagation();
+  try{ const r = await DeviceOrientationEvent.requestPermission(); if (r === "granted"){ DIRL.perm = true; e.target.closest("[data-dirperm]").remove(); dirSync(); } else toast("Sin permiso de brújula: las flechas quedan con el norte arriba"); }catch(err){ toast("No se pudo activar la brújula"); }
+}, true);
+document.addEventListener("visibilitychange", () => { try{ dirSync(); }catch(e){} });
+
 /* ---------- brújula: el mapa gira según hacia dónde apunta el teléfono ---------- */
 const COMP = {on:false, cur:0, ev:null, last:0};
 function compassHeading(e){
@@ -4819,36 +4966,73 @@ async function toggleCompass(){
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition, btn = $("#qMic"), inp = $("#q");
   if (!btn) return;
   if (!SR){ btn.hidden = true; return; }
-  let rec = null, on = false;
-  const stop = () => { on = false; btn.classList.remove("rec"); inp.placeholder = "Cliente, código o dicta 🎙"; try{ rec && rec.stop(); }catch(e){} };
-  btn.onclick = () => {
-    if (on){ stop(); return; }
+  let rec = null, on = false, HF = false, hfMiss = 0, lpT = null, lpDone = false;
+  const PH = "Cliente, código o dicta 🎙";
+  const setPh = () => { inp.placeholder = HF ? (on ? "Manos libres: te escucho…" : "Manos libres · espera…") : on ? "Escuchando… di el nombre, código o filtro" : PH; };
+  const stop = () => { on = false; btn.classList.remove("rec"); setPh(); try{ rec && rec.stop(); }catch(e){} };
+  const STOPW = /^(listo|ya|ya esta|terminar|termina|termine|parar|para|salir|basta|gracias|apagar|apaga|detener|eso es todo|fin)( (manos libres|gracias|ya|por hoy))?$/;
+  const hfRestart = () => { if (!HF) return; let n = 0; const w = () => { if (!HF) return; if (window.speechSynthesis && speechSynthesis.speaking && n++ < 40){ setTimeout(w, 250); return; } setTimeout(() => { if (HF && !on) start(); }, 350); }; w(); };
+  window.vozManos = v => {
+    HF = !!v; hfMiss = 0; btn.classList.toggle("hf", HF); document.body.classList.toggle("vozhf", HF);
+    if (HF){ toast("Manos libres: di tus órdenes una tras otra. Di «listo» para terminar"); if (vozHablaOn()) vozHablar(vozUno(["Manos libres activado. Te escucho.", "Listo, te escucho. Dime qué buscas.", "Manos libres. ¿Qué necesitas?"])); if (!on) hfRestart(); }
+    else { stop(); toast("Manos libres apagado"); }
+    setPh();
+  };
+  // de las versiones que entendió el dictado, la que más filtros reconoce o la que coincide con un cliente
+  const score = x => { const c = parseVozCtx(x); if (!c){ const n = vozCliente(x).length; return n === 1 ? 4 : n && n <= 15 ? 2.5 : n ? 0.5 : -1; } if (c.act) return 5; return c.segs.length * 2 + c.emps.length * 2 + c.promos.length * 2 + c.rutas.length * 3 + (c.frs || []).length * 2 + c.dias.length + (c.sup ? 2 : 0) + (c.sector ? 1 : 0) - (c.q ? c.q.split(" ").length : 0) * 0.5; };
+  function procesar(said, alts){
+    if (alts.length > 1 && typeof parseVoz === "function"){
+      const base = score(said); let best = [said, base];
+      for (const x of alts.slice(0, 4)){ if (x === said) continue; const v = score(x); if (v > best[1]) best = [x, v]; }
+      if (best[0] !== said){ said = best[0]; inp.value = said; }
+    }
+    const cmd = typeof parseVozCtx === "function" ? parseVozCtx(said) : null;
+    if (cmd){ cmd.voz = true; applyVoz(cmd, said); return; }   // es un filtro u orden dicha en palabras
+    inp.dispatchEvent(new Event("input"));                    // si no, es un nombre o código de cliente (también por cómo suena)
+    setTimeout(() => { const n = current.length; const m = n ? `${fmt(n)} cliente${n === 1 ? "" : "s"} para "${inp.value}"` : `Sin resultados para "${inp.value}"`; toast(m); if (HF && vozHablaOn()) vozHablar(n === 1 && current[0] ? `Te abro ${current[0].n}.` : n ? `Encontré ${n} clientes con ese nombre.` : "No encontré a nadie con ese nombre."); if (n === 1 && current[0]) openPdv(current[0].c); else if (n && !$("#mapPane").hidden){ needFit = true; renderMap(); } }, 350);
+  }
+  function start(){
+    if (on) return;
     rec = new SR(); rec.lang = "es-SV"; rec.interimResults = true; rec.maxAlternatives = 5; rec.continuous = false;
-    let final = "";
-    let alts = [];
+    let alts = [], heard = false;
     rec.onresult = e => {
-      let txt = ""; for (let i = 0; i < e.results.length; i++){ txt += e.results[i][0].transcript; if (e.results[i].isFinal) final = txt; }
+      heard = true; let txt = ""; for (let i = 0; i < e.results.length; i++) txt += e.results[i][0].transcript;
       { const last = e.results[e.results.length - 1], pre = [...e.results].slice(0, -1).map(r => r[0].transcript).join(""); alts = last && last.isFinal ? [...last].map(a => (pre + a.transcript).replace(/[.,;:¿?¡!]+$/g, "").trim()) : []; }
       txt = txt.replace(/[.,;:¿?¡!]+$/g, "").trim(); inp.value = txt;   // se ve lo que va entendiendo; se aplica al terminar
-      clearTimeout(rec._pv); rec._pv = setTimeout(() => { try{ qSugUpdate(txt); }catch(err){} }, 120);   // vista previa de lo que va a filtrar mientras hablas
+      clearTimeout(rec._pv); rec._pv = setTimeout(() => { try{ if (!fichaAbierta()) qSugUpdate(txt); }catch(err){} }, 180);   // vista previa de lo que va a filtrar mientras hablas
     };
-    rec.onerror = e => { stop(); toast(e.error === "not-allowed" || e.error === "service-not-allowed" ? "Permite el micrófono para buscar por voz" : e.error === "no-speech" ? "No se escuchó nada, intenta de nuevo" : "No se pudo usar el dictado (" + e.error + ")"); };
+    rec.onerror = e => {
+      if (HF && (e.error === "no-speech" || e.error === "aborted" || e.error === "network")) return;   // en manos libres se vuelve a escuchar solo
+      HF = false; btn.classList.remove("hf"); document.body.classList.remove("vozhf"); stop();
+      toast(e.error === "not-allowed" || e.error === "service-not-allowed" ? "Permite el micrófono para buscar por voz" : e.error === "no-speech" ? "No se escuchó nada, intenta de nuevo" : "No se pudo usar el dictado (" + e.error + ")");
+    };
     rec.onend = () => {
-      const was = on; stop(); if (!was || !inp.value) return;
-      let said = inp.value;
-      if (alts.length > 1 && typeof parseVoz === "function"){   // de las versiones que entendió el dictado, la que más filtros reconoce
-        const sc = x => { const c = parseVozCtx(x); if (!c) return 0; if (c.act) return 5; return c.segs.length * 2 + c.emps.length * 2 + c.promos.length * 2 + c.rutas.length * 3 + (c.frs || []).length * 2 + c.dias.length + (c.sup ? 2 : 0) + (c.sector ? 1 : 0) - (c.q ? c.q.split(" ").length : 0) * 0.5; };
-        const best = alts.map(x => [x, sc(x)]).sort((a, b) => b[1] - a[1])[0];
-        if (best && best[1] > sc(said)){ said = best[0]; inp.value = said; }
+      const was = on; on = false; btn.classList.remove("rec"); setPh();
+      const said0 = heard ? inp.value.trim() : "";
+      if (HF){
+        if (!said0){ if (++hfMiss >= 4){ window.vozManos(false); return; } hfRestart(); return; }
+        hfMiss = 0;
+        if (STOPW.test(vozNorm(said0).trim())){ inp.value = ""; window.vozManos(false); return; }
+        try{ procesar(said0, alts); }catch(err){ console.error(err); }
+        hfRestart(); return;
       }
-      const cmd = typeof parseVozCtx === "function" ? parseVozCtx(said) : null;
-      if (cmd){ cmd.voz = true; applyVoz(cmd, said); return; }   // es un filtro dicho en palabras
-      inp.dispatchEvent(new Event("input"));                    // si no, es un nombre o código de cliente
-      setTimeout(() => { const n = current.length; toast(n ? `${fmt(n)} cliente${n === 1 ? "" : "s"} para "${inp.value}"` : `Sin resultados para "${inp.value}"`); if (n === 1 && current[0]) openPdv(current[0].c); else if (n && !$("#mapPane").hidden){ needFit = true; renderMap(); } }, 350);
+      if (!was || !said0) return;
+      procesar(said0, alts);
     };
-    try{ rec.start(); on = true; btn.classList.add("rec"); inp.placeholder = "Escuchando… di el nombre o código"; inp.value = ""; }
-    catch(err){ toast("No se pudo iniciar el micrófono"); }
+    try{ rec.start(); on = true; btn.classList.add("rec"); setPh(); inp.value = ""; }
+    catch(err){ if (!HF) toast("No se pudo iniciar el micrófono"); }
+  }
+  // tocar: escucha una orden · mantener presionado: manos libres (sigue escuchando orden tras orden)
+  btn.addEventListener("pointerdown", () => { lpDone = false; clearTimeout(lpT); lpT = setTimeout(() => { lpDone = true; if (navigator.vibrate) navigator.vibrate(40); window.vozManos(!HF); }, 650); });
+  ["pointerup", "pointerleave", "pointercancel"].forEach(ev => btn.addEventListener(ev, () => clearTimeout(lpT)));
+  btn.addEventListener("contextmenu", e => e.preventDefault());
+  btn.onclick = () => {
+    if (lpDone){ lpDone = false; return; }
+    if (HF){ window.vozManos(false); return; }
+    if (on){ stop(); return; }
+    start();
   };
+  btn.title = "Toca para buscar por voz · mantén presionado para manos libres";
 })();
 
 /* ---------- Catálogo interactivo (portafolio + promos vigentes del cliente) ---------- */
@@ -5497,6 +5681,12 @@ function parseVoz(text, inner){
   const has = re => re.test(t);
   if (/^\s*(deshacer|deshaz|atras|regresa|regresar|volver|el anterior|como estaba|anterior)\b/.test(t) || /\b(deshacer|deshaz) (eso|lo ultimo|el ultimo)\b/.test(t)) return {act:"deshacer", lab:["Deshacer el último"]};
   if (/\b(quita|quitar|quitame|quitale|quitalo|elimina|eliminar|borra|borrar|ya no quiero)\b/.test(t) && !/\b(filtros?|todo|todos)\b/.test(t)) return {act:"quitar", txt: t.replace(/\b(quita|quitar|quitame|quitale|quitalo|elimina|eliminar|borra|borrar|ya no quiero)\b/g, " ").replace(/\s+/g, " ").trim(), lab:["Quitar"]};
+  if (/\b(cambia|cambiar|otra|siguiente)\s+(la\s+)?voz\b/.test(t)) return {act:"vozcfg", que:"sig", lab:["Cambiar voz"]};
+  if (/\b(habla|hablame|voz)\s+(mas\s+)?(rapido|despacio|lento|normal)\b/.test(t)) return {act:"vozcfg", que: /rapido/.test(t) ? "mas" : /normal/.test(t) ? "norm" : "menos", lab:["Velocidad de la voz"]};
+  if (/\b(manos libres|modo conversacion|modo manos|sigue escuchando|escuchame siempre|no dejes de escuchar)\b/.test(t)) return {act:"manos", on: !/\b(apaga|quita|desactiva|sin)\b/.test(t), lab:["Manos libres"]};
+  { const fa = vozFichaParse(t); if (fa) return fa; }
+  if (/\b(como voy|como vamos|como va mi dia|cuanto llevo|cuanto llevamos|mi avance|avance de hoy|resumen del dia|resumen de hoy|como va la ruta)\b/.test(t) || /\b(cuantos|cuantas)\b.*\b(me faltan|faltan|quedan|me quedan)\b.*\b(visitar|por visitar|visita)\b/.test(t)) return {act:"progreso", lab:["Cómo voy hoy"]};
+  { const dm = t.match(/\b(donde queda|donde esta|donde se ubica|cual es la direccion de|direccion de|direccion del|la direccion de)\s+(el\s+|la\s+|cliente\s+)*(.+)$/); if (dm && dm[3].trim().length > 2 && !/\b(ruta|clientes)\b/.test(dm[3])) return {act:"donde", who: dm[3].trim(), lab:["Dirección del cliente"]}; }
   const c = {segs:[], emps:[], promos:[], dias:[], rutas:[], sup:"", sector:"", sort:"", tab:"", clear:false, lab:[], act:null, ask:false, frs:[]};
   const seg = (k, l) => { if (!c.segs.includes(k)){ c.segs.push(k); c.lab.push(l || segLabel(k)); } };
   c.ask = has(/\b(cuantos|cuantas|cuanto|total de|numero de)\b/);
@@ -5678,8 +5868,87 @@ function vozCliente(who){
   const L = filtered(true); F.q = prev;
   return L;
 }
+/* ---------- voz con la ficha abierta: marcar lo que se hizo y preguntar por el cliente ---------- */
+const fichaAbierta = () => openC != null && $("#dDrawer") && !$("#dDrawer").hidden;
+function vozFichaParse(t){
+  if (!fichaAbierta()) return null;
+  const off = /\b(desmarca|desmarcar|desmarcalo|quita la marca|quitale la marca|no lo vendi|no se vendio|no compro|me equivoque|borra la marca)\b/.test(t);
+  const verb = off || /\b(marca|marcar|marcame|marcalo|vendi|vendimos|le vendi|se vendio|cubri|cubrimos|ya compro|compro|active|activo|activamos|lo active|lo activo|quedo activado|activado|lei|leimos|ya lei|saque|sacamos|ya saque|lectura hecha|registra)\b/.test(t);
+  const p = DB.pdv.get(openC);
+  // información del cliente abierto
+  if (!verb){
+    if (/^\s*(cual es la |dime la |lee la |leeme la )?(direccion|donde queda|donde esta)\s*(del cliente|de este cliente|de aqui)?\s*$/.test(t)) return {act:"finfo", que:"dir", lab:["Dirección"]};
+    if (/\b(resumen|que le falta|como esta este cliente|como va este cliente|leeme la ficha|lee la ficha|que tiene este cliente)\b/.test(t)) return {act:"finfo", que:"res", lab:["Resumen del cliente"]};
+    if (/^\s*(llevame|navegar|como llego|trazar ruta|traza la ruta|ruta)(\s+(aqui|alla|ahi|a este cliente|al cliente|hasta aqui))?\s*$/.test(t)) return {act:"finfo", que:"ruta", lab:["Ruta al cliente"]};
+    if (/^\s*(abre el |abrir el |ver el |el )?(catalogo|precios|cotizar)\s*$/.test(t)) return {act:"finfo", que:"cat", lab:["Catálogo"]};
+    if (/^\s*(cierra|cerrar|cierra la ficha|cerrar ficha|salir de la ficha)\s*$/.test(t)) return {act:"finfo", que:"cerrar", lab:["Cerrar ficha"]};
+    return null;
+  }
+  const on = !off;
+  const pack = /\bsuprema\b/.test(t) ? "S330" : /\b(750|setecientos cincuenta|litro)\b/.test(t) ? "R750" : /\b(330|trescientos treinta|botellita|pequena)\b/.test(t) ? "R330" : "";
+  const grp = /\b(cerveza|cervezas|regia|suprema|chela)\b/.test(t) ? "cerveza" : /\b(gatorade|isotonico|isotonicos)\b/.test(t) ? "gatorade" : /\b(multi|litro|litros|1 5|3 l|tres litros|dos litros)\b/.test(t) ? "multi" : /\b(single|lata|latas|600|seiscientos|personal)\b/.test(t) ? "single" : "";
+  if (/\b(active|activo|activamos|lo active|lo activo|quedo activado|activado|activacion|gambito)\b/.test(t)) return {act:"fmark", kind:"gmb", pack, on, lab:["Activación Gambito"]};
+  if (/\b(lei|leimos|ya lei|lectura|wellington|lectura hecha)\b/.test(t)) return {act:"fmark", kind:"wl", on, lab:["Lectura Wellington"]};
+  if (/\b(saque|sacamos|ya saque)\b/.test(t) || /\b(rmasn|rojo|negro)\b/.test(t)) return {act:"fmark", kind:"rn", on, lab:["Equipo sacado de R+N"]};
+  if (/\b(promo|promocion|promociones|combo|oferta)\b/.test(t)){ const w = t.replace(/\b(marca|marcar|marcame|marcalo|vendi|vendimos|le vendi|se vendio|desmarca|desmarcar|quita la marca|no lo vendi|la|el|de|del|promo|promocion|combo|oferta|registra)\b/g, " ").replace(/\s+/g, " ").trim(); return {act:"fmark", kind:"ac", txt:w, on, lab:["Promoción vendida"]}; }
+  if (/\b(cobertura|coberturas|cubri|cubrimos)\b/.test(t) || grp) return {act:"fmark", kind:"cov", grp, on, lab:["Cobertura"]};
+  return null;
+}
+function vozFichaMark(c){
+  const box = $("#dBody"), p = DB.pdv.get(openC); if (!box || !p) return;
+  let L = [...box.querySelectorAll(`input[type=checkbox][data-kind="${c.kind}"]`)];
+  const nombre = x => { const pr = x.dataset.kind === "ac" && typeof promoById === "function" ? promoById(x.dataset.k) : null; if (pr && pr.n) return pr.n; const l = x.closest("label, .pcard"); return l ? l.innerText.replace(/\s+/g, " ").trim() : x.dataset.k; };
+  if (c.kind === "gmb" && c.pack) L = L.filter(x => x.dataset.k === c.pack);
+  if (c.kind === "cov" && c.grp) L = L.filter(x => covGroupOf(x.dataset.k) === c.grp);
+  if (c.kind === "ac" && c.txt){ const qw = qTok(c.txt), M = L.map(x => [x, qTok(nombre(x) + " " + x.dataset.k)]).filter(([, tk]) => qw.every(w => tk.some(z => z.startsWith(w) || fon(z) === fon(w) || (w.length >= 5 && fuzzyTok(w, z, 1))))); if (M.length) L = M.map(([x]) => x); else L = []; }
+  const que = {gmb:"activación Gambito", wl:"lectura Wellington", rn:"equipo de R+N", ac:"promoción", cov:"cobertura" + (c.grp ? " de " + c.grp : "")}[c.kind];
+  if (!L.length){ const m = c.kind === "ac" && c.txt ? `No encontré la promoción "${c.txt}" en esta ficha` : `En esta ficha no hay ${que} para marcar`; toast(m); if (vozHablaOn()) vozHablar(m); return; }
+  const pend = L.filter(x => x.checked !== c.on);
+  if (!pend.length){ const m = c.on ? `Ya estaba marcado: ${que}` : `No estaba marcado: ${que}`; toast(m); if (vozHablaOn()) vozHablar(m); return; }
+  if (pend.length > 1 && (c.kind === "ac" || (c.kind === "gmb" && !c.pack)) && !(c.kind === "ac" && c.txt)){ const m = `Hay ${pend.length} opciones: di cuál, por ejemplo ${c.kind === "gmb" ? "activé regia 750" : "vendí la promo de " + nombre(pend[0]).split(" ").slice(0, 3).join(" ")}`; toast(m); if (vozHablaOn()) vozHablar(m); return; }
+  const x = pend[0]; x.click(); try{ x.scrollIntoView({behavior:"smooth", block:"center"}); }catch(e){}
+  const m = (c.on ? "Marcado: " : "Desmarcado: ") + (c.kind === "cov" ? "cobertura " + x.dataset.k : c.kind === "ac" ? nombre(x).slice(0, 60) : c.kind === "gmb" ? "activación " + (GPROD[x.dataset.k] || x.dataset.k) : que);
+  toast(m); if (vozHablaOn()) vozHablar(m);
+}
+function vozFichaInfo(c){
+  const p = DB.pdv.get(openC); if (!p) return;
+  if (c.que === "dir"){ const m = p.dir ? "La dirección es: " + p.dir.toLowerCase() : "Este cliente no tiene dirección registrada"; toast(m); vozHablar(m); return; }
+  if (c.que === "ruta"){ routeTo(p.c); return; }
+  if (c.que === "cat"){ openCatalog(p.c); return; }
+  if (c.que === "cerrar"){ closeDrawers(); return; }
+  const parts = [p.n];
+  if (p.cov){ const pend = covPend(p); parts.push(pend.length ? `le falta cobertura de ${pend.map(g => g.label).join(" y ")}` : "tiene las coberturas completas"); }
+  const np = nPromosCliente(p); if (np) parts.push(`${np} promoci${np === 1 ? "ón" : "ones"}`);
+  const ge = typeof gambEstado === "function" ? gambEstado(p) : null; if (ge) parts.push(ge.act ? "Gambito activado" : "Gambito por activar: " + ge.items.filter(i => !i.act).map(i => GPROD[i.k] || i.k).join(" y "));
+  if (p.vpo) parts.push(`VPO al ${Math.round((p.vpo.pct || 0) * 100)} por ciento`);
+  const wp = wellPend(p).length; if (wp) parts.push(`${wp} equipo${wp > 1 ? "s" : ""} sin lectura Wellington`);
+  if (DB.rn && DB.rn.sem){ const nr = rnEq(p).length; if (nr) parts.push(`${nr} equipo${nr > 1 ? "s" : ""} en rojo o negro`); }
+  const m = parts.join(". "); toast(m); vozHablar(m);
+}
+function vozProgreso(){
+  const L = filtered(true), tl = todayLetter(), hoy = tl ? L.filter(p => frDays(p.fr).includes(tl)) : [], vis = hoy.filter(p => visitedToday(p.c)).length;
+  const rs = new Set(L.map(p => p.ruta)), st = (liveKeys() && LIVE.data) ? new Map([...liveLocal(), ...LIVE.data.st]) : liveLocal(), T = {cov:0, ac:0, gmb:0, wl:0, rn:0, cj:0};
+  for (const e of st.values()){ if (!rs.has(e.r)) continue; if (e.k === "cart"){ T.cj += +e.v || 0; continue; } if (e.v && T[e.k] != null) T[e.k]++; }
+  const parts = [];
+  if (hoy.length) parts.push(vis ? `Llevas ${vis} de ${hoy.length} clientes de hoy; te faltan ${hoy.length - vis}.` : `Todavía no marcas visitas hoy; tienes ${hoy.length} clientes programados.`);
+  if (T.cov) parts.push(`${T.cov} cobertura${T.cov === 1 ? "" : "s"}`); if (T.ac) parts.push(`${T.ac} promoci${T.ac === 1 ? "ón" : "ones"}`);
+  if (T.gmb) parts.push(`${T.gmb} activaci${T.gmb === 1 ? "ón" : "ones"} Gambito`);
+  if (T.wl) parts.push(`${T.wl} lecturas Wellington`); if (T.rn) parts.push(`${T.rn} equipos sacados de R más N`);
+  if (T.cj) parts.push(`${fmt(T.cj, 1)} cajas en el catálogo`);
+  const ini = hoy.length ? parts[0] : "", rest = hoy.length ? parts.slice(1) : parts;
+  const m = (ini ? ini + " " : "") + (rest.length ? "Hoy van " + rest.join(", ").replace(/, ([^,]*)$/, " y $1") + "." : "Todavía no hay coberturas ni promociones marcadas hoy."); toast(m); vozHablar(m);
+}
 function runVozAct(c){
-  if (c.act === "habla"){ ls.set("rutapdv_voz_habla", c.on); toast(c.on ? "Te respondo en voz alta" : "Respuesta hablada apagada"); if (c.on) vozHablar("Listo"); return true; }
+  if (c.act === "vozcfg"){ if (c.que === "sig") vozCambiar(true); else { VOZ_CFG.rate = c.que === "norm" ? 1 : Math.min(1.4, Math.max(.75, (VOZ_CFG.rate || 1) + (c.que === "mas" ? .1 : -.1))); ls.set(VOZ_CFG_KEY, VOZ_CFG); toast(`Velocidad de la voz: ${Math.round(VOZ_CFG.rate * 100)}%`); vozHablar(c.que === "mas" ? "Va, hablo un poco más rápido." : c.que === "norm" ? "Listo, velocidad normal." : "Va, hablo más despacio."); } return true; }
+  if (c.act === "manos"){ if (window.vozManos) window.vozManos(c.on); return true; }
+  if (c.act === "fmark"){ vozFichaMark(c); return true; }
+  if (c.act === "finfo"){ vozFichaInfo(c); return true; }
+  if (c.act === "progreso"){ vozProgreso(); return true; }
+  if (c.act === "donde"){ const L = vozCliente(c.who); if (!L.length){ toast(`No encontré al cliente "${c.who}"`); vozHablaOn() && vozHablar("No encontré ese cliente"); return true; }
+    if (L.length > 1 && L.length <= 3 && L.every(p => p.dir)){ const m = L.map(p => `${p.n}: ${p.dir.toLowerCase()}`).join(". "); toast(m); vozHablar(m); return true; }
+    if (L.length > 1){ F.q = c.who; $("#q").value = c.who; renderAll(); setTab("list"); toast(`${fmt(L.length)} clientes parecidos a "${c.who}": elige uno`); return true; }
+    const p = L[0]; openPdv(p.c); const m = p.dir ? `${p.n} queda en ${p.dir.toLowerCase()}` : `${p.n} no tiene dirección registrada; te abro la ficha con su ubicación`; toast(m); vozHablar(m); return true; }
+  if (c.act === "habla"){ ls.set("rutapdv_voz_habla", c.on); toast(c.on ? "Te respondo en voz alta" : "Respuesta hablada apagada"); if (c.on) vozHablar("Claro, te voy respondiendo en voz alta."); return true; }
   if (c.act === "siguiente"){
     // el siguiente: el más cercano de la lista actual que no has visitado hoy (de los programados hoy si los hay)
     if (!ME){ startGps(); toast("Activa el GPS para saber cuál te queda más cerca"); return true; }
@@ -5688,7 +5957,7 @@ function runVozAct(c){
     if (!p){ toast("No quedan clientes por visitar en esta lista"); vozHablaOn() && vozHablar("No quedan clientes por visitar"); return true; }
     const dtx = p._d != null ? (p._d < 1 ? Math.round(p._d * 1000) + " metros" : fmt(p._d, 1) + " kilómetros") : "";
     if (c.ruta) routeTo(p.c); else openPdv(p.c);
-    toast(`Siguiente: ${p.n}${dtx ? " · a " + dtx : ""}`); if (vozHablaOn()) vozHablar(`Siguiente: ${p.n}${dtx ? ", a " + dtx : ""}`);
+    toast(`Siguiente: ${p.n}${dtx ? " · a " + dtx : ""}`); if (vozHablaOn()) vozHablar(`${vozUno(["Tu siguiente cliente es", "Sigue", "Te toca"])} ${p.n}${dtx ? ", a " + dtx + " de aquí" : ""}.`);
     return true;
   }
   if (c.act === "deshacer"){ vozDeshacer(); return true; }
@@ -5707,7 +5976,88 @@ function runVozAct(c){
   return false;
 }
 const vozHablaOn = () => ls.get("rutapdv_voz_habla", true) !== false;
-function vozHablar(txt){ try{ if (!("speechSynthesis" in window)) return; const u = new SpeechSynthesisUtterance(txt); u.lang = "es-MX"; u.rate = 1.05; speechSynthesis.cancel(); speechSynthesis.speak(u); }catch(e){} }
+/* ---------- voz del asistente: la voz más natural del teléfono, frases cortas con pausas y lectura de números y nombres como persona ---------- */
+const VOZ_CFG_KEY = "rutapdv_voz_cfg";
+let VOZ_CFG = Object.assign({name:"", rate:1}, ls.get(VOZ_CFG_KEY, {}) || {}), VOZ_SEL = null;
+const vozesEs = () => { try{ return speechSynthesis.getVoices().filter(v => /^es([-_]|$)/i.test(v.lang)); }catch(e){ return []; } };
+function vozPuntaje(v){   // las voces "Natural"/"Neural"/"Online" y las de Google suenan mucho menos robóticas que las locales básicas
+  let p = 0; const n = v.name;
+  if (/natural|neural|wavenet|premium|enhanced|mejorad/i.test(n)) p += 60;
+  if (/online/i.test(n)) p += 25;
+  if (/google/i.test(n)) p += 20;
+  if (/paulina|m[oó]nica|sabina|dalia|jorge|juan|diego|helena|laura|elvira|[aá]lvaro|elena|camila|valentina|lupe|pia|salome|lorenzo|gonzalo/i.test(n)) p += 10;
+  if (/es[-_](MX|US|419|SV|GT|HN|CO|PE|CR)/i.test(v.lang)) p += 12; else if (/es[-_]ES/i.test(v.lang)) p += 4;
+  if (!v.localService) p += 6;
+  if (/espeak|compact|eloquence|grandma|grandpa|robot|zarvox/i.test(n)) p -= 80;
+  return p;
+}
+function vozElegida(){
+  if (VOZ_SEL && vozesEs().includes(VOZ_SEL)) return VOZ_SEL;
+  const vs = vozesEs(); if (!vs.length) return null;
+  VOZ_SEL = vs.find(v => v.name === VOZ_CFG.name) || [...vs].sort((a, b) => vozPuntaje(b) - vozPuntaje(a))[0];
+  return VOZ_SEL;
+}
+try{ speechSynthesis.onvoiceschanged = () => { VOZ_SEL = null; }; speechSynthesis.getVoices(); }catch(e){}
+const VOZ_SIGLAS = new Set(["VPO", "AC", "CSD", "ETP", "SKU", "CVZ", "SS", "MS", "LJ", "MV", "RS", "PET", "GRB", "TU", "AD", "ISO", "RTD", "SAC", "GPS", "VR"]);
+// lo que se escribe para la pantalla, dicho como lo diría una persona
+function vozTexto(t){
+  t = String(t || "")
+    .replace(/[«»"“”]/g, "").replace(/\s*·\s*/g, ", ").replace(/\s*→\s*/g, ": ").replace(/\s*[—–]\s*/g, ", ").replace(/✓|✔|⚡|🍺|📦|🧊|🏷️|★/g, "")
+    .replace(/\bR\s*\+\s*N\b/gi, "R más N").replace(/\s*\+\s*/g, " más ")
+    .replace(/(\d+(?:[.,]\d+)?)\s*%/g, "$1 por ciento")
+    .replace(/(\d),(\d{3})\b/g, "$1$2")                                  // 2,779 → 2779 (si no, lo lee como decimal)
+    .replace(/(\d+)\.(\d{1,2})\s*CJ\b/gi, "$1 punto $2 cajas").replace(/\b1\s*CJ\b/gi, "una caja").replace(/\bCJ\b/gi, "cajas")
+    .replace(/(\d+)\s*km\b/gi, "$1 kilómetros").replace(/(\d+)\s*m\b/g, "$1 metros").replace(/(\d+)\s*ML\b/gi, "$1 mililitros")
+    .replace(/\$\s*(\d+)\.(\d{2})\b/g, (m, a, b) => `${a} dólares${+b ? " con " + (+b) : ""}`)
+    .replace(/\bruta\s+(\d{2})(\d{2})(\d{2})\b/gi, "ruta $1 $2 $3")   // 265113 → "26 51 13", como se dice en la calle
+    .replace(/\b(\d{2})(\d{2})(\d{2})\b(?=[^\d]|$)/g, (m, a, b, c) => `${a} ${b} ${c}`)
+    .replace(/\bR(750|330)\b/g, "Regia $1").replace(/\bS330\b/g, "Suprema 330")
+    .replace(/\bTDA\b/g, "tienda").replace(/\bCOL\b\.?/g, "colonia").replace(/\bBO\b\.?/g, "barrio").replace(/\bCTON\b\.?|\bCNTN\b\.?/g, "cantón").replace(/\bAV\b\.?/g, "avenida").replace(/\bCALLE PPAL\b|\bC PPAL\b/gi, "calle principal").replace(/\bNo\.\s*(\d)/g, "número $1");
+  // palabras en MAYÚSCULAS (nombres de clientes): algunas voces las deletrean letra por letra
+  t = t.replace(/\b[A-ZÁÉÍÓÚÑ]{2,}\b/g, w => VOZ_SIGLAS.has(w) ? w.split("").join(" ") : w.charAt(0) + w.slice(1).toLowerCase());
+  return t.replace(/\s+,/g, ",").replace(/,\s*,/g, ",").replace(/\s{2,}/g, " ").trim();
+}
+// frases cortas: se dicen una tras otra con su pausa natural (y Chrome no corta las largas)
+function vozFrases(t){
+  const out = [];
+  for (let f of t.split(/(?<=[.!?])\s+/)){ f = f.trim(); if (!f) continue;
+    while (f.length > 150){ const k = f.lastIndexOf(",", 150); if (k < 40) break; out.push(f.slice(0, k + 1)); f = f.slice(k + 1).trim(); }
+    out.push(f); }
+  return out;
+}
+let VOZ_KEEP = null;
+function vozHablar(txt, opts){
+  try{
+    if (!("speechSynthesis" in window) || !txt) return;
+    const v = vozElegida(), frases = vozFrases(vozTexto(txt)); if (!frases.length) return;
+    speechSynthesis.cancel();
+    frases.forEach((f, i) => {
+      const u = new SpeechSynthesisUtterance(f);
+      if (v){ u.voice = v; u.lang = v.lang; } else u.lang = "es-MX";
+      const base = VOZ_CFG.rate || 1, nat = v && /natural|neural|online|google/i.test(v.name);
+      u.rate = Math.min(1.5, Math.max(.7, base * (nat ? 1 : 0.96) * (i === 0 && frases.length > 1 ? 1.02 : 1)));   // las voces básicas suenan mejor un poco más despacio
+      u.pitch = /\?\s*$/.test(f) ? 1.08 : 1;   // pregunta: sube un poco el tono
+      u.volume = 1;
+      speechSynthesis.speak(u);
+    });
+    clearInterval(VOZ_KEEP); VOZ_KEEP = setInterval(() => { try{ if (!speechSynthesis.speaking){ clearInterval(VOZ_KEEP); return; } if (!speechSynthesis.paused){ speechSynthesis.pause(); speechSynthesis.resume(); } }catch(e){ clearInterval(VOZ_KEEP); } }, 10000);   // evita que Chrome se quede callado a medias
+  }catch(e){}
+}
+// variedad para que no repita siempre la misma muletilla
+const vozUno = arr => arr[Math.floor(Math.random() * arr.length)];
+function vozResultado(n, resumen, afinado){
+  const cl = n === 1 ? "un cliente" : `${n} clientes`;
+  const r = String(resumen || "").replace(/\s*·\s*/g, ", ").toLowerCase().replace(/^programados hoy/, "de hoy");
+  if (!n) return vozUno(["No encontré clientes con eso.", "Con ese filtro no queda ningún cliente.", "No hay clientes que cumplan eso."]) + (r ? ` Busqué: ${r}.` : "");
+  if (afinado) return `${vozUno(["Listo", "Va", "Perfecto", "Hecho"])}, ahora quedan ${cl}${r ? ": " + r : ""}.`;
+  return `${vozUno(["Listo", "Perfecto", "Muy bien", "Va"])}, ${vozUno(["encontré", "tienes", "hay"])} ${cl}${r ? ": " + r : ""}.`;
+}
+function vozCambiar(sig){
+  const vs = vozesEs().sort((a, b) => vozPuntaje(b) - vozPuntaje(a)); if (!vs.length){ toast("Este teléfono no tiene voces en español instaladas"); return; }
+  const cur = vozElegida(), i = Math.max(0, vs.indexOf(cur)); VOZ_SEL = vs[(i + (sig ? 1 : 0)) % vs.length];
+  VOZ_CFG.name = VOZ_SEL.name; ls.set(VOZ_CFG_KEY, VOZ_CFG);
+  toast(`Voz: ${VOZ_SEL.name} (${i + 2 > vs.length ? 1 : i + 2} de ${vs.length})`); vozHablar("Hola, así sueno ahora. ¿Te gusta esta voz?");
+}
 function vozSetF(c){
   if (c.clear){ Object.assign(F, {segs:[], emps:[], promos:[], dias:[], frs:[], sector:"", q:""}); if (DB.rutas.length > 1 && !c.rutas.length) F.rutas = []; }
   F.segs = [...new Set(c.segs)]; F.emps = [...new Set(c.emps)]; F.promos = c.promos || []; F.modo = "and";
@@ -5889,8 +6239,8 @@ function applyVoz(c, text){
   toast(`${D.merge ? "Afinado: " : ""}${fmt(n)} cliente${n === 1 ? "" : "s"}${resumen ? " · " + resumen : ""}`);
   recGuardar(resumen);
   if (c.verPromos !== undefined){ promoVer(c.verPromos, `${c.verPromos.length} promoci${c.verPromos.length === 1 ? "ón" : "ones"} encontrada${c.verPromos.length === 1 ? "" : "s"}`); if (porVoz && vozHablaOn()) vozHablar(c.verPromos.length ? `${c.verPromos.length} promociones: ${c.verPromos.slice(0, 3).map(id => (promoById(id) || {}).n || "").join(", ")}` : "No encontré promociones con eso"); }
-  else if (porVoz && vozHablaOn() && !c.ask) vozHablar(`${n} cliente${n === 1 ? "" : "s"}${D.merge ? "" : ""}. ${resumen.replace(/·/g, ",").replace(/\+/g, " más ").slice(0, 160)}`);
-  if (c.ask) vozHablar(`${n} cliente${n === 1 ? "" : "s"}`);
+  else if (porVoz && vozHablaOn() && !c.ask) vozHablar(vozResultado(n, resumen.slice(0, 180), D.merge));
+  if (c.ask) vozHablar(n === 1 ? "Es un solo cliente." : n ? `Son ${n} clientes.` : "Ninguno.");
 }
 function undoVoz(){
   if (VOZ_PREV){ Object.assign(F, VOZ_PREV); $("#q").value = F.q || ""; $("#sort").value = F.sort; }
@@ -5901,7 +6251,7 @@ function undoVoz(){
 document.addEventListener("click", e => { if (e.target.closest("[data-vozundo]")) undoVoz(); if (e.target.closest("[data-vozhelp]")){ $("#menu").hidden = true; vozHelp(); } });
 function vozHelp(){
   toast("Toca el micrófono o escribe en el buscador y presiona Enter, por ejemplo: \"compra cero de cerveza de la ruta 265115\"");
-  const ej = ["clientes de hoy con necesidad de equipo frío en el mapa", "los que les falta solo una cobertura", "les faltan 2 coberturas", "les falta cerveza y gatorade el lunes", "los que no han comprado este mes", "compra menor a 2 cajas", "mayor volumen de compra", "ruta 113 sector Bolívar", "clientes de Erick con R más N", "tiendas 5 estrellas con promo de Gatorade", "clientes con promoción de Lipton que estén en R más N de la ruta 265113", "clientes compra cero de la ruta 265114", "clientes gambito de la ruta 265113", "promociones de lata", "promos de 600", "promo a 20.60", "promos de menos de 15 dólares", "precios de regia 330", "(paso a paso) clientes gambito → los compra cero → de la ruta 265122 → de la frecuencia de hoy", "(paso a paso) R más N → los de 15 o más → sin visitar → de la ruta 265113", "(paso a paso) con promo de lipton → y de gatorade → sin gambito", "(paso a paso) les falta cerveza → y gatorade → 5 estrellas → rs", "VPO por cumplir → los cumplidos", "Wellington pendiente → más de 60 días", "deshacer", "quita la ruta", "nuevo filtro: clientes con R más N", "quiero ver los clientes de R más N de la ruta 265113", "tienda blanca de la ruta 265119", "gambito rs de la ruta 265113", "ruta 265115 frecuencia lj y mv", "compra cero de cerveza de la ruta 265115", "compra cero de Gatorade", "los que nunca compran Regia 750", "clientes con plan Gambito", "sin lectura Wellington", "cuántos clientes tienen VPO por cumplir", "abre la ficha de tienda Rosita", "llévame a tacos el Taurino", "catálogo de tienda Rosita", "desafíos del día", "panel emergente", "quitar filtros"];
+  const ej = ["cambia la voz · habla más despacio · habla más rápido", "mantén presionado el micrófono: manos libres (orden tras orden; di «listo» para terminar)", "cómo voy hoy · cuántos me faltan por visitar", "dónde queda tienda la bendición", "con la ficha abierta: «vendí cobertura de cerveza», «activé regia 750», «leí el equipo», «vendí la promo de lipton», «resumen», «dirección», «llévame»", "clientes de hoy con necesidad de equipo frío en el mapa", "los que les falta solo una cobertura", "les faltan 2 coberturas", "les falta cerveza y gatorade el lunes", "los que no han comprado este mes", "compra menor a 2 cajas", "mayor volumen de compra", "ruta 113 sector Bolívar", "clientes de Erick con R más N", "tiendas 5 estrellas con promo de Gatorade", "clientes con promoción de Lipton que estén en R más N de la ruta 265113", "clientes compra cero de la ruta 265114", "clientes gambito de la ruta 265113", "promociones de lata", "promos de 600", "promo a 20.60", "promos de menos de 15 dólares", "precios de regia 330", "(paso a paso) clientes gambito → los compra cero → de la ruta 265122 → de la frecuencia de hoy", "(paso a paso) R más N → los de 15 o más → sin visitar → de la ruta 265113", "(paso a paso) con promo de lipton → y de gatorade → sin gambito", "(paso a paso) les falta cerveza → y gatorade → 5 estrellas → rs", "VPO por cumplir → los cumplidos", "Wellington pendiente → más de 60 días", "deshacer", "quita la ruta", "nuevo filtro: clientes con R más N", "quiero ver los clientes de R más N de la ruta 265113", "tienda blanca de la ruta 265119", "gambito rs de la ruta 265113", "ruta 265115 frecuencia lj y mv", "compra cero de cerveza de la ruta 265115", "compra cero de Gatorade", "los que nunca compran Regia 750", "clientes con plan Gambito", "sin lectura Wellington", "cuántos clientes tienen VPO por cumplir", "abre la ficha de tienda Rosita", "llévame a tacos el Taurino", "catálogo de tienda Rosita", "desafíos del día", "panel emergente", "quitar filtros"];
   $("#vozBar").innerHTML = `<span class="vzi">🎙</span><span class="vzt"><b>Puedes decir, por ejemplo:</b><br>${ej.map(x => "· " + esc(x)).join("<br>")}<br>O di el nombre o código del cliente.</span><button class="vzx" data-vozundo>Cerrar</button>`;
   $("#vozBar").hidden = false; setTab("list");
 }
