@@ -3818,7 +3818,14 @@ async function liveFlush(){
   finally{ LIVE.busy = false; }
 }
 window.addEventListener("online", () => liveFlush());
+setTimeout(() => { try{ if (LIVE.q.length) liveFlush(); }catch(e){} }, 4000);
 // supervisor: trae las marcas de hoy de su equipo (o equipos) y se queda con la última de cada cosa
+let LIVE_P = null;
+function liveFetchBg(){   /* se lanza sola al abrir el Avance; al terminar repinta la sección */
+  if (!liveKeys() || LIVE_P) return; LIVE.loading = true;
+  LIVE_P = liveFetch(true).finally(() => { LIVE.loading = false; LIVE_P = null; LIVE.tried = Date.now();
+    if (typeof CUR_TAB !== "undefined" && CUR_TAB === "panel" && PSEC.avd){ const pp = $("#panelPane"), y = pp ? pp.scrollTop : 0; renderPanel(); if (pp) pp.scrollTop = y; } });
+}
 async function liveFetch(force){
   const K = liveKeys(); if (!K) return null;
   if (!force && LIVE.data && Date.now() - LIVE.t < 45000) return LIVE.data;
@@ -3826,14 +3833,19 @@ async function liveFetch(force){
   try{
     /* todos los canales a la vez (acceso total = un canal por supervisor) */
     const res = await Promise.all(Object.entries(K).map(async ([s, k]) => {
-      try{ const r = await fetch(`${DB.live.url}?a=get&ch=${await liveChan(k)}&d=${d}&t=${Date.now()}`, {cache:"no-store"});
-        if (!r.ok) return {s, k, err:1}; const j = await r.json(); return {s, k, rows: j.rows || []}; }catch(e){ return {s, k, err:1}; } }));
-    const fail = res.filter(x => x.err).length; if (fail === res.length && res.length) throw new Error("sin buzón");
+      const ac = new AbortController(), to = setTimeout(() => ac.abort(), 25000);
+      try{ const r = await fetch(`${DB.live.url}?a=get&ch=${await liveChan(k)}&d=${d}&t=${Date.now()}`, {cache:"no-store", signal:ac.signal});
+        if (!r.ok) return {s, k, err:"http " + r.status}; const tx = await r.text(); let j; try{ j = JSON.parse(tx); }catch(e){ return {s, k, err:"html"}; }
+        if (j.error) return {s, k, err:"gs: " + j.error}; return {s, k, rows: j.rows || []}; }
+      catch(e){ return {s, k, err: e.name === "AbortError" ? "tiempo" : "red"}; } finally{ clearTimeout(to); } }));
+    const fails = res.filter(x => x.err), fail = fails.length; LIVE.errTipo = fail ? fails[0].err : "";
+    if (fail === res.length && res.length) throw new Error(fails[0].err);
     for (const {k, rows} of res){ if (!rows) continue;
       for (const row of rows){ let evs; try{ evs = await liveDec(k, row[1]); }catch(e){ continue; }
         for (const e of evs){ if (e.d !== d) continue; n++; const key = e.c + "|" + e.k + "|" + e.i, o = st.get(key); if (!o || o.t <= e.t) st.set(key, e); } } }
     LIVE.data = {st, n}; LIVE.t = Date.now(); LIVE.err = fail ? `No se pudo leer ${fail} de ${res.length} equipos; reintenta` : "";
-  }catch(e){ LIVE.err = "No se pudo leer el buzón en vivo (revisa la conexión)"; }
+  }catch(e){ const m = String(e.message || "");
+    LIVE.err = m === "html" ? "El buzón respondió una página de Google en vez de datos: en Apps Script la implementación debe ser «Aplicación web», ejecutar como «Yo» y acceso «Cualquier persona»" : m === "tiempo" ? "El buzón tardó demasiado en responder; toca Actualizar" : m.startsWith("http") ? "El buzón respondió con error (" + m + ")" : m.startsWith("gs:") ? "El buzón respondió: " + m.slice(3) : "No se pudo leer el buzón en vivo (revisa la conexión)"; LIVE.t = LIVE.t || 0; }
   return LIVE.data;
 }
 // las marcas de este teléfono (aunque todavía no se hayan enviado)
@@ -3926,6 +3938,7 @@ function renderAvance(L){
   let h = "";
   // 1) en vivo: lo que marcan en ruta
   const K = liveKeys(), st = (K && LIVE.data) ? new Map([...liveLocal(), ...LIVE.data.st]) : liveLocal();
+  if (K && !LIVE_P && (!LIVE.tried || Date.now() - LIVE.tried > 45000)) setTimeout(liveFetchBg, 0);
   const T = {cov:0, ac:0, wl:0, rn:0, vis:0, cj:0}, G = {cerveza:0, gatorade:0, multi:0, single:0}, PR = new Map();
   for (const e of st.values()){
     if (!rs.has(e.r)) continue; const pr = PR.get(e.r) || {cov:0, ac:0, wl:0, rn:0, vis:0, cj:0, t:0}; PR.set(e.r, pr); pr.t = Math.max(pr.t, e.t || 0);
@@ -3934,7 +3947,7 @@ function renderAvance(L){
     if (e.k === "cov"){ const g = covGroupOf(e.i); if (g && G[g] != null) G[g]++; }
   }
   const hhmm = t => t ? new Date(t).toLocaleTimeString("es-SV", {hour:"2-digit", minute:"2-digit"}) : "—";
-  h += `<div class="avh"><b>En vivo · lo que van marcando hoy</b><span>${K ? (LIVE.err ? `<span class="warn">${esc(LIVE.err)}</span>` : LIVE.t ? `actualizado ${hhmm(LIVE.t)} · se actualiza solo cada minuto` : "cargando…") : "solo las marcas de este teléfono"}</span>${K ? `<button class="btn sm" data-avref>Actualizar</button>` : ""}</div>`;
+  h += `<div class="avh"><b>En vivo · lo que van marcando hoy</b><span>${K ? (LIVE.err ? `<span class="warn">${esc(LIVE.err)}</span>` : LIVE.loading || LIVE_P ? "cargando…" : LIVE.t ? `actualizado ${hhmm(LIVE.t)} · se actualiza solo cada minuto` : "todavía no hay datos") : "solo las marcas de este teléfono"}</span>${K ? `<button class="btn sm" data-avref>Actualizar</button>` : ""}</div>`;
   h += `<div class="avg">` + avTile("Coberturas marcadas", fmt(T.cov), `Cerveza ${G.cerveza} · Gatorade ${G.gatorade} · Multi ${G.multi} · Single ${G.single}`) + avTile("Promociones vendidas", fmt(T.ac), "") + avTile("Lecturas Wellington", fmt(T.wl), "equipos lecturados") + avTile("Sacados de R+N", fmt(T.rn), "equipos") + avTile("Clientes atendidos", fmt(T.vis), "con al menos una marca") + avTile("Pedidos en catálogo", fmt(T.cj, 1) + " CJ", "lo que llevan cargado hoy") + `</div>`;
   if (rutas.length > 1){
     const rows = rutas.map(r => [r, PR.get(r) || {cov:0, ac:0, wl:0, rn:0, vis:0, cj:0, t:0}]).sort((a, b) => (b[1].cov + b[1].ac + b[1].wl + b[1].rn) - (a[1].cov + a[1].ac + a[1].wl + a[1].rn));
@@ -3987,7 +4000,7 @@ function repCard(r){
   const inp = c => `<label><span>${c.l}</span><input type="number" inputmode="decimal" step="0.01" min="0" data-mdk="${c.k}" data-mdr="${esc(r)}" value="${v[c.k] ?? ""}" placeholder="0"></label>`;
   const tot = ["colas","licores","iso","oro","csd"].reduce((a, k) => a + (+v[k] || 0), 0);
   let h = `<div class="mdcard"><div class="avh"><b>Mi día · Ruta ${esc(r)}</b><span id="mdState">${v._t ? "Enviado " + new Date(v._t).toLocaleTimeString("es-SV", {hour:"2-digit", minute:"2-digit"}) : "Escribe tus volúmenes: se guardan y se envían solos"}</span></div>`;
-  h += `<h4>Volumen del día (CJ)</h4><div class="repg">` + REP_COLS.filter(c => c.g === "vol" && !c.tot).map(inp).join("") + `<label><span>Total</span><input type="number" inputmode="decimal" step="0.01" min="0" data-mdk="total" data-mdr="${esc(r)}" value="${v.total ?? (tot ? Math.round(tot * 100) / 100 : "")}" placeholder="0"></label></div>`;
+  h += `<h4>Volumen del día (CJ)</h4><div class="repg">` + REP_COLS.filter(c => c.g === "vol" && !c.tot).map(inp).join("") + `<label><span>Total</span><input type="number" inputmode="decimal" step="0.01" min="0" data-mdk="total" data-mdr="${esc(r)}" value="${v.total ?? ""}" placeholder="0"></label></div>`;
   h += `<h4>Empaques emergentes (CJ)</h4><div class="repg">` + REP_COLS.filter(c => c.g === "eme").map(inp).join("") + `</div>`;
   h += `<h4>Indicadores de hoy <small>(se suman solos con lo que marcas en cada cliente)</small></h4><div class="avg">` + avTile("Cob familiares", fmt(ind.cfam), "") + avTile("Cob SS", fmt(ind.css), "") + avTile("Cob Gatorade", fmt(ind.cgat), "") + avTile("Cob CVZ", fmt(ind.ccvz), "") + avTile("R+N sacados", fmt(ind.rn), "") + avTile("Lecturas Wellington", fmt(ind.wl), "") + `</div>`;
   h += `<div class="repg">` + inp(REP_COLS.find(c => c.k === "etp")) + `</div><p class="note">Todo empieza en cero cada día: lo de ayer queda guardado solo como historial.</p></div>`;
@@ -3998,8 +4011,6 @@ document.addEventListener("input", e => {
   const x = e.target.closest && e.target.closest("[data-mdk]"); if (!x) return;
   const r = x.dataset.mdr, o = ls.get(repKey(r), {}) || {}, n = parseFloat(x.value);
   if (isNaN(n)) delete o[x.dataset.mdk]; else o[x.dataset.mdk] = n;
-  if (x.dataset.mdk !== "total" && !o._totManual){ const t = ["colas","licores","iso","oro","csd"].reduce((a, k) => a + (+o[k] || 0), 0); o.total = Math.round(t * 100) / 100; const tt = document.querySelector(`[data-mdk="total"][data-mdr="${CSS.escape(r)}"]`); if (tt) tt.value = o.total || ""; }
-  if (x.dataset.mdk === "total") o._totManual = 1;
   ls.set(repKey(r), o);
   const s = document.getElementById("mdState"); if (s) s.textContent = "Guardando…";
   clearTimeout(MD_T[r]); MD_T[r] = setTimeout(() => { o._t = Date.now(); ls.set(repKey(r), o); const ok = liveMarkRuta(r, "rep", r, o); const s2 = document.getElementById("mdState"); if (s2) s2.textContent = ok ? "Enviado a tu supervisor " + new Date().toLocaleTimeString("es-SV", {hour:"2-digit", minute:"2-digit"}) : "Guardado en este teléfono"; }, 2500);
@@ -4029,12 +4040,11 @@ function repPrefill(r){
     for (const [id, x] of Object.entries(items)){ const it = CATALOGO.items.find(y => y.id === id); if (!it) continue; const cj = (x.cj || 0) + (x.un || 0) / (it.u || 24); if (!cj) continue;
       const k = it.cat === "Cerveza" ? "cvz" : it.cat === "Carbonatadas" ? (/pepsi/i.test(it.n) && !/black/i.test(it.n) ? "colas" : /black/i.test(it.n) ? "black" : "csd") : /isot|energ/i.test(it.cat) ? "iso" : /ready/i.test(it.cat) ? "licores" : /lipton/i.test(it.n) && /12/.test(it.emp) ? "lipton" : null;
       if (k) o[k] = Math.round(((o[k] || 0) + cj) * 100) / 100; } }
-  const vt = ["colas","licores","iso","oro","csd"].reduce((a, k) => a + (o[k] || 0), 0); if (vt) o.total = Math.round(vt * 100) / 100;
   return o;
 }
 function repOpen(r){
   let ov = document.getElementById("repView");
-  if (!ov){ ov = document.createElement("div"); ov.id = "repView"; ov.className = "repov"; document.body.appendChild(ov); ov.addEventListener("click", repClick); ov.addEventListener("input", e => { if (e.target.matches("[data-rk]") && e.target.dataset.rk !== "total"){ const f = ov.querySelectorAll('[data-rk]'); let t = 0; f.forEach(x => { if (["colas","licores","iso","oro","csd"].includes(x.dataset.rk)) t += parseFloat(x.value) || 0; }); const tt = ov.querySelector('[data-rk="total"]'); if (tt && !tt.dataset.manual) tt.value = Math.round(t * 100) / 100; } if (e.target.dataset.rk === "total") e.target.dataset.manual = "1"; }); }
+  if (!ov){ ov = document.createElement("div"); ov.id = "repView"; ov.className = "repov"; document.body.appendChild(ov); ov.addEventListener("click", repClick); }
   const saved = ls.get(repKey(r), null), v = saved || repPrefill(r);
   const grp = (g, t) => `<h4>${t}</h4><div class="repg">` + REP_COLS.filter(c => c.g === g).map(c => `<label><span>${c.l}</span><input type="number" inputmode="decimal" step="0.01" min="0" data-rk="${c.k}" value="${v[c.k] ?? ""}"></label>`).join("") + `</div>`;
   ov.innerHTML = `<div class="repbox"><div class="desh"><div><small>${esc(new Date().toLocaleDateString("es-SV", {weekday:"long", day:"numeric", month:"long"}))}</small><h2>Reporte del día · Ruta ${esc(r)}</h2></div><button class="closeb" data-repx>Cerrar</button></div>
