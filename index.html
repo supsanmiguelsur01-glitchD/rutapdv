@@ -800,6 +800,16 @@ select.sm{height:38px;border:1px solid var(--line);border-radius:10px;background
 .dist{font:700 14px/1 var(--f-tech);color:var(--cyan);display:inline-flex;align-items:center;gap:4px}
 .darr{display:inline-flex;width:22px;height:22px;flex:none;transform:rotate(calc(var(--b, 0deg) - var(--hd, 0deg)));transition:transform .3s ease-out;will-change:transform}
 .darr svg{width:100%;height:100%;fill:currentColor}
+.card .guia{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin-top:6px;padding:8px 10px;border-radius:10px;background:var(--panel2, rgba(31,78,140,.07));font-size:13.5px;line-height:1.25;color:var(--ink)}
+.card .guia .gico{width:30px;height:30px;flex:none;color:var(--acc,#1F4E8C);display:inline-flex}
+.card .guia .gico svg{width:100%;height:100%}
+.card .guia .gico.garr{color:var(--ok,#16A34A)}
+.card .guia .gwait{width:16px;height:16px;border-radius:50%;border:2px solid var(--line2,#ccd);border-top-color:var(--acc,#1F4E8C);animation:gspin .8s linear infinite}
+@keyframes gspin{to{transform:rotate(360deg)}}
+.card .guia .gtx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.card .guia .gtx b{font-weight:800}
+.card .guia .gtx small{color:var(--muted);font-size:12px}
+.card .guia .gmut{color:var(--muted);font-size:12.5px}
 .dirbar{display:flex;align-items:center;gap:10px;padding:8px 12px;margin:0 0 8px;border-radius:12px;background:var(--panel2, rgba(0,160,200,.08));color:var(--ink2, inherit);font-size:13px;line-height:1.3}
 .dirbar .dirdial{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;border:1.5px solid var(--cyan);color:var(--bad, #d33);flex:none}
 .dirbar .dirdial .darr{width:18px;height:18px;transform:rotate(calc(0deg - var(--hd, 0deg)))}
@@ -2159,6 +2169,8 @@ function build(S){
   }
   for (const o of rnRutas.values()){ o.rn = o.rojo + o.negro; }
   DB = {gcb: parseGcb(S.gcb || [], S.gcbInfo), live: S.live || null, inc: parseInc(S.inc || [], S.incInfo), pdv, covCols, acCols, sups, rutas, rutaSup, vpoPlan, ev, baseInfo: S.baseInfo || null, promosInfo: S.promosInfo || null, promos: parsePromos(S.promos || []), promoCli: parsePromoCli(S.promocli || []), cp: parseCPago(S.cp || [], S.cpInfo), em: parseEm(S.em || [], S.emInfo), md: parseMd(S.md || [], S.mdInfo), vp: parseVp(S.vp || [], S.vpInfo), rn:{sem:rnSem, rutas:rnRutas, meta: Object.assign({}, RN_META_DEF, S.rnMeta || {})}};
+  try{ covR750(DB); }catch(e){ console.warn("cobertura Regia 750", e); }
+  try{ tuPago(DB); }catch(e){ console.warn("TU de pago", e); }
   if (typeof logGuardar === "function") setTimeout(() => logGuardar(S), 0);   // foto del avance para "Avance del día"
 }
 /* ---------- R+N (rojo + negro) ---------- */
@@ -2329,6 +2341,44 @@ const nPromosCliente = p => {
 };
 /* Cobertura por categoría (lo que cuenta): Cerveza, Gatorade (isotónicos), Pepsi multiserve (1 L o más) y Pepsi singleserve (menos de 1 L).
    Una categoría se cumple si el cliente cumple al menos uno de sus empaques. */
+/* Cobertura Everest de cerveza = el cliente compró Regia 750 ML en el mes (así la cuenta Everest).
+   Se toma de las compras por cliente y empaque (hoja "Cubo" de los archivos de incentivos). La columna "Cerveza" de
+   listados (cualquier cerveza) queda solo como dato informativo. */
+function covR750(D){
+  if (!D || !D.gcb || !D.gcb.cli || !D.gcb.cli.size) return;
+  const mes = D.gcb.info && D.gcb.info.hasta ? String(D.gcb.info.hasta).slice(5, 7) : "";
+  const cnt = new Map(); let n = 0;
+  for (const p of D.pdv.values()){
+    if (!p.cov) continue;
+    const old = p.cov.items.filter(i => covGroupOf(i.k) === "cerveza"); if (!old.length) continue;
+    const b = (D.gcb.cli.get(p.c) || {}).R750;
+    const cj = b ? (mes ? b.compras.filter(([md]) => String(md).slice(0, 2) === mes).reduce((a, [, v]) => a + v, 0) : (b.cj || 0)) : 0;
+    const it = {k:"Regia 750 ML", v: Math.round(cj * 100) / 100, ok: cj > 0, nd:false, r750:true};
+    p.cov.items = p.cov.items.filter(i => covGroupOf(i.k) !== "cerveza").concat([it]);
+    p.cov.otros = (p.cov.otros || []).concat(old.map(i => Object.assign({}, i, {k: i.k + " (todas las marcas, solo dato)"})));
+    const g = p.cov.groups.find(x => x.k === "cerveza"); if (g){ g.items = [it]; g.ok = it.ok; g.nd = false; g.label = "Cerveza · Regia 750 ML"; }
+    p.cov.okN = p.cov.groups.filter(x => x.ok).length;
+    if (it.ok && p.ruta){ cnt.set(p.ruta, (cnt.get(p.ruta) || 0) + 1); n++; }
+  }
+  D.r750 = {rutas: cnt, n, hasta: D.gcb.info && D.gcb.info.hasta};
+  // Everest cerveza por ruta: si las compras son más recientes que el archivo Everest, se usa el dato más alto
+  if (D.ev && D.ev.rutas) for (const [r, o] of D.ev.rutas){ if (!o.cerveza) continue; const c = cnt.get(r) || 0; o.cerveza.realEv = o.cerveza.real; if (c > o.cerveza.real) o.cerveza.real = c; }
+}
+/* TU de pago (rutas top): el cliente cuenta cuando vende 0.5 caja o más de 4 empaques distintos de Pepsi
+   (3L, 1.5L, 1.25L, lata, 600 ML, 12 oz PET o vidrio). Se calcula con los empaques del cliente en listados. */
+function tuPago(D){
+  if (!D || !D.cp || !D.cp.rutas || !D.cp.rutas.size) return;
+  let n = 0;
+  for (const p of D.pdv.values()){
+    const o = D.cp.rutas.get(p.ruta); p.tu = null;
+    if (!o || !o.top || !p.cov) continue;
+    const seen = new Set(), packs = [];
+    for (const i of p.cov.items || []){ if (!/pepsi/i.test(i.k) || seen.has(i.k)) continue; seen.add(i.k); packs.push({k:i.k, v:i.v, ok: i.v != null && Math.round(i.v * 100) / 100 >= 0.5}); }
+    if (!packs.length) continue;
+    p.tu = {packs, n: packs.filter(x => x.ok).length}; n++;
+  }
+  D.tu = {n};
+}
 const COV_GROUPS = [
   {k:"cerveza", label:"Cerveza"},
   {k:"gatorade", label:"Gatorade (isotónicos)"},
@@ -2434,8 +2484,23 @@ const SEG_FN = {
   gambvpo: p => gambPlans(p).includes("VPO"),
   gambnc: p => gambPlans(p).includes("Nunca compra"),
   gamb0: p => gambPlans(p).includes("Compra 0"),
-  gambcai: p => gambPlans(p).includes("Caídos")
+  gambcai: p => gambPlans(p).includes("Caídos"),
+  tuok: p => { const e = tuEstado(p); return !!e && e.ok; },
+  tupend: p => { const e = tuEstado(p); return !!e && !e.ok; },
+  tu1: p => { const e = tuEstado(p); return !!e && e.falta === 1; }
 };
+Object.assign(SEG_LABEL, {tuok:"TU de pago cumplida (4 SKU)", tupend:"TU de pago pendiente", tu1:"TU de pago: le falta 1 empaque"});
+// TU de pago: empaques que ya cumplen (datos) + los que el vendedor marcó como vendidos este mes (o en vivo, para el supervisor)
+let TU_LIVE = {t:-1, m:new Map()};
+function tuEstado(p){
+  if (!p.tu) return null;
+  const mes = todayKey().slice(0, 7), mk = new Set();
+  for (const [d, V] of Object.entries(VIS || {})){ if (!d.startsWith(mes)) continue; const t = V[p.c] && V[p.c].tu; if (t) for (const [k, on] of Object.entries(t)) if (on) mk.add(k); else mk.delete(k); }
+  if (LIVE.data){ if (TU_LIVE.t !== LIVE.t){ TU_LIVE = {t:LIVE.t, m:new Map()}; for (const e of LIVE.data.st.values()) if (e.k === "tu" && e.v){ if (!TU_LIVE.m.has(e.c)) TU_LIVE.m.set(e.c, new Set()); TU_LIVE.m.get(e.c).add(e.i); } } const lv = TU_LIVE.m.get(p.c); if (lv) for (const k of lv) mk.add(k); }
+  const packs = p.tu.packs.map(x => ({...x, mk: !x.ok && mk.has(x.k)}));
+  const n = packs.filter(x => x.ok || x.mk).length;
+  return {packs, n, ok: n >= 4, falta: Math.max(0, 4 - n)};
+}
 // planes del Plan Gambito (cerveza) que tiene el cliente
 function gambPlans(p){ const x = DB.vp && DB.vp.cli.get(p.c); if (!x) return []; return [...new Set(Object.values(x.prods).map(o => o.plan || "VPO"))]; }
 Object.assign(SEG_LABEL, {vpook:"VPO cumplido", gamb:"Con plan Gambito (cerveza)", gambvpo:"Gambito · VPO por escalas", gambnc:"Gambito · Nunca compra", gamb0:"Gambito · Compra 0", gambcai:"Gambito · Caídos"});RN_BUCKETS.forEach(([k, l]) => { SEG_LABEL["rnb:" + k] = "Equipos " + l.toLowerCase(); SEG_FN["rnb:" + k] = p => p.rn.some(e => e.sem === "ROJO" && rnBucket(e.rango) === k); });
@@ -2514,6 +2579,7 @@ function segFam(k){
   if (k.startsWith("no:")) return "no:" + segFam(k.slice(3));
   if (/^gamb(vpo|nc|0|cai)?$/.test(k) || k.startsWith("x:vpp:")) return "gamb";
   if (k === "gambact" || k === "gambpend") return "gambst";
+  if (k === "tuok" || k === "tupend" || k === "tu1") return "tu";
   if (k === "conpromo" || k.startsWith("x:promo:")) return "promo";
   if (k.startsWith("rnb:") || k === "rnrn" || k === "rnneg" || k === "rn") return "rn";
   if (k.startsWith("x:ac:")) return "ac";
@@ -2668,15 +2734,16 @@ function cardHTML(p){
   const dist = p._d != null ? `<span class="dist num">${dirActivo() && p.lat != null ? `<i class="darr" data-la="${p.lat}" data-lo="${p.lng}" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.5l7 18-7-4.2-7 4.2z"/></svg></i>` : ""}<span class="dtx">${p._d < 1 ? Math.round(p._d*1000)+" m" : fmt(p._d,1)+" km"}</span></span>` : "";
   const nec = rnNec(p), wp = wellPend(p).length;
   const segN = (nec > 0 ? `<span class="pill warn" title="Necesidad real amarilla">Nec ${fmt(nec)}</span>` : "") + (wp ? `<span class="pill bad" title="Equipos sin lectura Wellington">Well ${wp}</span>` : "") + (DB.rn && DB.rn.sem && rnEq(p).length ? `<span class="pill bad" title="Equipos fríos en rojo o negro">R+N ${rnEq(p).length}</span>` : "") + (() => { const g = gambPlans(p); if (!g.length) return ""; const e = DB.gcb && DB.gcb.cli.size ? gambEstado(p) : null; return `<span class="pill ${e && e.act ? "ok" : "acc"}" title="Plan Gambito de cerveza${e ? (e.act ? ": ya se activó" : ": por activar") : ""}">🍺 ${esc(g.join(" · "))}${e && e.act ? " ✓" : ""}</span>`; })();
-  const acN = segN + (nPromosCliente(p) ? `<span class="pill acc" title="Promociones vigentes para este cliente">${nPromosCliente(p)} promo</span>` : "") + (p.vpo ? `<span class="pill ${p.vpo.pct >= 1 ? "ok" : "warn"}">VPO ${p.vpo.pct != null ? Math.round(p.vpo.pct*100)+"%" : "0%"}</span>` : "");
+  const tuE = p.tu ? tuEstado(p) : null;
+  const acN = (tuE ? `<span class="pill ${tuE.ok ? "ok" : tuE.falta === 1 ? "warn" : "bad"}" title="TU de pago: empaques de Pepsi con 0.5 CJ o más">TU ${Math.min(4, tuE.n)}/4</span>` : "") + segN + (nPromosCliente(p) ? `<span class="pill acc" title="Promociones vigentes para este cliente">${nPromosCliente(p)} promo</span>` : "") + (p.vpo ? `<span class="pill ${p.vpo.pct >= 1 ? "ok" : "warn"}">VPO ${p.vpo.pct != null ? Math.round(p.vpo.pct*100)+"%" : "0%"}</span>` : "");
   let pills = acN.match(/<span class="pill[^"]*"[^>]*>.*?<\/span>/g) || [];
-  const fam = new Set(F.segs.map(segFam)), prio = x => (fam.has("gamb") || fam.has("gambst")) && x.includes("🍺") || fam.has("promo") && /\d promo</.test(x) || fam.has("rn") && x.includes("R+N") || fam.has("well") && x.includes("Well") || fam.has("nec") && x.includes("Nec") || fam.has("vpo") && x.includes("VPO") ? 0 : 1;
+  const fam = new Set(F.segs.map(segFam)), prio = x => (fam.has("gamb") || fam.has("gambst")) && x.includes("🍺") || fam.has("promo") && /\d promo</.test(x) || fam.has("rn") && x.includes("R+N") || fam.has("well") && x.includes("Well") || fam.has("nec") && x.includes("Nec") || fam.has("tu") && x.includes(">TU ") || fam.has("vpo") && x.includes("VPO") ? 0 : 1;
   pills = pills.map((x, i) => [x, i]).sort((a, b) => prio(a[0]) - prio(b[0]) || a[1] - b[1]).map(x => x[0]);
   const MAXP = 2, pillsH = pills.slice(0, MAXP).join("") + (pills.length > MAXP ? `<span class="pill more" title="Más indicadores en la ficha">+${pills.length - MAXP}</span>` : "");
   return `<button class="card ${visitedToday(p.c)?"visited":""}" data-pdv="${p.c}">
     <span class="nm">${p.n ? qMarca(p.n) : "(sin nombre)"}</span>
     <span class="side">${dist}<span class="pill ${cc}">${covTxt}</span>${pillsH}</span>
-    <span class="meta num"><span>${p.c}</span><span>Ruta ${esc(p.ruta||"—")}</span><span>FR ${esc(p.fr||"—")}</span>${p.est?`<span>${esc(p.est)}</span>`:""}${F.q ? qDonde(p) : ""}${p.lat==null?`<span style="color:var(--bad)">sin GPS</span>`:""}</span>
+    <span class="meta num"><span>${p.c}</span><span>Ruta ${esc(p.ruta||"—")}</span><span>FR ${esc(p.fr||"—")}</span>${p.est?`<span>${esc(p.est)}</span>`:""}${F.q ? qDonde(p) : ""}${p.lat==null?`<span style="color:var(--bad)">sin GPS</span>`:""}</span>${dirActivo() && p.lat != null ? `<span class="guia" data-guia="${p.c}">${guiaHTML(p)}</span>` : ""}
   </button>`;
 }
 function renderList(){
@@ -2695,7 +2762,7 @@ function renderList(){
   if (L._sig === sig && L.childElementCount){ dirSync(); return; }   // la misma lista: no se vuelve a dibujar
   L._sig = sig;
   L.innerHTML = (dirActivo() ? dirBarHTML() : "") + vis0.map(cardHTML).join("") + (n > SHOWN ? `<button class="more" id="more">Mostrar ${Math.min(150, n-SHOWN)} más de ${fmt(n-SHOWN)}</button>` : "");
-  listMoreObs(); dirSync();
+  listMoreObs(); dirSync(); guiaTick();
 }
 // al llegar al final de la lista se cargan más tarjetas solas
 let LIST_OBS = null;
@@ -3065,7 +3132,7 @@ function renderPanel(){
   compactNotes($("#panelBody"));
 }
 /* ---------- Everest: alcance, faltantes y necesidad diaria por ruta ---------- */
-const EV_CATS = [["multi","Pepsi Multi Serve"],["single","Pepsi Single Serve"],["gatorade","Gatorade 600 ML PET"],["cerveza","Cerveza"]];
+const EV_CATS = [["multi","Pepsi Multi Serve"],["single","Pepsi Single Serve"],["gatorade","Gatorade 600 ML PET"],["cerveza","Cerveza · Regia 750 ML"]];
 const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 /* Feriados de El Salvador (se descuentan de los días hábiles, igual que la hoja de días restantes del emergente):
    1 ene, Jueves/Viernes/Sábado Santo, 1 may, 10 may, 17 jun, 6 ago, 15 sep, 2 nov, 25 dic */
@@ -3139,6 +3206,7 @@ function renderEverest(L){
   let h = `<section class="psec ev"><div class="evhead"><div><h3>Everest · ${esc(periodo)}</h3><p class="note">${corte ? `Actualizado <b>${esc(corte)}</b>${staleTag(corte)} · ` : ""}${diasNote(dias, ini, fin)} · ${rutas.length} ruta${rutas.length > 1 ? "s" : ""}</p></div></div>`;
   h += `<div class="kpis">` + EV_CATS.map(([k, lab]) => { const t = tot[k], pct = t.meta ? t.real / t.meta : 0, falt = t.falt, cls = pct >= 1 ? "ok" : pct >= .8 ? "warn" : "bad";
     return `<button class="kpi evk ${F.emps.includes(k) ? "on" : ""}" data-evc="${k}"><span class="kl">${lab}</span><span class="kv num ${cls}">${Math.round(pct * 100)}%</span><span class="ks">${fmt(t.real)} de ${fmt(t.meta)} coberturas · faltan <b>${fmt(falt)}</b></span><span class="ks">Necesidad diaria: <b class="num">${dias ? fmt(needDia(falt, dias)) : "—"}</b>${dias ? ` coberturas/día <small>(${needFx(falt, dias)})</small>` : ""}</span>${meter(pct, pct >= 1 ? "ok" : "")}</button>`; }).join("") + `</div>`;
+  if (DB.r750 && DB.r750.hasta) h += `<p class="note" style="margin:0 0 6px">🍺 <b>Cerveza</b> = clientes que compraron <b>Regia 750 ML</b> en el mes · compras al <b>${esc(String(DB.r750.hasta).slice(8) + "/" + String(DB.r750.hasta).slice(5, 7))}</b> (${fmt(DB.r750.n)} clientes). Si es más reciente que el archivo Everest, se usa este dato.</p>`;
   h += `<p class="note">"Faltan" suma lo pendiente de cada ruta (una ruta que pasa su meta no compensa a otra). "/día" = faltantes ÷ días hábiles restantes, redondeado hacia arriba. Toca una celda para ver los clientes de esa ruta con la categoría pendiente.</p>`;
   h += `<div class="tw"><table class="rt evt"><thead><tr><th>Ruta</th>${EV_CATS.map(([, l]) => `<th>${l}</th>`).join("")}<th>Total /día</th></tr></thead><tbody>` + rutas.map(r => {
     const o = DB.ev.rutas.get(r), totDia = EV_CATS.reduce((a, [k]) => a + (needDia(Math.max(0, o[k].meta - o[k].real), dias) || 0), 0);
@@ -3214,6 +3282,8 @@ function renderCPago(L){
     if (!t.meta) return `<div class="kpi evk" aria-disabled="true"><span class="kl">${lab}</span><span class="kv num na">—</span><span class="ks">Sin meta en este alcance${t.real ? ` · real ${fmt(t.real)}` : ""}</span></div>`;
     const pct = t.real / t.meta, falt = t.falt, cls = cpCls(t);
     return `<div class="kpi evk"><span class="kl">${lab}</span><span class="kv num ${cls}">${Math.round(pct * 100)}%</span><span class="ks">${fmt(t.real)} de ${fmt(t.meta)} coberturas · faltan <b>${fmt(falt)}</b></span><span class="ks">Necesidad del día: <b class="num">${dias ? fmt(t.dia) : "—"}</b>${dias ? ` coberturas/día <small>(${needFx(falt, dias)})</small>` : ""}</span>${k === "ms" && msSub(tot) ? `<span class="ks">${msSub(tot)}</span>` : ""}<span class="ks">${k === "sku4" && nTop ? `${nTop} ruta${nTop > 1 ? "s" : ""} top` : k === "ms" && nTop ? `${rutas.length - nTop} ruta${rutas.length - nTop > 1 ? "s" : ""} normales` : ""}</span>${meter(pct, pct >= 1 ? "ok" : "")}</div>`; }).join("") + `</div>`;
+  { const C = L.filter(p => p.tu); if (C.length){ let ok = 0, f1 = 0, pend = 0; for (const p of C){ const e = tuEstado(p); if (e.ok) ok++; else { pend++; if (e.falta === 1) f1++; } }
+    h += `<h4 class="cpt">TU de pago por cliente (rutas top)</h4><div class="kpis"><button class="kpi evk" data-seg="tuok"><span class="kl">Cumplen 4 SKU</span><span class="kv num ok">${fmt(ok)}</span><span class="ks">de ${fmt(C.length)} clientes de rutas top</span></button><button class="kpi evk" data-seg="tu1"><span class="kl">Les falta 1 empaque</span><span class="kv num warn">${fmt(f1)}</span><span class="ks">los más fáciles de completar · toca para verlos</span></button><button class="kpi evk" data-seg="tupend"><span class="kl">Pendientes</span><span class="kv num bad">${fmt(pend)}</span><span class="ks">con menos de 4 empaques de 0.5 CJ</span></button></div><p class="note">Por cliente se calcula con los empaques de listados (${DB.baseInfo ? "al " + esc(DB.baseInfo.act) : "última carga"}) más lo que marcan los vendedores este mes; el real de la ruta arriba viene del reporte oficial y puede ir más adelantado.</p>`; } }
   if (nTop) h += `<p class="note">Según la estructura de cada ruta: las rutas <b>top</b> solo tienen meta de <b>4 SKU</b>; las demás, meta de <b>1.5L y 3L</b>. El alcance y lo que falta se calculan solo con la meta que le corresponde a cada ruta.</p>`;
   h += `<p class="note">"Faltan" suma lo pendiente de cada ruta (una ruta que pasa su meta no compensa a otra). Necesidad del día = faltantes ÷ días hábiles restantes, redondeado hacia arriba (en los totales se divide la suma de faltantes, no se suman redondeos).${dias ? ` Total del alcance: faltan <b>${fmt(faltTot(tot))}</b> · <b>${fmt(diaTot(tot))}</b> por día.` : ""}</p>`;
   const head = first => `<thead><tr><th>${first}</th>${CP_CATS.map(([, l]) => `<th>${l}</th>`).join("")}<th>Faltan</th><th>Total /día</th></tr></thead>`;
@@ -3247,7 +3317,7 @@ const getPresets = () => { const x = ls.get(PRESETS_KEY, []); return Array.isArr
 function renderBuilder(L){
   const parts = focusParts(), n = focusN();
   const cnt = k => fmt(L.filter(SEG_FN[k]).length);
-  const extra = ["hoy", "vpo", "conpromo", "covok", ...["gamb", "gambact", "gambpend", "gambvpo", "gambnc", "gamb0", "gambcai"].filter(k => L.some(SEG_FN[k]))];   // Plan Gambito: solo si hay clientes con ese plan
+  const extra = ["hoy", "vpo", "conpromo", "covok", ...(L.some(p => p.tu) ? ["tupend", "tu1", "tuok"] : []), ...["gamb", "gambact", "gambpend", "gambvpo", "gambnc", "gamb0", "gambcai"].filter(k => L.some(SEG_FN[k]))];   // Plan Gambito: solo si hay clientes con ese plan
   const pres = getPresets();
   let h = `<section class="builder ${n ? "act" : ""}"><div class="bh"><h3>Filtro personalizado</h3>`;
   h += `<div class="seg mode" role="group" aria-label="Cómo combinar las condiciones"><button class="${F.modo === "and" ? "on" : ""}" data-modo="and" title="Dentro de un mismo grupo basta con una (por ejemplo nunca compra o caídos); entre grupos distintos se cumplen todas">Combinar (Y)</button><button class="${F.modo === "or" ? "on" : ""}" data-modo="or" title="Basta con cumplir una condición">Cumple alguna (O)</button></div></div>`;
@@ -3357,27 +3427,27 @@ if (typeof L !== "undefined") L.TileLayer.Guardado = L.TileLayer.extend({
     return tile;
   }
 });
-/* tipos de mapa. Calles / Claro / Oscuro (CARTO) vienen al doble de resolución y con detalle hasta zoom 20:
-   los nombres de calles y negocios se ven nítidos al acercar. Si CARTO no responde, se pasa solo a Calles Esri. */
+/* tipos de mapa (Esri, sin llave). "Calles" trae detalle hasta zoom 19: ahí los nombres de calles y negocios salen nítidos;
+   Satélite lleva encima las calles y los nombres. (CARTO dejó de funcionar sin llave: mostraba "API KEY REQUIRED".) */
 let BASES_M = null;
 function mapaBases(){
   if (BASES_M) return BASES_M;
-  const opt0 = {maxZoom:21, keepBuffer:4, updateWhenZooming:false};
+  const opt0 = {maxZoom:20, keepBuffer:4, updateWhenZooming:false};
   const esri = (svc, opt={}) => new L.TileLayer.Guardado(`https://server.arcgisonline.com/ArcGIS/rest/services/${svc}/MapServer/tile/{z}/{y}/{x}`, Object.assign({}, opt0, {maxNativeZoom:19, attribution:"© Esri"}, opt));
-  const carto = (path, opt={}) => new L.TileLayer.Guardado(`https://{s}.basemaps.cartocdn.com/${path}/{z}/{x}/{y}${TILE_HD ? "@2x" : ""}.png`, Object.assign({}, opt0, {subdomains:"abcd", maxNativeZoom:20, attribution:"© OpenStreetMap · © CARTO"}, opt));
   BASES_M = [
-    ["Calles", carto("rastertiles/voyager"), "Calles Esri"],
-    ["Claro", carto("light_all"), "Calles Esri"],
-    ["Oscuro", carto("dark_all"), "Calles Esri"],
-    ["Satélite", L.layerGroup([esri("World_Imagery"), carto("rastertiles/voyager_only_labels")]), "Calles Esri"],   // foto + nombres nítidos encima
-    ["Calles Esri", esri("World_Street_Map"), "Calles"],
+    ["Calles", esri("World_Street_Map"), "Topográfico"],
+    ["Claro", L.layerGroup([esri("Canvas/World_Light_Gray_Base", {maxNativeZoom:16}), esri("Canvas/World_Light_Gray_Reference", {maxNativeZoom:16})]), "Calles"],
+    ["Oscuro", L.layerGroup([esri("Canvas/World_Dark_Gray_Base", {maxNativeZoom:16}), esri("Canvas/World_Dark_Gray_Reference", {maxNativeZoom:16})]), "Calles"],
+    ["Satélite", L.layerGroup([esri("World_Imagery"), esri("Reference/World_Transportation"), esri("Reference/World_Boundaries_and_Places")]), "Calles"],   // foto + calles y nombres encima
     ["Topográfico", esri("World_Topo_Map"), "Calles"],
     // calles de OpenStreetMap: las mismas de donde salen los sentidos. No se guarda sin conexión (reglas de OSM).
     ["Calles OSM", L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", Object.assign({}, opt0, {maxNativeZoom:19, attribution:"© OpenStreetMap"})), "Calles"]
   ];
   return BASES_M;
 }
-function mapaBaseNombre(){ const B = mapaBases(); let n = ls.get("rutapdv_base5", null); if (!n){ const o = ls.get("rutapdv_base4", "Calles"); n = ({Claro:"Claro", Oscuro:"Oscuro", "Satélite":"Satélite", "Topográfico":"Topográfico", "Calles OSM":"Calles OSM"})[o] || "Calles"; } return B.some(b => b[0] === n) ? n : "Calles"; }
+function mapaBaseNombre(){ const B = mapaBases(); let n = ls.get("rutapdv_base6", null); if (!n){ const o = ls.get("rutapdv_base4", "Calles"); n = ({Oscuro:"Oscuro", "Satélite":"Satélite", "Topográfico":"Topográfico", "Calles OSM":"Calles OSM"})[o] || "Calles"; } return B.some(b => b[0] === n) ? n : "Calles"; }
+// limpieza única: se borran del teléfono los cuadros de CARTO guardados (eran avisos de "API KEY REQUIRED") y se vuelve a guardar la zona
+(async () => { try{ if (ls.get("rutapdv_carto_limpio", 0) || typeof caches === "undefined") return; const c = await caches.open(TILE_CACHE); for (const k of await c.keys()) if (/cartocdn/.test(k.url)) await c.delete(k); ls.set("rutapdv_mapa_auto", {}); ls.set("rutapdv_carto_limpio", 1); }catch(e){} })();
 // cuadros que se pueden guardar del mapa elegido (aunque el mapa todavía no se haya abierto)
 function mapaCapasGuardables(){
   const b = mapaBases().find(x => x[0] === mapaBaseNombre()); if (!b) return [];
@@ -3445,7 +3515,7 @@ async function mapaGuardarZona(){
   if (MAPA_AUTO.run){ toast(`Ya se está guardando el mapa de tu zona: ${MAPA_AUTO.total ? Math.round(MAPA_AUTO.hecho / MAPA_AUTO.total * 100) : 0}%`); return; }
   const P = filtered(true).filter(p => p.lat != null); if (!P.length){ toast("No hay clientes con ubicación en este filtro"); return; }
   const layers = mapaCapasGuardables();
-  if (!layers.length){ toast("Este tipo de mapa no se puede guardar: cambia a Calles, Claro, Oscuro o Satélite"); return; }
+  if (!layers.length){ toast("Este tipo de mapa no se puede guardar: cambia a Calles, Claro, Oscuro, Satélite o Topográfico"); return; }
   const {urls, b} = mapaCuadros(P, layers, 12000);
   MAPA_AUTO.run = true; const bar = $("#gpsBar"); gpsBar("wait", `Guardando el mapa de tu zona… 0 de ${fmt(urls.length)}`);
   try{
@@ -3465,7 +3535,7 @@ function initMap(){
   let bi = Math.max(0, BASES.findIndex(b => b[0] === mapaBaseNombre()));
   BASES[bi][1].addTo(map);
   L.control.layers(Object.fromEntries(BASES.map(b => [b[0], b[1]])), null, {position:"topleft"}).addTo(map);
-  map.on("baselayerchange", e => { ls.set("rutapdv_base5", e.name); setTimeout(() => mapaAuto(), 4000); });   // el mapa nuevo también se guarda solo
+  map.on("baselayerchange", e => { ls.set("rutapdv_base6", e.name); setTimeout(() => mapaAuto(), 4000); });   // el mapa nuevo también se guarda solo
   map.on("movestart zoomstart", () => { MAPA_AUTO.pause = Date.now() + 2500; });   // mientras te mueves, primero lo que estás viendo
   map.on("moveend zoomend", () => { MAPA_AUTO.pause = Date.now() + 900; });
   // si un proveedor falla, pasar automáticamente al siguiente
@@ -3473,7 +3543,7 @@ function initMap(){
     let ok = 0, bad = 0; const L0 = lyr instanceof L.LayerGroup && !(lyr instanceof L.TileLayer) ? lyr.getLayers()[0] : lyr;
     if (!L0 || !L0.on) return;
     L0.on("tileload", () => ok++);
-    L0.on("tileerror", () => { bad++; if (!ok && bad === 6 && navigator.onLine && map.hasLayer(lyr)){ const nx = BASES.find(b => b[0] === alt) || BASES[0]; map.removeLayer(lyr); nx[1].addTo(map); ls.set("rutapdv_base5", nx[0]); toast("Mapa cambiado a " + nx[0]); } });
+    L0.on("tileerror", () => { bad++; if (!ok && bad === 6 && navigator.onLine && map.hasLayer(lyr)){ const nx = BASES.find(b => b[0] === alt) || BASES[0]; map.removeLayer(lyr); nx[1].addTo(map); ls.set("rutapdv_base6", nx[0]); toast("Mapa cambiado a " + nx[0]); } });
   });
   layer = L.layerGroup().addTo(map);
   map.on("zoomend", () => owDraw(true));
@@ -3595,7 +3665,7 @@ function startGps(){
     }
     renderList(); updateOpenDist(); routeOnMove();
     { const c = pos.coords; if (c.heading != null && !isNaN(c.heading) && (c.speed || 0) > 1.2 && Date.now() - DIRL.tB > 2500) dirHeading(c.heading, "gps"); }
-    dirUpdate();
+    dirUpdate(); guiaTick();
   };
   const fail = err => {
     if (watchId != null) navigator.geolocation.clearWatch(watchId);
@@ -3960,7 +4030,7 @@ async function liveFetch(force){
 function liveLocal(){
   const st = new Map(), d = VIS[todayKey()] || {};
   for (const [c, v] of Object.entries(d)){ const p = DB.pdv.get(Number(c)); if (!p) continue;
-    for (const kind of ["cov", "ac", "wl", "rn", "gmb"]) for (const [i, on] of Object.entries(v[kind] || {})) st.set(c + "|" + kind + "|" + i, {c:Number(c), r:p.ruta, k:kind, i, v:!!on, t:v.t || 0});
+    for (const kind of ["cov", "ac", "wl", "rn", "gmb", "tu"]) for (const [i, on] of Object.entries(v[kind] || {})) st.set(c + "|" + kind + "|" + i, {c:Number(c), r:p.ruta, k:kind, i, v:!!on, t:v.t || 0});
     if (v.t) st.set(c + "|vis|1", {c:Number(c), r:p.ruta, k:"vis", i:"1", v:true, t:v.t}); }
   const cart = ls.get("rutapdv_cart", {}); if (cart.day === todayKey()) for (const [c, items] of Object.entries(cart.c || {})){ const p = DB.pdv.get(Number(c)); if (p) st.set(c + "|cart|cj", {c:Number(c), r:p.ruta, k:"cart", i:"cj", v:cartCj(items), t:0}); }
   return st;
@@ -4476,11 +4546,20 @@ function openPdv(c){
         }).join("");
         return `<div class="cgroup ${g.ok ? "gok" : ""}">${head}<div class="covgrid">${its}</div></div>`;
       }).join("")}
-      ${p.cov.otros.length ? `<div class="cgroup"><div class="cgh"><span class="cgn">Otros empaques</span><span class="pill na">No cuentan</span></div><div class="covgrid">${p.cov.otros.map(it => `<div class="chk ok-item"><span class="okmark" aria-hidden="true">·</span><span class="t">${esc(it.k)}${it.nd ? `<b class="na">Sin dato</b>` : `<b class="${it.ok ? "ok" : "bad"}">${fmt(it.v,2)}</b>`}</span></div>`).join("")}</div></div>` : ""}
+      ${false && p.cov.otros.length ? `<div class="cgroup"><div class="cgh"><span class="cgn">Otros empaques</span><span class="pill na">No cuentan</span></div><div class="covgrid">${p.cov.otros.map(it => `<div class="chk ok-item"><span class="okmark" aria-hidden="true">·</span><span class="t">${esc(it.k)}${it.nd ? `<b class="na">Sin dato</b>` : `<b class="${it.ok ? "ok" : "bad"}">${fmt(it.v,2)}</b>`}</span></div>`).join("")}</div></div>` : ""}
       <p class="note" style="margin:0">${covPend(p).length ? "Acción sugerida: cubrir " + covPend(p).map(g => g.label).join(", ") + ". Basta vender un empaque de cada categoría pendiente." : "Las " + p.cov.n + " coberturas están cumplidas."}</p>
     </div></div>`;
   } else {
     // sin datos de cobertura: no se muestra la sección
+  }
+  // TU de pago (rutas top)
+  if (p.tu){
+    const e = tuEstado(p), pend = e.packs.filter(x => !x.ok && !x.mk).sort((a, b) => (b.v || 0) - (a.v || 0));
+    h += `<div class="sec" id="secTU"><h3>TU de pago · 4 SKU colas<span class="r"><span class="pill ${e.ok ? "ok" : e.falta === 1 ? "warn" : "bad"}">${e.ok ? "✓ Cumple" : `${Math.min(4, e.n)}/4 · faltan ${e.falta}`}</span></span></h3><div class="in">
+      <p class="note" style="margin:0 0 6px">Ruta top: la cobertura cuenta cuando el cliente compra <b>0.5 caja o más de 4 empaques distintos de Pepsi</b> (3L, 1.5L, 1.25L, lata, 600 ML, 12 oz PET o vidrio). Marca lo que le vendas hoy.</p>
+      <div class="covgrid">${e.packs.map((x, i) => x.ok ? `<div class="chk ok-item"><span class="okmark" aria-hidden="true">✓</span><span class="t">${esc(x.k)}<b class="ok">Cumple ${fmt(x.v, 2)}</b></span></div>` : `<label class="chk ${x.mk ? "done" : ""}" for="tu_${i}"><input type="checkbox" id="tu_${i}" data-kind="tu" data-k="${esc(x.k)}" ${x.mk ? "checked" : ""}><span class="t">${esc(x.k)}${x.v == null ? `<b class="na">Sin compra</b>` : `<b class="bad">Falta ${fmt(Math.max(0, 0.5 - x.v), 2)} CJ</b>`}</span></label>`).join("")}</div>
+      <p class="note" style="margin:6px 0 0">${e.ok ? "Ya tiene los 4 empaques de la TU de pago." : `Le falta${e.falta > 1 ? "n" : ""} <b>${e.falta}</b> empaque${e.falta > 1 ? "s" : ""}. Lo más fácil: ${pend.slice(0, e.falta + 1).map(x => `<b>${esc(x.k.replace(/ Pepsi$/i, ""))}</b> (${x.v ? "le falta " + fmt(Math.max(0, 0.5 - x.v), 2) : "0.5"} CJ)`).join(", ")}.`}</p>
+    </div></div>`;
   }
   // Plan VPO
   const vpc = DB.vp && DB.vp.cli.get(p.c);
@@ -4542,6 +4621,7 @@ function onCheck(e){
   const t = e.target; if (!t.matches("input[type=checkbox][data-kind]") || openC == null) return;
   const v = visit(openC, true);
   v[t.dataset.kind] = v[t.dataset.kind] || {}; v[t.dataset.kind][t.dataset.k] = t.checked;
+  if (t.dataset.kind === "tu"){ const sc = $("#dBody") ? $("#dBody").scrollTop : 0; setTimeout(() => { if (openC != null){ openPdv(openC); const b = $("#dBody"); if (b) b.scrollTop = sc; } }, 0); }
   if (t.dataset.kind === "gmb"){ gmbSet(openC, t.dataset.k, t.checked); if (t.checked) toast("Activación Gambito registrada"); const g = t.closest(".vrow") && t.closest(".vrow").querySelector(".gst"); if (g){ g.className = (t.checked ? "ok" : "warn") + " gst"; g.textContent = t.checked ? "✓ activado en ruta hoy" : "por activar"; } }
   if (!v.t && t.checked){ v.t = Date.now(); liveMark(openC, "vis", "1", true); }
   saveVis(); liveMark(openC, t.dataset.kind, t.dataset.k, t.checked);
@@ -4922,6 +5002,87 @@ document.addEventListener("click", async e => {
   try{ const r = await DeviceOrientationEvent.requestPermission(); if (r === "granted"){ DIRL.perm = true; e.target.closest("[data-dirperm]").remove(); dirSync(); } else toast("Sin permiso de brújula: las flechas quedan con el norte arriba"); }catch(err){ toast("No se pudo activar la brújula"); }
 }, true);
 document.addEventListener("visibilitychange", () => { try{ dirSync(); }catch(e){} });
+
+/* ---------- guía por calles en la lista: para los clientes más cercanos, la próxima vuelta en la esquina
+   ("en 80 m gira a la derecha en 4a Calle Oriente"), con el camino real por las calles (respeta sentidos).
+   La ruta se pide una vez (OSRM) y la guía avanza sola con tu GPS; si te sales del camino, se recalcula.
+   Sin señal o sin ruta: queda la flecha en línea recta. ---------- */
+const GUIA = {m:new Map(), q:[], busy:false, prev:0};
+const GUIA_N = 5;
+const GMOD = {"left":-90, "right":90, "slight left":-45, "slight right":45, "sharp left":-135, "sharp right":135, "straight":0, "uturn":180};
+const GTXT = {"left":"gira a la izquierda", "right":"gira a la derecha", "slight left":"toma a la izquierda", "slight right":"toma a la derecha", "sharp left":"gira cerrado a la izquierda", "sharp right":"gira cerrado a la derecha", "straight":"sigue recto", "uturn":"da la vuelta en U"};
+async function guiaFetch(p){
+  const a = ME, url = `https://router.project-osrm.org/route/v1/driving/${a.lng.toFixed(6)},${a.lat.toFixed(6)};${p.lng.toFixed(6)},${p.lat.toFixed(6)}?overview=full&geometries=geojson&steps=true&alternatives=false`;
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 12000);
+  try{
+    const r = await fetch(url, {signal:ctl.signal}); if (!r.ok) throw new Error("http " + r.status);
+    const j = await r.json(); if (j.code !== "Ok" || !j.routes || !j.routes.length) throw new Error(j.code || "sin ruta");
+    const rt = j.routes[0], st = (rt.legs[0].steps || []).map(x => ({lat:x.maneuver.location[1], lng:x.maneuver.location[0], type:x.maneuver.type, mod:x.maneuver.modifier || "", name:x.name || x.ref || "", dist:x.distance, exit:x.maneuver.exit || 0}));
+    return {st, co: rt.geometry.coordinates.map(([x, y]) => [y, x]), total: rt.distance, t: Date.now(), from:{lat:a.lat, lng:a.lng}, idx: st.length > 1 ? 1 : 0, off:false};
+  } finally { clearTimeout(t); }
+}
+// distancia (km) de tu posición al camino trazado
+function guiaFuera(g){ let m = 1e9; const co = g.co; for (let i = 0; i < co.length; i++){ const d = haversine(ME.lat, ME.lng, co[i][0], co[i][1]); if (d < m) m = d; } return m; }
+function guiaPaso(g){
+  // avanza a la siguiente maniobra cuando ya pasaste por la esquina
+  while (g.idx < g.st.length - 1 && haversine(ME.lat, ME.lng, g.st[g.idx].lat, g.st[g.idx].lng) < 0.02) g.idx++;
+  // si la siguiente esquina ya quedó atrás (está más cerca la otra), también avanza
+  while (g.idx < g.st.length - 1){ const a = g.st[g.idx], b = g.st[g.idx + 1], da = haversine(ME.lat, ME.lng, a.lat, a.lng), ab = haversine(a.lat, a.lng, b.lat, b.lng), db = haversine(ME.lat, ME.lng, b.lat, b.lng); if (haversine(ME.lat, ME.lng, g.from.lat, g.from.lng) > 0.03 && db < ab * 0.9 && da > 0.03 && db < da) g.idx++; else break; }
+  return g.st[g.idx];
+}
+function guiaIcono(s){
+  if (!s) return "";
+  if (s.type === "arrive") return `<svg viewBox="0 0 24 24"><path d="M12 22s-6-5.4-6-10.2A6 6 0 0 1 18 11.8C18 16.6 12 22 12 22z" fill="currentColor"/><circle cx="12" cy="11.5" r="2.3" fill="var(--panel,#fff)"/></svg>`;
+  if (/roundabout|rotary/.test(s.type)) return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="10" r="4.5"/><path d="M12 22v-7.5"/><path d="M15.2 6.8 19 3m0 0h-4m4 0v4"/></svg>`;
+  const a = GMOD[s.mod] ?? 0;
+  if (a === 180) return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 22V9a4 4 0 0 0-8 0v6"/><path d="M4.5 12 8 15.5 11.5 12"/></svg>`;
+  const r = a * Math.PI / 180, ex = 12 + Math.sin(r) * 7.5, ey = 11 - Math.cos(r) * 7.5, hx = Math.sin(r), hy = -Math.cos(r), px = -hy, py = hx;
+  const tip = [ex + hx * 2.5, ey + hy * 2.5], l = [ex - px * 3.6, ey - py * 3.6], rr = [ex + px * 3.6, ey + py * 3.6];
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V12.5${a ? ` Q12 11 ${(12 + Math.sin(r) * 2).toFixed(1)} ${(11 - Math.cos(r) * 2).toFixed(1)}` : ""} L${ex.toFixed(1)} ${ey.toFixed(1)}"/><path d="M${l[0].toFixed(1)} ${l[1].toFixed(1)} L${tip[0].toFixed(1)} ${tip[1].toFixed(1)} L${rr[0].toFixed(1)} ${rr[1].toFixed(1)}" fill="currentColor"/></svg>`;
+}
+function guiaFrase(s){
+  if (!s) return "";
+  if (s.type === "arrive") return "llegas al cliente" + (s.mod === "left" ? ", queda a tu izquierda" : s.mod === "right" ? ", queda a tu derecha" : "");
+  if (/roundabout|rotary/.test(s.type)) return `en la rotonda toma la ${s.exit ? s.exit + "ª " : ""}salida` + (s.name ? ` hacia ${s.name}` : "");
+  const acc = s.type === "fork" ? "en la bifurcación " + (GTXT[s.mod] || "sigue") : s.type === "end of road" ? "al final de la calle " + (GTXT[s.mod] || "gira") : (GTXT[s.mod] || "sigue");
+  return acc + (s.name ? ` en ${s.name}` : "");
+}
+const gdist = km => km < 1 ? (km < 0.05 ? Math.round(km * 1000 / 5) * 5 : Math.round(km * 1000 / 10) * 10) + " m" : fmt(km, 1) + " km";
+function guiaHTML(p){
+  const g = GUIA.m.get(p.c);
+  if (!g || !ME) return navigator.onLine ? `<i class="gico gwait"></i><span class="gtx">Buscando el camino por calles…</span>` : `<span class="gtx gmut">Sin señal: sigue la flecha (línea recta)</span>`;
+  if (g.err) return `<span class="gtx gmut">Sin ruta por calles: sigue la flecha (línea recta)</span>`;
+  const s = guiaPaso(g), d = haversine(ME.lat, ME.lng, s.lat, s.lng);
+  let resto = d; for (let k = g.idx; k < g.st.length; k++) resto += (g.st[k].dist || 0) / 1000;
+  const frase = guiaFrase(s), ya = d < 0.03;
+  return `<i class="gico ${s.type === "arrive" ? "garr" : ""}">${guiaIcono(s)}</i><span class="gtx"><b>${ya ? "Ahora" : "En " + gdist(d)}</b> ${esc(frase)}<small>${gdist(resto)} por calles</small></span>`;
+}
+// repinta las guías de la lista y pide las rutas que falten (de una en una, para no saturar el servicio)
+function guiaTick(){
+  if (!dirActivo()){ return; }
+  const top = current.filter(p => p.lat != null).slice(0, GUIA_N), ids = new Set(top.map(p => p.c));
+  for (const el of document.querySelectorAll("#list [data-guia]")){ const c = +el.dataset.guia, p = DB.pdv.get(c); if (!p) continue; if (!ids.has(c)){ if (!GUIA.m.has(c)) el.innerHTML = `<span class="gtx gmut">Guía por calles: se muestra en los ${GUIA_N} más cercanos</span>`; else el.innerHTML = guiaHTML(p); continue; } el.innerHTML = guiaHTML(p); }
+  if (!navigator.onLine || !ME) return;
+  for (const p of top){
+    const g = GUIA.m.get(p.c);
+    const nueva = !g || (g.err && Date.now() - g.t > 60000) || (!g.err && guiaFuera(g) > 0.06 && Date.now() - g.t > 15000);   // te saliste del camino: recalcula
+    if (nueva && !GUIA.q.includes(p.c)) GUIA.q.push(p.c);
+  }
+  guiaCola();
+}
+async function guiaCola(){
+  if (GUIA.busy || !GUIA.q.length) return; GUIA.busy = true;
+  try{
+    while (GUIA.q.length && navigator.onLine && ME){
+      const c = GUIA.q.shift(), p = DB.pdv.get(c); if (!p) continue;
+      const wait = 1100 - (Date.now() - GUIA.prev); if (wait > 0) await new Promise(r => setTimeout(r, wait));   // el servicio público permite ~1 consulta por segundo
+      GUIA.prev = Date.now();
+      try{ GUIA.m.set(c, await guiaFetch(p)); }catch(e){ GUIA.m.set(c, {err:true, t:Date.now()}); }
+      if (GUIA.m.size > 60) GUIA.m.delete(GUIA.m.keys().next().value);
+      const el = document.querySelector(`#list [data-guia="${c}"]`); if (el) el.innerHTML = guiaHTML(p);
+    }
+  } finally { GUIA.busy = false; }
+}
 
 /* ---------- brújula: el mapa gira según hacia dónde apunta el teléfono ---------- */
 const COMP = {on:false, cur:0, ev:null, last:0};
@@ -5742,6 +5903,11 @@ function parseVoz(text, inner){
   else if (falta && has(/\b(cobertura|coberturas|empaque|empaques|cubrir)\b/)) seg("covpend", "Con cobertura pendiente");
   else if (has(/\b(cumplen|completas|completa|cumplida|cumplidas|4 de 4|todas las coberturas)\b/) && has(/\b(cobertura|coberturas|4 de 4)\b/)) seg("covok", "Coberturas completas");
   if (c.segs.includes("cov1") && emps.length){ for (const [k, , l] of emps){ c.emps.push(k); c.lab.push("La que falta es " + l); } }
+  // ---- TU de pago (4 SKU de colas, rutas top): "tu de pago pendiente", "les falta un empaque para la tu", "cumplen la tu de pago"
+  if (has(/\b(tu de pago|tus de pago|t u de pago|cobertura de pago|coberturas de pago|4 sku|cuatro sku|4 empaques|cuatro empaques|skus de colas|sku de colas)\b/) || has(/\btus?\b.*\bpago\b/)){
+    c.segs = c.segs.filter(k => !/^(cov|x:covn)/.test(k)); c.emps = []; c.lab = c.lab.filter(x => !/cobertura|falta/i.test(x));
+    seg(has(/\b(cumplen|cumplida|cumplidas|completa|completas|ya tienen|ok)\b/) ? "tuok" : has(/\b(1|uno|una|solo un|solo 1)\b.*\b(empaque|sku)\b|\bfalta (solo )?(1|un|una)\b/) ? "tu1" : "tupend");
+  }
   // ---- Plan Gambito (cerveza): se pueden pedir varias categorías juntas: "gambito nunca compra, compra cero y caídos"
   const gctx = has(/\b(gambito|gambitos|gambit|plan de cerveza|plan cerveza)\b/), beerW = has(/\b(cerveza|cervezas|regia|suprema|chela|chelas|750|330)\b/);
   const gc = {nc: has(/\bnunca\b/), c0: has(/\b(compras? (cero|0)|cero compras?|compra 0)\b/), cai: has(/\b(caidos?|caidas?)\b/), vpo: has(/\b(vpo|escalas?)\b/)};
@@ -6108,6 +6274,7 @@ function recAplicar(it){
 function qCatalogo(){
   const C = [["Gambito (cerveza)", "clientes gambito", "🍺"], ["Gambito · nunca compra", "gambito nunca compra", "🍺"], ["Gambito · compra 0", "gambito compra cero", "🍺"], ["Gambito · caídos", "gambito caidos", "🍺"], ["Gambito · por activar", "gambito por activar", "🍺"], ["Gambito · ya activados", "gambito activados", "🍺"],
     ["R+N · rojo o negro", "clientes con r mas n", "🧊"], ["Rojo 15 o más", "rojo 15 o mas", "🧊"], ["Equipos en negro", "equipos en negro", "🧊"], ["Necesidad de equipo frío", "equipo con necesidad", "🧊"], ["Wellington pendiente", "wellington pendiente", "📟"], ["Wellington +60 días", "wellington mas de 60", "📟"],
+    ["TU de pago pendiente (rutas top)", "tu de pago pendiente", "🥤"], ["TU de pago: le falta 1 empaque", "tu de pago falta 1 empaque", "🥤"], ["TU de pago cumplida", "tu de pago cumplida", "🥤"],
     ["Cobertura pendiente", "cobertura pendiente", "📦"], ["Les falta solo 1 cobertura", "les falta solo una cobertura", "📦"], ["Les falta cerveza", "les falta cerveza", "📦"], ["Les falta Gatorade", "les falta gatorade", "📦"], ["Coberturas completas", "coberturas completas", "📦"],
     ["Con promo dirigida", "con promo", "🏷️"], ["Sin promo", "sin promo", "🏷️"], ["VPO por cumplir", "vpo por cumplir", "📈"], ["VPO cumplido", "vpo cumplido", "📈"], ["Compra cero (base AC)", "compra cero", "📉"], ["No han comprado este mes", "no han comprado", "📉"], ["Mayor volumen de compra", "mayor volumen de compra", "📊"],
     ["Que compran cerveza", "que compran cerveza", "🛒"], ["Que compran Gatorade", "que compran gatorade", "🛒"], ["Programados hoy", "clientes de hoy", "📅"], ["Sin visitar hoy", "sin visitar", "📅"], ["Visitados hoy", "visitados", "📅"],
