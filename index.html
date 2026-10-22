@@ -851,6 +851,38 @@ select.sm{height:38px;border:1px solid var(--line);border-radius:10px;background
 .poprow .popbtn{margin-top:0}
 .popbtn.alt2{background:var(--field);border:1px solid var(--cyan);color:var(--cyan)}
 .row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.leaflet-touch .leaflet-bar,.leaflet-bar{border:none!important;border-radius:14px!important;box-shadow:0 4px 14px rgba(15,30,60,.14)!important;overflow:hidden}
+.leaflet-touch .leaflet-bar a,.leaflet-bar a{width:42px!important;height:42px!important;line-height:42px!important;font:600 20px/42px var(--f-body)!important;border-bottom:1px solid var(--line)!important}
+.leaflet-touch .leaflet-control-layers,.leaflet-control-layers{border:none!important;border-radius:14px!important;box-shadow:0 4px 14px rgba(15,30,60,.14)!important}
+.leaflet-control-layers-toggle{width:42px!important;height:42px!important;background-size:22px!important}
+.leaflet-control-layers-expanded{border-radius:14px;font:500 14px var(--f-body)}
+.leaflet-control-layers-expanded label{padding:5px 2px}
+.leaflet-control-attribution{font-size:9.5px!important;padding:1px 6px!important;border-radius:8px 0 0 0;opacity:.75}
+.mapctl .iconbtn{box-shadow:0 4px 14px rgba(15,30,60,.14);border:none}
+.mapctl select{box-shadow:0 4px 14px rgba(15,30,60,.12);border:none}
+.legend{border:none;box-shadow:0 4px 14px rgba(15,30,60,.14);backdrop-filter:blur(6px)}
+.mcl div{border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 8px rgba(0,0,0,.25);transition:transform .15s}
+.mcl div::before{content:"";position:absolute;inset:5px;border-radius:50%;background:rgba(255,255,255,.93)}
+.mcl b{position:relative;font:800 13px var(--f-tech);color:#14233A}
+.mcl i{position:absolute;right:-6px;top:-6px;background:#17803D;color:#fff;font:700 10px var(--f-tech);font-style:normal;border-radius:9px;padding:1px 5px;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.mcl:active div{transform:scale(.92)}
+.mlab span{display:inline-block;white-space:nowrap;font:700 11.5px var(--f-body);color:#14233A;background:rgba(255,255,255,.88);padding:2px 6px;border-radius:7px;box-shadow:0 1px 3px rgba(0,0,0,.18);pointer-events:none}
+.mlab span.v{color:#17803D}
+.msheet{position:absolute;z-index:650;left:10px;right:10px;bottom:10px;max-width:560px;margin:0 auto;background:var(--panel,#fff);border-radius:18px;box-shadow:0 10px 30px rgba(15,30,60,.25);padding:14px 14px 12px;transform:translateY(calc(100% + 20px));opacity:0;transition:transform .26s cubic-bezier(.2,.8,.2,1),opacity .2s;pointer-events:none;display:flex;flex-direction:column;gap:10px}
+.msheet.on{transform:none;opacity:1;pointer-events:auto}
+.msheet .msx{position:absolute;right:8px;top:8px;border:none;background:var(--field,#f1f4f8);border-radius:50%;width:30px;height:30px;color:var(--muted)}
+.msheet .msh{display:flex;gap:12px;align-items:flex-start;padding-right:34px}
+.msheet .mst{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.msheet .mst b{font-size:16px;text-transform:uppercase;line-height:1.2}
+.msheet .mst small{color:var(--muted);font-size:12.5px}
+.msheet .msd{display:flex;align-items:center;gap:4px;color:var(--cyan);font:700 14px var(--f-tech);flex:none}
+.msheet .msp{display:flex;gap:6px;flex-wrap:wrap}
+.msheet .msg{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;background:var(--panel2,#f3f6fa);font-size:13.5px}
+.msheet .msg .gico{width:28px;height:28px;display:inline-flex;color:var(--acc,#1F4E8C)} .msheet .msg .gico svg{width:100%;height:100%}
+.msheet .msg .gtx{display:flex;flex-direction:column} .msheet .msg small{color:var(--muted)}
+.msheet .msb{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:8px}
+.msheet .msb .btn{width:100%;margin:0;text-align:center}
+.msheet .msl{display:flex;flex-direction:column;gap:6px;max-height:40vh;overflow:auto}
 .routebar{position:absolute;z-index:600;left:12px;right:12px;bottom:64px;background:rgba(255,255,255,.96);border:1px solid var(--cyan);border-radius:16px;padding:10px 12px;box-shadow:var(--glow);display:flex;flex-direction:column;gap:8px;max-width:560px;margin:0 auto}
 .rt-t{display:flex;flex-direction:column;min-width:0}
 .rt-t b{font-size:15px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1519,6 +1551,7 @@ h1,h2,h3,h4,.at,.acch .at,.cvt b,.phead h2,.psec h3,.sec h3,.evhead h3,.cpt,.lh,
         <button class="iconbtn" id="btnMe" title="Centrar en mí"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 21l8-4 8 4z"/></svg></button>
       </div>
       <div class="legend" id="legend"></div>
+      <div class="msheet" id="mapSheet" role="dialog" aria-label="Cliente seleccionado"></div>
       <div class="routebar" id="routeBar" hidden role="status"></div>
     </section>
     <section class="pane" id="panelPane" hidden><div id="panelBody"></div></section>
@@ -2214,7 +2247,7 @@ function parseInc(rows, info){
 }
 
 /* Plan VPO cerveza por cliente: escalas de precio por producto y lo facturado en el mes */
-const VPO_PROD = {R330:"Regia 330 ML VR", S330:"Suprema 330 ML VR (11 oz)", R750:"Regia 750 ML VR"};
+const VPO_PROD = {R330:"Regia 330 ML VR", S330:"Suprema 330 ML VR (11 oz) · por VPO", R750:"Regia 750 ML VR"};
 function parseVp(rows, info){
   const vp = {cli:new Map(), info: info || null};
   if (!rows || rows.length < 2) return vp;
@@ -3432,7 +3465,7 @@ if (typeof L !== "undefined") L.TileLayer.Guardado = L.TileLayer.extend({
 let BASES_M = null;
 function mapaBases(){
   if (BASES_M) return BASES_M;
-  const opt0 = {maxZoom:20, keepBuffer:4, updateWhenZooming:false};
+  const opt0 = {maxZoom:20, keepBuffer:4, updateWhenZooming:false, updateWhenIdle:false};   // carga cuadros mientras arrastras (sin esperar a soltar)
   const esri = (svc, opt={}) => new L.TileLayer.Guardado(`https://server.arcgisonline.com/ArcGIS/rest/services/${svc}/MapServer/tile/{z}/{y}/{x}`, Object.assign({}, opt0, {maxNativeZoom:19, attribution:"© Esri"}, opt));
   BASES_M = [
     ["Calles", esri("World_Street_Map"), "Topográfico"],
@@ -3530,7 +3563,7 @@ function initMap(){
   if (map || typeof L === "undefined") return;
   // un solo lienzo para todos los puntos: evita capas que tapan los toques; tolerance agranda el área de toque en celular
   PTS = L.canvas({padding:.5, tolerance: L.Browser.mobile ? 14 : 6});
-  map = L.map("map", {preferCanvas:true, renderer:PTS, zoomControl:true, tapTolerance:20, maxZoom:21, rotate:true, bearing:0, touchRotate:false, rotateControl:false, compassBearing:false}).setView([13.48,-88.18], 11);
+  map = L.map("map", {preferCanvas:true, renderer:PTS, zoomControl:true, tapTolerance:20, maxZoom:21, zoomSnap:0.5, zoomDelta:0.5, wheelPxPerZoomLevel:110, inertiaDeceleration:2600, easeLinearity:0.22, bounceAtZoomLimits:false, rotate:true, bearing:0, touchRotate:false, rotateControl:false, compassBearing:false}).setView([13.48,-88.18], 11);
   const BASES = mapaBases();
   let bi = Math.max(0, BASES.findIndex(b => b[0] === mapaBaseNombre()));
   BASES[bi][1].addTo(map);
@@ -3547,6 +3580,7 @@ function initMap(){
   });
   layer = L.layerGroup().addTo(map);
   map.on("zoomend", () => owDraw(true));
+  map.on("moveend zoomend", () => { clearTimeout(MAPV.t); MAPV.t = setTimeout(mapDraw, 40); });
   map.on("moveend", () => { if (OW.t) return; OW.t = setTimeout(() => { OW.t = null; owUpdate(); }, NAV.on ? 900 : 300); });   // flechas del sentido de las calles (también mientras avanzas)
   map.on("click", pickAt);
   map.on("contextmenu", e => {
@@ -3560,42 +3594,106 @@ const popHTML = p => `<b>${esc(p.n)}</b><br><span class="num">${p.c}</span> · R
 function pickAt(e){
   const R = L.Browser.mobile ? 24 : 12;          // radio de toque en pixeles
   const cp = e.containerPoint, hits = [];
-  for (const p of current){
-    if (p.lat == null) continue;
+  for (const p of (MAPV.ind || [])){
     const q = map.latLngToContainerPoint([p.lat, p.lng]);
     const d = Math.hypot(q.x - cp.x, q.y - cp.y);
     if (d <= R) hits.push({p, d});
   }
-  if (!hits.length) return;
+  if (!hits.length){ mapSheet(null); return; }
   hits.sort((a, b) => a.d - b.d);
   const near = hits.filter(h => h.d <= hits[0].d + 8);   // puntos encimados en el mismo lugar
-  let html;
-  if (near.length === 1) html = popHTML(near[0].p);
-  else html = `<b>${near.length} clientes aquí</b><div class="poplist">${near.slice(0, 12).map(h => `<button class="popbtn alt" data-pdv="${h.p.c}">${esc(h.p.n || h.p.c)}<small>Ruta ${esc(h.p.ruta)} · ${h.p.c}</small></button>`).join("")}</div>${near.length > 12 ? `<small class="note">Acerca el mapa para ver los demás</small>` : ""}`;
-  L.popup({offset:[0,-6], autoPanPadding:[20,20]}).setLatLng([near[0].p.lat, near[0].p.lng]).setContent(html).openOn(map);
+  mapSheet(near.map(h => h.p));
 }
+/* hoja inferior del mapa: el cliente que tocaste, sin tapar el mapa con un globo */
+let SHEET_P = null, SEL_M = null;
+function mapSheet(list){
+  const el = $("#mapSheet"); if (!el) return;
+  if (SEL_M){ SEL_M.remove(); SEL_M = null; }
+  if (!list || !list.length){ el.classList.remove("on"); SHEET_P = null; return; }
+  const p = list[0];
+  if (list.length === 1){
+    SHEET_P = p.c;
+    SEL_M = L.circleMarker([p.lat, p.lng], {renderer:PTS, interactive:false, radius:15, color:"#1F4E8C", weight:3, fillOpacity:0}).addTo(map);
+    const d = ME ? haversine(ME.lat, ME.lng, p.lat, p.lng) : null, cc = covClass(p), tu = p.tu ? tuEstado(p) : null;
+    const g = GUIA.m.get(p.c), guia = g && !g.err && ME ? guiaHTML(p) : "";
+    el.innerHTML = `<button class="msx" data-msx aria-label="Cerrar">✕</button>
+      <div class="msh"><div class="mst"><b>${esc(p.n || "(sin nombre)")}</b><small class="num">${p.c} · Ruta ${esc(p.ruta || "—")} · FR ${esc(p.fr || "—")}${p.dir ? " · " + esc(p.dir.toLowerCase()) : ""}</small></div>
+      ${d != null ? `<span class="msd"><i class="darr" style="--b:${dirRumbo(ME.lat, ME.lng, p.lat, p.lng).toFixed(1)}deg;--hd:${(DIRL.h || 0).toFixed(1)}deg"><svg viewBox="0 0 24 24"><path d="M12 2.5l7 18-7-4.2-7 4.2z"/></svg></i><b class="num">${gdist(d)}</b></span>` : ""}</div>
+      <div class="msp"><span class="pill ${cc}">${p.cov ? `Cob. ${p.cov.okN}/${p.cov.n}` : "Sin cobertura"}</span>${tu ? `<span class="pill ${tu.ok ? "ok" : tu.falta === 1 ? "warn" : "bad"}">TU ${Math.min(4, tu.n)}/4</span>` : ""}${nPromosCliente(p) ? `<span class="pill acc">${nPromosCliente(p)} promo</span>` : ""}${gambPlans(p).length ? `<span class="pill">🍺 Gambito</span>` : ""}${visitedToday(p.c) ? `<span class="pill ok">Visitado hoy</span>` : ""}</div>
+      ${guia ? `<div class="msg">${guia}</div>` : ""}
+      <div class="msb"><button class="btn sm pri popbtn" data-pdv="${p.c}">Abrir ficha</button><button class="btn sm popbtn alt2" data-route="${p.c}">Ruta</button><a class="btn sm" href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}&travelmode=driving" target="_blank" rel="noopener">Google Maps</a></div>`;
+  } else {
+    SHEET_P = null;
+    el.innerHTML = `<button class="msx" data-msx aria-label="Cerrar">✕</button><div class="msh"><div class="mst"><b>${list.length} clientes aquí</b><small>Toca uno para abrir su ficha</small></div></div><div class="msl">${list.slice(0, 20).map(x => `<button class="popbtn alt" data-pdv="${x.c}">${esc(x.n || x.c)}<small>Ruta ${esc(x.ruta)} · ${x.c}</small></button>`).join("")}</div>`;
+  }
+  el.classList.add("on");
+}
+document.addEventListener("click", e => { if (e.target.closest && e.target.closest("[data-msx]")) mapSheet(null); if (e.target.closest && e.target.closest("#mapSheet .popbtn[data-route]")) mapSheet(null); });
 let mapDirty = false;
+/* puntos del mapa: solo se dibuja lo que está a la vista; alejado y con muchos clientes, se agrupan en burbujas con el número
+   (toca una burbuja y se acerca); de cerca (zoom 17+) cada punto lleva el nombre del cliente */
+const MAPV = {pts:[], ind:[], cl:null, lbl:null, t:0};
 function renderMap(){
   if (!map) return;
   if ($("#mapPane").hidden){ mapDirty = true; return; }      // no redibujar el mapa si no se está viendo
   mapDirty = false;
   const pts = current.filter(p => p.lat != null);
-  const R = PTS, want = new Set();
+  MAPV.pts = pts;
+  if (needFit && pts.length){ fitPts(pts); needFit = false; }
+  mapDraw();
+  renderLegend(pts, current.length - pts.length);
+}
+function mapDraw(){
+  if (!map || $("#mapPane").hidden) return;
   if (!window.MK) window.MK = new Map();
-  for (const p of pts){
-    const vis = visitedToday(p.c), col = colorFor(p), key = (vis ? 1 : 0) + col;
-    // los puntos no capturan toques: el toque lo resuelve pickAt() buscando el punto más cercano (funciona igual con 100 o 10,000 clientes)
+  if (!MAPV.cl){ MAPV.cl = L.layerGroup().addTo(map); MAPV.lbl = L.layerGroup().addTo(map); }
+  const z = map.getZoom(), b = map.getBounds().pad(0.3), s0 = b.getSouth(), n0 = b.getNorth(), w0 = b.getWest(), e0 = b.getEast();
+  const vis = MAPV.pts.filter(p => p.lat >= s0 && p.lat <= n0 && p.lng >= w0 && p.lng <= e0);
+  const agrupar = z < 15.5 && vis.length > 300;
+  const ind = [], cells = new Map();
+  if (agrupar){
+    const cs = z < 12 ? 70 : 56;
+    for (const p of vis){ const q = map.project([p.lat, p.lng], z), k = Math.floor(q.x / cs) + ":" + Math.floor(q.y / cs); let c = cells.get(k); if (!c){ c = []; cells.set(k, c); } c.push(p); }
+    for (const [, c] of cells) if (c.length < 3) ind.push(...c);
+  } else ind.push(...vis);
+  // puntos sueltos (con los mismos colores de siempre)
+  const R = PTS, want = new Set();
+  for (const p of ind){
+    const v = visitedToday(p.c), col = colorFor(p), key = (v ? 1 : 0) + col;
     let m = MK.get(p.c);
-    if (!m){ m = L.circleMarker([p.lat, p.lng], {renderer:R, interactive:false, radius: vis ? 9 : 7, color: vis ? "#17803D" : "#FFFFFF", weight: vis ? 3 : 1.2, fillColor: col, fillOpacity:.92}); m._k = key; MK.set(p.c, m); }
-    else if (m._k !== key){ m.setStyle({radius: vis ? 9 : 7, color: vis ? "#17803D" : "#FFFFFF", weight: vis ? 3 : 1.2, fillColor: col}); m.setRadius(vis ? 9 : 7); m._k = key; }
+    if (!m){ m = L.circleMarker([p.lat, p.lng], {renderer:R, interactive:false, radius: v ? 9 : 7, color: v ? "#17803D" : "#FFFFFF", weight: v ? 3 : 1.4, fillColor: col, fillOpacity:.95}); m._k = key; MK.set(p.c, m); }
+    else if (m._k !== key){ m.setStyle({color: v ? "#17803D" : "#FFFFFF", weight: v ? 3 : 1.4, fillColor: col}); m.setRadius(v ? 9 : 7); m._k = key; }
     want.add(m);
   }
   const quitar = []; layer.eachLayer(l => { if (!want.has(l)) quitar.push(l); }); for (const l of quitar) layer.removeLayer(l);
   for (const m of want) if (!layer.hasLayer(m)) layer.addLayer(m);
-  renderLegend(pts, current.length - pts.length);
-  if (needFit && pts.length){ fitPts(pts); needFit = false; }
+  MAPV.ind = ind;
+  // burbujas: las que quedarían encimadas se juntan en una
+  MAPV.cl.clearLayers();
+  let grupos = agrupar ? [...cells.values()].filter(c => c.length >= 3).map(c => { let x = 0, y = 0; for (const p of c){ const q = map.project([p.lat, p.lng], z); x += q.x; y += q.y; } return {c, x: x / c.length, y: y / c.length}; }) : [];
+  for (let changed = true; changed;){ changed = false;
+    outer: for (let a = 0; a < grupos.length; a++) for (let k = a + 1; k < grupos.length; k++){ const A = grupos[a], B = grupos[k], ra = 15 + Math.log2(A.c.length) * 2.2, rb = 15 + Math.log2(B.c.length) * 2.2;
+      if (Math.hypot(A.x - B.x, A.y - B.y) < (ra + rb) * 1.05){ const n = A.c.length + B.c.length; grupos[a] = {c: A.c.concat(B.c), x: (A.x * A.c.length + B.x * B.c.length) / n, y: (A.y * A.c.length + B.y * B.c.length) / n}; grupos.splice(k, 1); changed = true; break outer; } } }
+  if (agrupar) for (const {c} of grupos){
+    let la = 0, lo = 0; const cols = new Map(); let s = 90, n = -90, w = 180, e = -180;
+    for (const p of c){ la += p.lat; lo += p.lng; const k = colorFor(p); cols.set(k, (cols.get(k) || 0) + 1); if (p.lat < s) s = p.lat; if (p.lat > n) n = p.lat; if (p.lng < w) w = p.lng; if (p.lng > e) e = p.lng; }
+    const tot = c.length, top = [...cols.entries()].sort((x, y) => y[1] - x[1]).slice(0, 4);
+    let acc = 0; const grad = top.map(([k, v]) => { const a0 = acc; acc += v / tot * 360; return `${k} ${a0.toFixed(0)}deg ${acc.toFixed(0)}deg`; }).join(",") + (acc < 359 ? `,#9AA6B2 ${acc.toFixed(0)}deg 360deg` : "");
+    const sz = Math.round(Math.min(54, 30 + Math.log2(tot) * 4.4)), vis2 = c.filter(p => visitedToday(p.c)).length;
+    const mk = L.marker([la / tot, lo / tot], {icon: L.divIcon({className:"mcl", html:`<div style="width:${sz}px;height:${sz}px;background:conic-gradient(${grad})"><b>${tot > 999 ? (tot / 1000).toFixed(1) + "k" : tot}</b>${vis2 ? `<i>${vis2}✓</i>` : ""}</div>`, iconSize:[sz, sz], iconAnchor:[sz / 2, sz / 2]}), keyboard:false, title:`${tot} clientes`});
+    mk.on("click", () => { mapSheet(null); map.flyToBounds([[s, w], [n, e]], {padding:[50, 50], maxZoom: Math.max(z + 2, 15.5), duration:0.6}); });
+    MAPV.cl.addLayer(mk);
+  }
+  // nombres de cerca
+  MAPV.lbl.clearLayers();
+  if (z >= 17 && ind.length <= 160){
+    const bv = map.getBounds();
+    for (const p of ind){ if (!bv.contains([p.lat, p.lng])) continue; const nm = (p.n || String(p.c)); MAPV.lbl.addLayer(L.marker([p.lat, p.lng], {icon: L.divIcon({className:"mlab", html:`<span class="${visitedToday(p.c) ? "v" : ""}">${esc(nm.length > 24 ? nm.slice(0, 23) + "…" : nm)}</span>`, iconSize:null, iconAnchor:[-11, 9]}), interactive:false, keyboard:false})); }
+  }
 }
-function fitPts(pts){ if (!map || !pts.length) return; map.fitBounds(L.latLngBounds(pts.map(p=>[p.lat,p.lng])), {padding:[30,30], maxZoom:18}); }
+function fitPts(pts){ if (!map || !pts.length) return; let s = 90, n = -90, w = 180, e = -180;
+  if (pts.length > 40){ const la = pts.map(p => p.lat).sort((a, b) => a - b), lo = pts.map(p => p.lng).sort((a, b) => a - b), q = Math.floor(pts.length * 0.01); s = la[q]; n = la[la.length - 1 - q]; w = lo[q]; e = lo[lo.length - 1 - q]; }   // sin los pocos puntos con coordenadas fuera de lugar
+  else for (const p of pts){ if (p.lat < s) s = p.lat; if (p.lat > n) n = p.lat; if (p.lng < w) w = p.lng; if (p.lng > e) e = p.lng; } map.flyToBounds([[s, w], [n, e]], {padding:[40, 40], maxZoom:18, duration:0.55}); }
 let LEG_OPEN = null;
 function renderLegend(pts, noGps){
   const m = F.colorBy, counts = new Map();
@@ -4163,12 +4261,12 @@ setInterval(async () => {   // con el panel abierto, se refresca solo
 }, 60000);
 
 /* indicadores del día por ruta: salen solos de lo que se marca en las fichas (coberturas, R+N, lecturas) */
-const REP_AUTO = ["cfam", "css", "cgat", "ccvz", "rn", "g750", "g330", "gs330", "gtot"];
+const REP_AUTO = ["cfam", "css", "cgat", "ccvz", "rn", "g750", "g330", "gtot"];
 function repInd(r, st){
   const o = {cfam:0, css:0, cgat:0, ccvz:0, rn:0, wl:0, gmb:0, g750:0, g330:0, gs330:0, gtot:0, cli:new Set()};
   for (const e of st.values()){ if (e.r !== r || !e.v || e.k === "rep") continue;
     if (e.k === "cov"){ const k = {multi:"cfam", single:"css", gatorade:"cgat", cerveza:"ccvz"}[covGroupOf(e.i)]; if (k) o[k]++; }
-    else if (e.k === "rn") o.rn++; else if (e.k === "wl") o.wl++; else if (e.k === "gmb"){ o.gmb++; o.gtot++; const k = {R750:"g750", R330:"g330", S330:"gs330"}[e.i]; if (k) o[k]++; }
+    else if (e.k === "rn") o.rn++; else if (e.k === "wl") o.wl++; else if (e.k === "gmb"){ o.gmb++; const k = {R750:"g750", R330:"g330"}[e.i]; if (k){ o[k]++; o.gtot++; } }   // Suprema no es del Plan Gambito
     if (e.c) o.cli.add(e.c); }
   o.cli = o.cli.size; return o;
 }
@@ -4199,7 +4297,7 @@ const REP_COLS = [
   {k:"colas", l:"Colas", g:"vol"}, {k:"licores", l:"Licores", g:"vol"}, {k:"iso", l:"ISO/AD", g:"vol"}, {k:"oro", l:"Oro", g:"vol"}, {k:"csd", l:"CSD", g:"vol"}, {k:"total", l:"Total", g:"vol", tot:1},
   {k:"cvz", l:"Volumen CVZ", g:"eme"}, {k:"lipton", l:"Lipton 12 oz", g:"eme"}, {k:"frutado", l:"Frutado 600", g:"eme"}, {k:"black", l:"Black", g:"eme"},
   {k:"cfam", l:"Cob familiares", g:"cob"}, {k:"css", l:"Cob SS", g:"cob"}, {k:"cgat", l:"Cob Gatorade", g:"cob"}, {k:"ccvz", l:"Cob CVZ", g:"cob"}, {k:"etp", l:"ETP", g:"cob"}, {k:"rn", l:"R+N", g:"cob"},
-  {k:"g750", l:"Regia 750", g:"gmb"}, {k:"g330", l:"Regia 330", g:"gmb"}, {k:"gs330", l:"Suprema 330", g:"gmb"}, {k:"gtot", l:"Total Gambito", g:"gmb", tot:1}   // coberturas Gambito del día (marcas "Lo activé" en la ficha)
+  {k:"g750", l:"Regia 750", g:"gmb"}, {k:"g330", l:"Regia 330", g:"gmb"}, {k:"gtot", l:"Total Gambito", g:"gmb", tot:1}   // coberturas Gambito del día (marcas "Lo activé" en la ficha)
 ];
 const repColsVis = () => REP_COLS.filter(c => c.g !== "gmb" || (DB.vp && DB.vp.cli && DB.vp.cli.size));
 const repKey = r => "rutapdv_rep_" + todayKey() + "_" + r;
@@ -4420,7 +4518,7 @@ function gambInicio(){
   const mi = m ? MESES.indexOf(m[2].toLowerCase()) : -1;
   return mi >= 0 ? `${y}-${String(mi + 1).padStart(2, "0")}-${String(+m[1]).padStart(2, "0")}` : `${y}-${String(new Date().getMonth() + 1).padStart(2, "0")}-01`;
 }
-const GPROD = {R750:"Regia 750", R330:"Regia 330", S330:"Suprema 330"};
+const GPROD = {R750:"Regia 750", R330:"Regia 330", S330:"Suprema 330 (VPO)"};   // Suprema no es del Plan Gambito: va por VPO
 // por cliente: cada empaque de su plan, si ya compró desde el inicio y cuántas cajas
 /* activaciones marcadas por el vendedor en la ficha ("Lo activé"): se guardan en el teléfono hasta que la compra aparece en los datos,
    y viajan en vivo al supervisor (marca "gmb"). Un cliente cuenta activado con la compra en los datos O con la marca, sin contar doble. */
@@ -4625,7 +4723,7 @@ function onCheck(e){
   const v = visit(openC, true);
   v[t.dataset.kind] = v[t.dataset.kind] || {}; v[t.dataset.kind][t.dataset.k] = t.checked;
   if (t.dataset.kind === "tu"){ const sc = $("#dBody") ? $("#dBody").scrollTop : 0; setTimeout(() => { if (openC != null){ openPdv(openC); const b = $("#dBody"); if (b) b.scrollTop = sc; } }, 0); }
-  if (t.dataset.kind === "gmb"){ gmbSet(openC, t.dataset.k, t.checked); if (t.checked) toast("Activación Gambito registrada"); const g = t.closest(".vrow") && t.closest(".vrow").querySelector(".gst"); if (g){ g.className = (t.checked ? "ok" : "warn") + " gst"; g.textContent = t.checked ? "✓ activado en ruta hoy" : "por activar"; } }
+  if (t.dataset.kind === "gmb"){ gmbSet(openC, t.dataset.k, t.checked); if (t.checked) toast(t.dataset.k === "S330" ? "Activación de Suprema (VPO) registrada" : "Activación Gambito registrada"); const g = t.closest(".vrow") && t.closest(".vrow").querySelector(".gst"); if (g){ g.className = (t.checked ? "ok" : "warn") + " gst"; g.textContent = t.checked ? "✓ activado en ruta hoy" : "por activar"; } }
   if (!v.t && t.checked){ v.t = Date.now(); liveMark(openC, "vis", "1", true); }
   saveVis(); liveMark(openC, t.dataset.kind, t.dataset.k, t.checked);
   const box = t.closest(".chk, .pcard"); if (box) box.classList.toggle("done", t.checked);
@@ -4814,7 +4912,7 @@ function wire(){
   $("#sort").value = F.sort; $("#sort").onchange = e => { F.sort = e.target.value; if (F.sort === "dist" && !ME) toast("Activa el GPS para ordenar por cercanía"); renderList(); saveF(); };
   $("#colorBy").value = F.colorBy; $("#colorBy").onchange = e => { F.colorBy = e.target.value; renderMap(); saveF(); };
   $("#btnFit").onclick = () => fitPts(current.filter(p => p.lat != null));
-  $("#btnMe").onclick = () => { if (!ME){ startGps(); return; } map && map.setView([ME.lat, ME.lng], 17); };
+  $("#btnMe").onclick = () => { if (!ME){ startGps(); return; } map && map.flyTo([ME.lat, ME.lng], Math.max(17, map.getZoom()), {duration:0.6}); };
   $("#btnCompass").onclick = () => { initMap(); toggleCompass(); };
   $("#btnOneway").onclick = () => { initMap(); owToggle(); };
   $("#btnMapSave").onclick = () => { initMap(); mapaGuardarZona(); };
