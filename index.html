@@ -3465,7 +3465,7 @@ if (typeof L !== "undefined") L.TileLayer.Guardado = L.TileLayer.extend({
 let BASES_M = null;
 function mapaBases(){
   if (BASES_M) return BASES_M;
-  const opt0 = {maxZoom:20, keepBuffer:4, updateWhenZooming:false, updateWhenIdle:false};   // carga cuadros mientras arrastras (sin esperar a soltar)
+  const opt0 = {maxZoom:21, keepBuffer:4, updateWhenZooming:false, updateWhenIdle:false};   // carga cuadros mientras arrastras (sin esperar a soltar)
   const esri = (svc, opt={}) => new L.TileLayer.Guardado(`https://server.arcgisonline.com/ArcGIS/rest/services/${svc}/MapServer/tile/{z}/{y}/{x}`, Object.assign({}, opt0, {maxNativeZoom:19, attribution:"© Esri"}, opt));
   BASES_M = [
     ["Calles", esri("World_Street_Map"), "Topográfico"],
@@ -3580,7 +3580,7 @@ function initMap(){
   });
   layer = L.layerGroup().addTo(map);
   map.on("zoomend", () => owDraw(true));
-  map.on("moveend zoomend", () => { clearTimeout(MAPV.t); MAPV.t = setTimeout(mapDraw, 40); });
+  map.on("moveend zoomend", () => { clearTimeout(MAPV.t); if (Date.now() - (MAPV.last || 0) > 250){ MAPV.last = Date.now(); mapDraw(); } else MAPV.t = setTimeout(() => { MAPV.last = Date.now(); mapDraw(); }, 120); });   // también mientras avanzas en navegación
   map.on("moveend", () => { if (OW.t) return; OW.t = setTimeout(() => { OW.t = null; owUpdate(); }, NAV.on ? 900 : 300); });   // flechas del sentido de las calles (también mientras avanzas)
   map.on("click", pickAt);
   map.on("contextmenu", e => {
@@ -3638,24 +3638,72 @@ function renderMap(){
   if ($("#mapPane").hidden){ mapDirty = true; return; }      // no redibujar el mapa si no se está viendo
   mapDirty = false;
   const pts = current.filter(p => p.lat != null);
+  if (MAPV.pts !== pts){ MAPV.ver = (MAPV.ver || 0) + 1; }
   MAPV.pts = pts;
-  if (needFit && pts.length){ fitPts(pts); needFit = false; }
+  if (needFit && pts.length && !ROUTE && !ROUTE_WAIT && !NAV.on){ fitPts(pts); }   // con una ruta activa manda la ruta
+  needFit = false;
   mapDraw();
   renderLegend(pts, current.length - pts.length);
+}
+// las burbujas dependen solo del zoom (no de por dónde mires): se calculan una vez por zoom y al arrastrar solo se muestran/ocultan
+function mapGrupos(z){
+  const sig = z + "|" + MAPV.pts.length + "|" + (MAPV.pts[0] || {}).c + "|" + F.colorBy + "|" + (VIS[todayKey()] ? Object.keys(VIS[todayKey()]).length : 0) + "|" + (MAPV.ver || 0);
+  if (MAPV.gz && MAPV.gz.sig === sig) return MAPV.gz;
+  const sc = 256 * 2 ** z, cs = z < 12 ? 70 : 56, cells = new Map();
+  for (const p of MAPV.pts){
+    if (p._wx == null){ const q = L.CRS.EPSG3857.latLngToPoint(L.latLng(p.lat, p.lng), 0); p._wx = q.x / 256; p._wy = q.y / 256; }   // coordenadas del mundo, una sola vez
+    const x = p._wx * sc, y = p._wy * sc, k = Math.floor(x / cs) + ":" + Math.floor(y / cs);
+    let c = cells.get(k); if (!c){ c = {c:[], x:0, y:0}; cells.set(k, c); } c.c.push(p); c.x += x; c.y += y;
+  }
+  const solos = [], G = [];
+  for (const c of cells.values()){ if (c.c.length < 3){ solos.push(...c.c); continue; } G.push({c:c.c, x:c.x / c.c.length, y:c.y / c.c.length}); }
+  // juntar burbujas que quedarían encimadas (de la más grande a la más chica, buscando solo en las celdas vecinas)
+  G.sort((a, b) => b.c.length - a.c.length);
+  const rad = n => 15 + Math.log2(n) * 2.2, H = 120, hash = new Map(), hk = (x, y) => Math.floor(x / H) + ":" + Math.floor(y / H), out = [];
+  for (const g of G){
+    let dest = null; const gx = Math.floor(g.x / H), gy = Math.floor(g.y / H);
+    for (let dx = -1; dx <= 1 && !dest; dx++) for (let dy = -1; dy <= 1 && !dest; dy++){ const L0 = hash.get((gx + dx) + ":" + (gy + dy)); if (L0) for (const o of L0) if (Math.hypot(o.x - g.x, o.y - g.y) < (rad(o.c.length) + rad(g.c.length)) * 1.05){ dest = o; break; } }
+    if (dest){ dest.c = dest.c.concat(g.c); continue; }
+    out.push(g); const k = hk(g.x, g.y); if (!hash.has(k)) hash.set(k, []); hash.get(k).push(g);
+  }
+  // datos de cada burbuja (se arman una vez)
+  out.forEach((g, i) => {
+    let la = 0, lo = 0, s = 90, n = -90, w = 180, e = -180, v = 0; const cols = new Map();
+    for (const p of g.c){ la += p.lat; lo += p.lng; const k = colorFor(p); cols.set(k, (cols.get(k) || 0) + 1); if (p.lat < s) s = p.lat; if (p.lat > n) n = p.lat; if (p.lng < w) w = p.lng; if (p.lng > e) e = p.lng; if (visitedToday(p.c)) v++; }
+    const tot = g.c.length, top = [...cols.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4);
+    let acc = 0; const grad = top.map(([k, x]) => { const a0 = acc; acc += x / tot * 360; return `${k} ${a0.toFixed(0)}deg ${acc.toFixed(0)}deg`; }).join(",") + (acc < 359 ? `,#9AA6B2 ${acc.toFixed(0)}deg 360deg` : "");
+    Object.assign(g, {id: i, lat: la / tot, lng: lo / tot, b: [[s, w], [n, e]], sz: Math.round(Math.min(54, 30 + Math.log2(tot) * 4.4)), grad, v, tot});
+  });
+  MAPV.gz = {sig, z, grupos: out, solos, mk: new Map()};
+  if (MAPV.cl) MAPV.cl.clearLayers();
+  return MAPV.gz;
+}
+// índice por cuadros (zoom 12) para no recorrer todos los clientes en cada movimiento
+function mapIdx(){
+  if (MAPV.ix && MAPV.ix.ver === MAPV.ver && MAPV.ix.n === MAPV.pts.length) return MAPV.ix;
+  const m = new Map();
+  for (const p of MAPV.pts){ if (p._wx == null){ const q = L.CRS.EPSG3857.latLngToPoint(L.latLng(p.lat, p.lng), 0); p._wx = q.x / 256; p._wy = q.y / 256; }
+    const k = Math.floor(p._wx * 4096) + ":" + Math.floor(p._wy * 4096); let a = m.get(k); if (!a){ a = []; m.set(k, a); } a.push(p); }
+  MAPV.ix = {ver: MAPV.ver, n: MAPV.pts.length, m}; return MAPV.ix;
+}
+function mapEnVista(s0, n0, w0, e0){
+  const I = mapIdx(), a = L.CRS.EPSG3857.latLngToPoint(L.latLng(n0, w0), 0), c = L.CRS.EPSG3857.latLngToPoint(L.latLng(s0, e0), 0);
+  const x0 = Math.floor(a.x / 256 * 4096), y0 = Math.floor(a.y / 256 * 4096), x1 = Math.floor(c.x / 256 * 4096), y1 = Math.floor(c.y / 256 * 4096);
+  if ((x1 - x0 + 1) * (y1 - y0 + 1) > I.m.size) return MAPV.pts.filter(p => p.lat >= s0 && p.lat <= n0 && p.lng >= w0 && p.lng <= e0);   // vista muy amplia: recorrido directo
+  const out = []; for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++){ const L0 = I.m.get(x + ":" + y); if (L0) for (const p of L0) if (p.lat >= s0 && p.lat <= n0 && p.lng >= w0 && p.lng <= e0) out.push(p); }
+  return out;
 }
 function mapDraw(){
   if (!map || $("#mapPane").hidden) return;
   if (!window.MK) window.MK = new Map();
-  if (!MAPV.cl){ MAPV.cl = L.layerGroup().addTo(map); MAPV.lbl = L.layerGroup().addTo(map); }
+  if (!MAPV.cl){ MAPV.cl = L.layerGroup().addTo(map); MAPV.lbl = L.layerGroup().addTo(map); MAPV.lm = new Map(); }
   const z = map.getZoom(), b = map.getBounds().pad(0.3), s0 = b.getSouth(), n0 = b.getNorth(), w0 = b.getWest(), e0 = b.getEast();
-  const vis = MAPV.pts.filter(p => p.lat >= s0 && p.lat <= n0 && p.lng >= w0 && p.lng <= e0);
-  const agrupar = z < 15.5 && vis.length > 300;
-  const ind = [], cells = new Map();
-  if (agrupar){
-    const cs = z < 12 ? 70 : 56;
-    for (const p of vis){ const q = map.project([p.lat, p.lng], z), k = Math.floor(q.x / cs) + ":" + Math.floor(q.y / cs); let c = cells.get(k); if (!c){ c = []; cells.set(k, c); } c.push(p); }
-    for (const [, c] of cells) if (c.length < 3) ind.push(...c);
-  } else ind.push(...vis);
+  const enV = p => p.lat >= s0 && p.lat <= n0 && p.lng >= w0 && p.lng <= e0;
+  const visAll = mapEnVista(s0, n0, w0, e0);
+  const agrupar = z < 15.5 && visAll.length > 300;
+  let ind, Gz = null;
+  if (agrupar){ Gz = mapGrupos(z); ind = Gz.solos.filter(enV); }
+  else ind = visAll;
   // puntos sueltos (con los mismos colores de siempre)
   const R = PTS, want = new Set();
   for (const p of ind){
@@ -3668,32 +3716,34 @@ function mapDraw(){
   const quitar = []; layer.eachLayer(l => { if (!want.has(l)) quitar.push(l); }); for (const l of quitar) layer.removeLayer(l);
   for (const m of want) if (!layer.hasLayer(m)) layer.addLayer(m);
   MAPV.ind = ind;
-  // burbujas: las que quedarían encimadas se juntan en una
-  MAPV.cl.clearLayers();
-  let grupos = agrupar ? [...cells.values()].filter(c => c.length >= 3).map(c => { let x = 0, y = 0; for (const p of c){ const q = map.project([p.lat, p.lng], z); x += q.x; y += q.y; } return {c, x: x / c.length, y: y / c.length}; }) : [];
-  for (let changed = true; changed;){ changed = false;
-    outer: for (let a = 0; a < grupos.length; a++) for (let k = a + 1; k < grupos.length; k++){ const A = grupos[a], B = grupos[k], ra = 15 + Math.log2(A.c.length) * 2.2, rb = 15 + Math.log2(B.c.length) * 2.2;
-      if (Math.hypot(A.x - B.x, A.y - B.y) < (ra + rb) * 1.05){ const n = A.c.length + B.c.length; grupos[a] = {c: A.c.concat(B.c), x: (A.x * A.c.length + B.x * B.c.length) / n, y: (A.y * A.c.length + B.y * B.c.length) / n}; grupos.splice(k, 1); changed = true; break outer; } } }
-  if (agrupar) for (const {c} of grupos){
-    let la = 0, lo = 0; const cols = new Map(); let s = 90, n = -90, w = 180, e = -180;
-    for (const p of c){ la += p.lat; lo += p.lng; const k = colorFor(p); cols.set(k, (cols.get(k) || 0) + 1); if (p.lat < s) s = p.lat; if (p.lat > n) n = p.lat; if (p.lng < w) w = p.lng; if (p.lng > e) e = p.lng; }
-    const tot = c.length, top = [...cols.entries()].sort((x, y) => y[1] - x[1]).slice(0, 4);
-    let acc = 0; const grad = top.map(([k, v]) => { const a0 = acc; acc += v / tot * 360; return `${k} ${a0.toFixed(0)}deg ${acc.toFixed(0)}deg`; }).join(",") + (acc < 359 ? `,#9AA6B2 ${acc.toFixed(0)}deg 360deg` : "");
-    const sz = Math.round(Math.min(54, 30 + Math.log2(tot) * 4.4)), vis2 = c.filter(p => visitedToday(p.c)).length;
-    const mk = L.marker([la / tot, lo / tot], {icon: L.divIcon({className:"mcl", html:`<div style="width:${sz}px;height:${sz}px;background:conic-gradient(${grad})"><b>${tot > 999 ? (tot / 1000).toFixed(1) + "k" : tot}</b>${vis2 ? `<i>${vis2}✓</i>` : ""}</div>`, iconSize:[sz, sz], iconAnchor:[sz / 2, sz / 2]}), keyboard:false, title:`${tot} clientes`});
-    mk.on("click", () => { mapSheet(null); map.flyToBounds([[s, w], [n, e]], {padding:[50, 50], maxZoom: Math.max(z + 2, 15.5), duration:0.6}); });
-    MAPV.cl.addLayer(mk);
+  // burbujas: se reusan; solo se agregan o quitan las que entran o salen de la vista
+  if (!agrupar){ if (MAPV.cl.getLayers().length) MAPV.cl.clearLayers(); }
+  else {
+    const vivos = new Set();
+    for (const g of Gz.grupos){ if (!enV(g)) continue; vivos.add(g.id);
+      let mk = Gz.mk.get(g.id);
+      if (!mk){ mk = L.marker([g.lat, g.lng], {icon: L.divIcon({className:"mcl", html:`<div style="width:${g.sz}px;height:${g.sz}px;background:conic-gradient(${g.grad})"><b>${g.tot > 999 ? (g.tot / 1000).toFixed(1) + "k" : g.tot}</b>${g.v ? `<i>${g.v}✓</i>` : ""}</div>`, iconSize:[g.sz, g.sz], iconAnchor:[g.sz / 2, g.sz / 2]}), keyboard:false, title:`${g.tot} clientes`});
+        mk.on("click", () => { mapSheet(null); if (NAV.on){ NAV.follow = false; navRecenterBtn(true); } map.fitBounds(g.b, {padding:[50, 50], maxZoom: Math.max(map.getZoom() + 2, 15.5), animate:true}); });
+        Gz.mk.set(g.id, mk); }
+      if (!MAPV.cl.hasLayer(mk)) MAPV.cl.addLayer(mk);
+    }
+    const vm = new Set([...vivos].map(id => Gz.mk.get(id))), fuera = []; MAPV.cl.eachLayer(l => { if (!vm.has(l)) fuera.push(l); });
+    for (const l of fuera) MAPV.cl.removeLayer(l);
   }
-  // nombres de cerca
-  MAPV.lbl.clearLayers();
+  // nombres de cerca (se reusan las etiquetas ya creadas)
   if (z >= 17 && ind.length <= 160){
-    const bv = map.getBounds();
-    for (const p of ind){ if (!bv.contains([p.lat, p.lng])) continue; const nm = (p.n || String(p.c)); MAPV.lbl.addLayer(L.marker([p.lat, p.lng], {icon: L.divIcon({className:"mlab", html:`<span class="${visitedToday(p.c) ? "v" : ""}">${esc(nm.length > 24 ? nm.slice(0, 23) + "…" : nm)}</span>`, iconSize:null, iconAnchor:[-11, 9]}), interactive:false, keyboard:false})); }
-  }
+    const bv = map.getBounds(), keep = new Set();
+    for (const p of ind){ if (!bv.contains([p.lat, p.lng])) continue; const vis = visitedToday(p.c), k = p.c + (vis ? "v" : "");
+      let m = MAPV.lm.get(k);
+      if (!m){ const nm = p.n || String(p.c); m = L.marker([p.lat, p.lng], {icon: L.divIcon({className:"mlab", html:`<span class="${vis ? "v" : ""}">${esc(nm.length > 24 ? nm.slice(0, 23) + "…" : nm)}</span>`, iconSize:null, iconAnchor:[-11, 9]}), interactive:false, keyboard:false}); MAPV.lm.set(k, m); if (MAPV.lm.size > 600) MAPV.lm.delete(MAPV.lm.keys().next().value); }
+      keep.add(m); if (!MAPV.lbl.hasLayer(m)) MAPV.lbl.addLayer(m); }
+    const out = []; MAPV.lbl.eachLayer(l => { if (!keep.has(l)) out.push(l); }); for (const l of out) MAPV.lbl.removeLayer(l);
+  } else if (MAPV.lbl.getLayers().length) MAPV.lbl.clearLayers();
 }
 function fitPts(pts){ if (!map || !pts.length) return; let s = 90, n = -90, w = 180, e = -180;
   if (pts.length > 40){ const la = pts.map(p => p.lat).sort((a, b) => a - b), lo = pts.map(p => p.lng).sort((a, b) => a - b), q = Math.floor(pts.length * 0.01); s = la[q]; n = la[la.length - 1 - q]; w = lo[q]; e = lo[lo.length - 1 - q]; }   // sin los pocos puntos con coordenadas fuera de lugar
-  else for (const p of pts){ if (p.lat < s) s = p.lat; if (p.lat > n) n = p.lat; if (p.lng < w) w = p.lng; if (p.lng > e) e = p.lng; } map.flyToBounds([[s, w], [n, e]], {padding:[40, 40], maxZoom:18, duration:0.55}); }
+  else for (const p of pts){ if (p.lat < s) s = p.lat; if (p.lat > n) n = p.lat; if (p.lng < w) w = p.lng; if (p.lng > e) e = p.lng; } const sz = map.getSize(); if (!(sz.x > 0 && sz.y > 0) || !isFinite(s + n + w + e)) return;
+  try{ map.fitBounds([[s, w], [n, e]], {padding:[40, 40], maxZoom:18, animate:true}); }catch(err){ try{ map.fitBounds([[s, w], [n, e]], {padding:[40, 40], maxZoom:18, animate:false}); }catch(e2){} } }   /* sin "vuelo": choca con la navegación y deja el mapa en blanco */
 let LEG_OPEN = null;
 function renderLegend(pts, noGps){
   const m = F.colorBy, counts = new Map();
@@ -3745,12 +3795,13 @@ function gpsHelp(err){
   if (err.code === 2) return `<b>El equipo no pudo calcular tu ubicación.</b> ` + (isWin ? `En Windows activa <b>Configuración → Privacidad y seguridad → Ubicación</b> y conéctate a Wi-Fi (la PC no tiene GPS; se ubica por Wi-Fi).` : `Enciende la ubicación del teléfono y sal a cielo abierto.`);
   return `<b>La ubicación tardó demasiado.</b> Enciende la ubicación del equipo y vuelve a intentar.`;
 }
-function startGps(){
+function startGps(quiet){
+  if (quiet === true && (watchId != null || (ME && ME.manual))) return;   // arranque automático: si ya está activa, no la apaga
   if (watchId != null || (ME && ME.manual)){ stopGps(); return; }
   if (!("geolocation" in navigator)){ gpsBar("bad", "Este navegador no ofrece ubicación. " + `Puedes fijar tu posición a mano: clic derecho (o mantener presionado) en el mapa.`); return; }
   if (!window.isSecureContext){ gpsBar("bad", gpsHelp({code:0}) + `<br>Mientras tanto puedes fijar tu posición a mano: clic derecho (o mantener presionado) en el mapa.`); return; }
   $("#btnGps").classList.add("on");
-  gpsBar("wait", "Buscando tu ubicación… si el navegador pregunta, toca <b>Permitir</b>.");
+  if (quiet !== true) gpsBar("wait", "Buscando tu ubicación… si el navegador pregunta, toca <b>Permitir</b>.");
   let first = true;
   const onPos = pos => {
     ME = {lat:pos.coords.latitude, lng:pos.coords.longitude, acc:pos.coords.accuracy, manual:false}; LASTPOS = pos;
@@ -4434,6 +4485,7 @@ async function owFetch(key){
   const C = owCacheGet(), c = C[key];
   if (c && (Date.now() - c.t < 7 * 864e5 || !navigator.onLine)){ OW.mem.set(key, c.w); return; }   // sin conexión se usa lo guardado aunque sea viejo
   if (!navigator.onLine) return;
+  if (!OW.fail) OW.fail = new Map(); if (Date.now() - (OW.fail.get(key) || 0) < 120000) return;   // si falló hace poco, no se insiste en cada movimiento
   OW.busy.add(key);
   const [x, y] = key.split("/").map(Number), [s, w, n, e] = owBox(x, y, OW.z);
   const q = `[out:json][timeout:20];(way["highway"]["oneway"~"^(yes|1|-1|true)$"](${s},${w},${n},${e});way["highway"]["junction"~"^(roundabout|circular)$"](${s},${w},${n},${e}););out geom;`;
@@ -4441,7 +4493,7 @@ async function owFetch(key){
   for (const u of OW_URLS){ try{ const r = await fetch(u, {method:"POST", body:"data=" + encodeURIComponent(q), headers:{"Content-Type":"application/x-www-form-urlencoded"}}); if (!r.ok) continue; const j = await r.json();
       ways = (j.elements || []).filter(el => el.geometry && el.geometry.length > 1).map(el => { let g = el.geometry.map(p => [Math.round(p.lat * 1e6) / 1e6, Math.round(p.lon * 1e6) / 1e6]); if (el.tags && el.tags.oneway === "-1") g = g.reverse(); return g; }); break; }catch(err){} }
   OW.busy.delete(key);
-  if (!ways) return;
+  if (!ways){ OW.fail.set(key, Date.now()); return; }
   OW.mem.set(key, ways);
   owCacheSet({[key]: {t:Date.now(), w:ways}});
   owDraw(true);
@@ -4452,6 +4504,9 @@ function owCacheGet(){ if (!OW_C){ OW_C = ls.get("rutapdv_ow_cache", {}); } retu
 function owCacheSet(add){
   const C = owCacheGet(); Object.assign(C, add);
   const keys = Object.keys(C); if (keys.length > 1500) for (const k of keys.sort((a, b) => C[a].t - C[b].t).slice(0, keys.length - 1500)) delete C[k];
+  clearTimeout(owCacheSet.t); owCacheSet.t = setTimeout(() => owCacheGuardar(C), 2500);   // se guarda con calma (no en medio del arrastre)
+}
+function owCacheGuardar(C){
   try{ ls.set("rutapdv_ow_cache", C); }catch(err){ const ks = Object.keys(C).sort((a, b) => C[a].t - C[b].t); for (const k of ks.slice(0, Math.ceil(ks.length / 2))) delete C[k]; try{ ls.set("rutapdv_ow_cache", C); }catch(e2){} }
 }
 // una sola consulta para toda la zona (al guardar el mapa sin conexión)
@@ -4697,6 +4752,8 @@ function openPdv(c){
     if (p.rn.length) h += `<div class="sec"><h3>R+N · Equipos fríos<span class="r">${sem ? (nRN ? `<span class="pill bad">${nRN} en rojo/negro</span>` : `<span class="pill ok">Sin R+N</span>`) : p.rn.length}</span></h3><div class="in">${p.rn.length ? `<div class="kv2">${ord.map(r => kv(`${esc(r.mat||"—")}${r.serie?` · <span class="num">${esc(r.serie)}</span>`:""}`, `${semPill(r)} ${r.nec ? `<span class="num">Nec. ${fmt(r.nec,2)} cj</span>` : (isRN(r) ? "" : "Sin necesidad")}`)).join("")}</div>${sem ? ord.filter(isRN).map((r, j) => { const vv = visit(p.c, false), k = String(r.serie || r.mat || j), on = !!(vv && vv.rn && vv.rn[k]); return `<label class="chk ${on ? "done" : ""}"><input type="checkbox" data-kind="rn" data-k="${esc(k)}" ${on ? "checked" : ""}><span class="t">Saqué de R+N ${esc(r.serie || r.mat || "")} (le vendí la necesidad)</span></label>`; }).join("") : ""}${nRN ? `<p class="note" style="margin:0">Para sacar el equipo de rojo/negro hay que llevarlo a amarillo: "Nec." son las cajas que le faltan.</p>` : ""}` : `<p class="note" style="margin:0">Sin equipos en la base R+N.</p>`}</div></div>`;
   }
   // visita
+  // nota de la visita (también se llena por voz: "anota que…")
+  h += `<div class="sec"><h3>Nota de la visita${v.note ? `<span class="r"><span class="pill acc">con nota</span></span>` : ""}</h3><div class="in"><textarea id="vNote" rows="2" placeholder="Escribe o di «anota que…»" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:14px var(--f-body);resize:vertical;background:var(--field);color:var(--ink)">${esc(v.note || "")}</textarea></div></div>`;
 
   if (stampOf("base")) h += `<p class="note" style="text-align:center">${stampHTML("base")}</p>`;
   $("#dBody").innerHTML = h; $("#dBody").scrollTop = 0;
@@ -4890,7 +4947,7 @@ function wire(){
     const rm = e.target.closest("[data-rm]");
     if (rm){ const [t, ...k] = rm.dataset.rm.split("|"); tog(t === "seg" ? F.segs : t === "emp" ? F.emps : F.promos, k.join("|")); focusChanged(); }
   });
-  $("#btnGps").onclick = startGps;
+  $("#btnGps").onclick = () => { const estaba = watchId != null; startGps(); ls.set("rutapdv_gps_off", estaba); };   // si la apagas a mano, no se vuelve a encender sola
   $("#btnFilters").onclick = () => { setTab("list"); const b = $("#fBox"); b.open = true; $("#side").scrollTo({top:0, behavior:"smooth"}); };
   $("#btnMenu").onclick = e => { e.stopPropagation(); $("#menu").hidden = !$("#menu").hidden; };
   document.addEventListener("click", e => { if (!$("#menu").hidden && !e.target.closest("#menu") && !e.target.closest("#btnMenu")) $("#menu").hidden = true; });
@@ -4912,7 +4969,7 @@ function wire(){
   $("#sort").value = F.sort; $("#sort").onchange = e => { F.sort = e.target.value; if (F.sort === "dist" && !ME) toast("Activa el GPS para ordenar por cercanía"); renderList(); saveF(); };
   $("#colorBy").value = F.colorBy; $("#colorBy").onchange = e => { F.colorBy = e.target.value; renderMap(); saveF(); };
   $("#btnFit").onclick = () => fitPts(current.filter(p => p.lat != null));
-  $("#btnMe").onclick = () => { if (!ME){ startGps(); return; } map && map.flyTo([ME.lat, ME.lng], Math.max(17, map.getZoom()), {duration:0.6}); };
+  $("#btnMe").onclick = () => { if (!ME){ startGps(); return; } map && map.setView([ME.lat, ME.lng], Math.max(17, map.getZoom()), {animate:true}); };
   $("#btnCompass").onclick = () => { initMap(); toggleCompass(); };
   $("#btnOneway").onclick = () => { initMap(); owToggle(); };
   $("#btnMapSave").onclick = () => { initMap(); mapaGuardarZona(); };
@@ -5032,7 +5089,18 @@ function showWelcome(){
   if (window.innerWidth >= 900){ initMap(); setTab("map"); }
   renderAll();
   if (SRC.remote) checkUpdate(false);
+  setTimeout(gpsAuto, 1200);
 })();
+/* la ubicación se activa sola al abrir la app (salvo que la hayas apagado a mano con el botón GPS) */
+async function gpsAuto(){
+  try{
+    if (ls.get("rutapdv_gps_off", false) || !("geolocation" in navigator) || !window.isSecureContext || watchId != null || (ME && ME.manual)) return;
+    let st = "prompt";
+    if (navigator.permissions && navigator.permissions.query){ try{ const q = await navigator.permissions.query({name:"geolocation"}); st = q.state; q.onchange = () => { if (q.state === "granted" && watchId == null && !ls.get("rutapdv_gps_off", false)) startGps(true); }; }catch(e){} }
+    if (st === "denied"){ if (ls.get("rutapdv_gps_aviso", "") !== todayKey()){ ls.set("rutapdv_gps_aviso", todayKey()); toast("La ubicación está bloqueada para la app: permítela en el navegador para ver distancias y rutas"); } return; }
+    startGps(true);
+  }catch(e){}
+}
 
 /* ---------- instalar como app (PWA) ---------- */
 (function(){
@@ -5927,7 +5995,9 @@ function vozNorm(text){
   return t.replace(/\s+/g, " ");
 }
 const VOZ_NEG = /\b(sin|que no tengan|que no tienen|no tienen|que no son|no son|que no esten en|no estan en)\s+(plan\s+|el\s+|la\s+|los\s+|las\s+)?(gambito|promos?|promociones?|rmasn|vpo|equipos? frios?|equipo de frio|necesidad|wellington pendiente|lectura pendiente)\b/g;
+let VOZ_RAW = "";
 function parseVoz(text, inner){
+  if (!inner) VOZ_RAW = String(text || "");
   if (!inner){
     const tn = vozNorm(text), negs = [...tn.matchAll(VOZ_NEG)];
     if (negs.length){
@@ -5946,6 +6016,10 @@ function parseVoz(text, inner){
   if (/\b(cambia|cambiar|otra|siguiente)\s+(la\s+)?voz\b/.test(t)) return {act:"vozcfg", que:"sig", lab:["Cambiar voz"]};
   if (/\b(habla|hablame|voz)\s+(mas\s+)?(rapido|despacio|lento|normal)\b/.test(t)) return {act:"vozcfg", que: /rapido/.test(t) ? "mas" : /normal/.test(t) ? "norm" : "menos", lab:["Velocidad de la voz"]};
   if (/\b(manos libres|modo conversacion|modo manos|sigue escuchando|escuchame siempre|no dejes de escuchar)\b/.test(t)) return {act:"manos", on: !/\b(apaga|quita|desactiva|sin)\b/.test(t), lab:["Manos libres"]};
+  { const pm = t.match(/\b(?:que|cuales)\s+(?:promociones|promos|ofertas|combos)\s+(?:tiene|le aplican a|hay para|aplican para|le puedo ofrecer a)\s+(?:el\s+|la\s+|cliente\s+)*(.{3,})$/) || t.match(/\b(?:promociones|promos|ofertas)\s+(?:de|del|para)\s+(?:el\s+|la\s+|cliente\s+)*(.{3,})$/);
+    if (pm && !/\b(ruta|clientes|gambito|todos)\b/.test(pm[1]) && !/^(este|esta|el|al|del)?\s*(cliente|negocio|aqui|ahi)\b/.test(pm[1])) return {act:"cliinfo", que:"promos", who: pm[1].trim(), lab:["Promociones del cliente"]};
+    const qm = t.match(/\b(?:que\s+(?:tiene\s+)?pendiente(?:s)?\s+(?:tiene\s+)?|pendientes\s+de|que\s+gestiones\s+tiene|que\s+le\s+falta\s+a|resumen\s+de|leeme\s+(?:la\s+ficha\s+de|el\s+cliente)|como\s+esta|que\s+tiene)\s*(?:el\s+|la\s+|cliente\s+)*(.{3,})$/);
+    if (qm && !/\b(ruta|clientes|hoy|dia|todos|gambito|cobertura)\b/.test(qm[1]) && !/^(este|esta|el|al|del)?\s*(cliente|negocio|aqui|ahi)\b/.test(qm[1])) return {act:"cliinfo", que:"res", who: qm[1].trim(), lab:["Pendientes del cliente"]}; }
   { const fa = vozFichaParse(t); if (fa) return fa; }
   if (/\b(como voy|como vamos|como va mi dia|cuanto llevo|cuanto llevamos|mi avance|avance de hoy|resumen del dia|resumen de hoy|como va la ruta)\b/.test(t) || /\b(cuantos|cuantas)\b.*\b(me faltan|faltan|quedan|me quedan)\b.*\b(visitar|por visitar|visita)\b/.test(t)) return {act:"progreso", lab:["Cómo voy hoy"]};
   { const dm = t.match(/\b(donde queda|donde esta|donde se ubica|cual es la direccion de|direccion de|direccion del|la direccion de)\s+(el\s+|la\s+|cliente\s+)*(.+)$/); if (dm && dm[3].trim().length > 2 && !/\b(ruta|clientes)\b/.test(dm[3])) return {act:"donde", who: dm[3].trim(), lab:["Dirección del cliente"]}; }
@@ -6131,27 +6205,46 @@ function vozLeft(t, c){
 }
 // busca un cliente por lo que se dijo (nombre o código), con la búsqueda tolerante
 function vozCliente(who){
-  const prev = F.q; F.q = who.replace(/\b(por favor|porfa)\b/g, "").trim();
+  const w0 = who.replace(/\b(por favor|porfa)\b/g, "").trim();
+  const prev = F.q; F.q = w0;
   const L = filtered(true); F.q = prev;
+  // si alguno se llama exactamente así (o empieza así), ese es
+  const q = qnorm(w0).trim(); if (L.length > 1 && q){ const ex = L.filter(p => qnorm(p.n).trim() === q); if (ex.length) return ex; const pre = L.filter(p => qnorm(p.n).trim().startsWith(q + " ") || qnorm(p.n).includes(" " + q + " ") || qnorm(p.n).trim().endsWith(" " + q)); if (pre.length && pre.length < L.length) return pre; }
   return L;
 }
 /* ---------- voz con la ficha abierta: marcar lo que se hizo y preguntar por el cliente ---------- */
 const fichaAbierta = () => openC != null && $("#dDrawer") && !$("#dDrawer").hidden;
 function vozFichaParse(t){
   if (!fichaAbierta()) return null;
+  if (/\b(clientes|ruta \d|rutas|frecuencia|supervisor|todos los|filtra|filtrar|mapa|lista)\b/.test(t)) return null;   // es un filtro, no una pregunta sobre este cliente
+  const nm = VOZ_RAW.match(/^\s*(?:anota|anótame|anotame|apunta|apúntame|apuntame|escribe|agrega una nota|nota)\s*(?:que|:)?\s+(.{3,})$/i);
+  if (nm) return {act:"fnota", txt: nm[1].trim(), lab:["Nota"]};
+  if (/\b(ya lo visite|lo visite|visitado|registra la visita|marca la visita|marca visita|marcar visita|visita hecha|visita registrada|termine con este|listo con este cliente|cierra la visita)\b/.test(t)) return {act:"fvis", lab:["Visita registrada"]};
   const off = /\b(desmarca|desmarcar|desmarcalo|quita la marca|quitale la marca|no lo vendi|no se vendio|no compro|me equivoque|borra la marca)\b/.test(t);
   const verb = off || /\b(marca|marcar|marcame|marcalo|vendi|vendimos|le vendi|se vendio|cubri|cubrimos|ya compro|compro|active|activo|activamos|lo active|lo activo|quedo activado|activado|lei|leimos|ya lei|saque|sacamos|ya saque|lectura hecha|registra)\b/.test(t);
   const p = DB.pdv.get(openC);
   // información del cliente abierto
   if (!verb){
     if (/^\s*(cual es la |dime la |lee la |leeme la )?(direccion|donde queda|donde esta)\s*(del cliente|de este cliente|de aqui)?\s*$/.test(t)) return {act:"finfo", que:"dir", lab:["Dirección"]};
-    if (/\b(resumen|que le falta|como esta este cliente|como va este cliente|leeme la ficha|lee la ficha|que tiene este cliente)\b/.test(t)) return {act:"finfo", que:"res", lab:["Resumen del cliente"]};
+    if (/\b(promo|promos|promocion|promociones|ofertas?|combos?|que le (puedo )?ofrecer|que le ofrezco|precios especiales)\b/.test(t)) return {act:"finfo", que:"promos", lab:["Promociones del cliente"]};
+    if (/\b(resumen|pendiente|pendientes|gestion|gestiones|que le falta|que tiene|que hago|que le vendo|como esta este cliente|como va este cliente|leeme la ficha|lee la ficha|que tiene este cliente|cuentame|dime todo)\b/.test(t)) return {act:"finfo", que:"res", lab:["Pendientes del cliente"]};
     if (/^\s*(llevame|navegar|como llego|trazar ruta|traza la ruta|ruta)(\s+(aqui|alla|ahi|a este cliente|al cliente|hasta aqui))?\s*$/.test(t)) return {act:"finfo", que:"ruta", lab:["Ruta al cliente"]};
     if (/^\s*(abre el |abrir el |ver el |el )?(catalogo|precios|cotizar)\s*$/.test(t)) return {act:"finfo", que:"cat", lab:["Catálogo"]};
     if (/^\s*(cierra|cerrar|cierra la ficha|cerrar ficha|salir de la ficha)\s*$/.test(t)) return {act:"finfo", que:"cerrar", lab:["Cerrar ficha"]};
     return null;
   }
   const on = !off;
+  // varias cosas en una sola frase: "vendí cobertura de cerveza, lata y la promo de lipton"
+  if (!vozFichaParse._in && /(,| y | tambien | ademas )/.test(t)){
+    const vb = (t.match(/\b(desmarca|desmarcar|quita la marca|marca|vendi|le vendi|cubri|active|activo|lei|saque)\b/) || [, "vendi"])[1];
+    const segs = t.split(/,| y | tambien | ademas /).map(x => x.trim()).filter(x => x.length > 1);
+    if (segs.length > 1){ vozFichaParse._in = true; const L = [];
+      try{ for (const sg of segs){ const r = vozFichaParse(/\b(desmarca|desmarcar|marca|vendi|cubri|active|activo|lei|saque|quita)\b/.test(sg) ? sg : vb + " " + sg); if (r && (r.act === "fmark" || r.act === "fvis")) L.push(r); } } finally { vozFichaParse._in = false; }
+      if (L.length > 1) return {act:"fmulti", list:L, lab:["Varias marcas"]}; }
+  }
+  // empaque exacto: marca a la vez la cobertura (Everest) y la TU de pago si el cliente la tiene
+  const PK = [[/\b(lata|latas|355 lata)\b/, /lata/i, "lata"], [/\b(3 litros|tres litros|3 l|3l|3 0)\b/, /^3[.,]0\s*L/i, "3 litros"], [/\b(1 5|1 punto 5|litro y medio|uno punto cinco)\b/, /^1[.,]5\s*L/i, "1.5 litros"], [/\b(1 25|1 punto 25|uno veinticinco)\b/, /^1[.,]25\s*L/i, "1.25 litros"], [/\b(600|seiscientos)\b/, /600\s*ML/i, "600 ML"], [/\b(12 onzas|doce onzas|12 oz|pet 12|355 pet|botella de 12)\b/, /355\s*ML\s*Pet/i, "12 onzas PET"], [/\b(vidrio|retornable)\b/, /GRB/i, "vidrio"]];
+  { const pk = PK.find(([re]) => re.test(t)); if (pk && !/\b(promo|promocion|combo|oferta)\b/.test(t) && !/\b(regia|suprema|cerveza)\b/.test(t)) return {act:"fmark", kind:"pack", re: pk[1], pl: pk[2], on, lab:["Empaque " + pk[2]]}; }
   const pack = /\bsuprema\b/.test(t) ? "S330" : /\b(750|setecientos cincuenta|litro)\b/.test(t) ? "R750" : /\b(330|trescientos treinta|botellita|pequena)\b/.test(t) ? "R330" : "";
   const grp = /\b(cerveza|cervezas|regia|suprema|chela)\b/.test(t) ? "cerveza" : /\b(gatorade|isotonico|isotonicos)\b/.test(t) ? "gatorade" : /\b(multi|litro|litros|1 5|3 l|tres litros|dos litros)\b/.test(t) ? "multi" : /\b(single|lata|latas|600|seiscientos|personal)\b/.test(t) ? "single" : "";
   if (/\b(active|activo|activamos|lo active|lo activo|quedo activado|activado|activacion|gambito)\b/.test(t)) return {act:"fmark", kind:"gmb", pack, on, lab:["Activación Gambito"]};
@@ -6161,21 +6254,30 @@ function vozFichaParse(t){
   if (/\b(cobertura|coberturas|cubri|cubrimos)\b/.test(t) || grp) return {act:"fmark", kind:"cov", grp, on, lab:["Cobertura"]};
   return null;
 }
-function vozFichaMark(c){
-  const box = $("#dBody"), p = DB.pdv.get(openC); if (!box || !p) return;
+function vozFichaMark(c){ const m = vozFichaMark1(c); if (m){ toast(m); if (vozHablaOn()) vozHablar(m); } }
+function vozFichaMark1(c){
+  const box = $("#dBody"), p = DB.pdv.get(openC); if (!box || !p) return "";
+  if (c.act === "fvis"){ const b = document.getElementById("vDone"); if (visitedToday(p.c)) return "La visita ya estaba registrada"; if (b){ b.click(); return "Visita registrada"; } const v = visit(p.c, true); v.t = v.t || Date.now(); saveVis(); liveMark(p.c, "vis", "1", true); return "Visita registrada"; }
+  if (c.kind === "pack"){
+    const L0 = [...box.querySelectorAll('input[type=checkbox][data-kind="cov"], input[type=checkbox][data-kind="tu"]')].filter(x => c.re.test(x.dataset.k));
+    if (!L0.length) return `En esta ficha no hay ${c.pl} para marcar (puede que ya cumpla)`;
+    const pend = L0.filter(x => x.checked !== c.on); if (!pend.length) return (c.on ? "Ya estaba marcado: " : "No estaba marcado: ") + c.pl;
+    const kinds = new Set(pend.map(x => x.dataset.kind));
+    for (const x of pend){ x.checked = c.on; x.dispatchEvent(new Event("change", {bubbles:true})); }
+    return (c.on ? "Marcado: " : "Desmarcado: ") + c.pl + (kinds.size > 1 ? " (cobertura y TU de pago)" : kinds.has("tu") ? " (TU de pago)" : "");
+  }
   let L = [...box.querySelectorAll(`input[type=checkbox][data-kind="${c.kind}"]`)];
   const nombre = x => { const pr = x.dataset.kind === "ac" && typeof promoById === "function" ? promoById(x.dataset.k) : null; if (pr && pr.n) return pr.n; const l = x.closest("label, .pcard"); return l ? l.innerText.replace(/\s+/g, " ").trim() : x.dataset.k; };
   if (c.kind === "gmb" && c.pack) L = L.filter(x => x.dataset.k === c.pack);
   if (c.kind === "cov" && c.grp) L = L.filter(x => covGroupOf(x.dataset.k) === c.grp);
   if (c.kind === "ac" && c.txt){ const qw = qTok(c.txt), M = L.map(x => [x, qTok(nombre(x) + " " + x.dataset.k)]).filter(([, tk]) => qw.every(w => tk.some(z => z.startsWith(w) || fon(z) === fon(w) || (w.length >= 5 && fuzzyTok(w, z, 1))))); if (M.length) L = M.map(([x]) => x); else L = []; }
   const que = {gmb:"activación Gambito", wl:"lectura Wellington", rn:"equipo de R+N", ac:"promoción", cov:"cobertura" + (c.grp ? " de " + c.grp : "")}[c.kind];
-  if (!L.length){ const m = c.kind === "ac" && c.txt ? `No encontré la promoción "${c.txt}" en esta ficha` : `En esta ficha no hay ${que} para marcar`; toast(m); if (vozHablaOn()) vozHablar(m); return; }
+  if (!L.length) return c.kind === "ac" && c.txt ? `No encontré la promoción "${c.txt}" en esta ficha` : `En esta ficha no hay ${que} para marcar`;
   const pend = L.filter(x => x.checked !== c.on);
-  if (!pend.length){ const m = c.on ? `Ya estaba marcado: ${que}` : `No estaba marcado: ${que}`; toast(m); if (vozHablaOn()) vozHablar(m); return; }
-  if (pend.length > 1 && (c.kind === "ac" || (c.kind === "gmb" && !c.pack)) && !(c.kind === "ac" && c.txt)){ const m = `Hay ${pend.length} opciones: di cuál, por ejemplo ${c.kind === "gmb" ? "activé regia 750" : "vendí la promo de " + nombre(pend[0]).split(" ").slice(0, 3).join(" ")}`; toast(m); if (vozHablaOn()) vozHablar(m); return; }
-  const x = pend[0]; x.click(); try{ x.scrollIntoView({behavior:"smooth", block:"center"}); }catch(e){}
-  const m = (c.on ? "Marcado: " : "Desmarcado: ") + (c.kind === "cov" ? "cobertura " + x.dataset.k : c.kind === "ac" ? nombre(x).slice(0, 60) : c.kind === "gmb" ? "activación " + (GPROD[x.dataset.k] || x.dataset.k) : que);
-  toast(m); if (vozHablaOn()) vozHablar(m);
+  if (!pend.length) return c.on ? `Ya estaba marcado: ${que}` : `No estaba marcado: ${que}`;
+  if (pend.length > 1 && (c.kind === "ac" || (c.kind === "gmb" && !c.pack)) && !(c.kind === "ac" && c.txt)){ const m = `Hay ${pend.length} opciones: di cuál, por ejemplo ${c.kind === "gmb" ? "activé regia 750" : "vendí la promo de " + nombre(pend[0]).split(" ").slice(0, 3).join(" ")}`; return m; }
+  const x = pend[0]; x.checked = c.on; x.dispatchEvent(new Event("change", {bubbles:true})); try{ x.scrollIntoView({behavior:"smooth", block:"center"}); }catch(e){}
+  return (c.on ? "Marcado: " : "Desmarcado: ") + (c.kind === "cov" ? "cobertura " + x.dataset.k : c.kind === "ac" ? nombre(x).slice(0, 60) : c.kind === "gmb" ? "activación " + (GPROD[x.dataset.k] || x.dataset.k) : que);
 }
 function vozFichaInfo(c){
   const p = DB.pdv.get(openC); if (!p) return;
@@ -6183,14 +6285,32 @@ function vozFichaInfo(c){
   if (c.que === "ruta"){ routeTo(p.c); return; }
   if (c.que === "cat"){ openCatalog(p.c); return; }
   if (c.que === "cerrar"){ closeDrawers(); return; }
-  const parts = [p.n];
-  if (p.cov){ const pend = covPend(p); parts.push(pend.length ? `le falta cobertura de ${pend.map(g => g.label).join(" y ")}` : "tiene las coberturas completas"); }
-  const np = nPromosCliente(p); if (np) parts.push(`${np} promoci${np === 1 ? "ón" : "ones"}`);
-  const ge = typeof gambEstado === "function" ? gambEstado(p) : null; if (ge) parts.push(ge.act ? "Gambito activado" : "Gambito por activar: " + ge.items.filter(i => !i.act).map(i => GPROD[i.k] || i.k).join(" y "));
-  if (p.vpo) parts.push(`VPO al ${Math.round((p.vpo.pct || 0) * 100)} por ciento`);
-  const wp = wellPend(p).length; if (wp) parts.push(`${wp} equipo${wp > 1 ? "s" : ""} sin lectura Wellington`);
-  if (DB.rn && DB.rn.sem){ const nr = rnEq(p).length; if (nr) parts.push(`${nr} equipo${nr > 1 ? "s" : ""} en rojo o negro`); }
-  const m = parts.join(". "); toast(m); vozHablar(m);
+  if (c.que === "promos"){ const m = cliPromosTexto(p); toast(m.slice(0, 300)); vozHablar(m); return; }
+  const m = cliPendTexto(p); toast(m.slice(0, 300)); vozHablar(m);
+}
+/* lo que el asistente cuenta de un cliente: pendientes (lo que hay que gestionar hoy) y promociones vigentes */
+function cliPendTexto(p){
+  const nom = (p.n || "Este cliente").toLowerCase(), it = [];
+  const cp = covPend(p); if (cp.length) it.push(`le falta cobertura de ${cp.map(g => g.label.replace(/ \(.*\)/, "").replace(/^Cerveza · /, "")).join(", ").replace(/, ([^,]*)$/, " y $1")}`);
+  const tu = p.tu ? tuEstado(p) : null; if (tu && !tu.ok){ const pend = tu.packs.filter(x => !x.ok && !x.mk).sort((a, b) => (b.v || 0) - (a.v || 0)); it.push(`para la TU de pago le falta${tu.falta > 1 ? "n" : ""} ${tu.falta} empaque${tu.falta > 1 ? "s" : ""} de Pepsi; lo más fácil es ${pend.slice(0, tu.falta).map(x => x.k.replace(/ Pepsi$/i, "").replace(/Pet/i, "")).join(" y ")}`); }
+  const ge = typeof gambEstado === "function" ? gambEstado(p) : null; if (ge && !ge.all){ const pa = ge.items.filter(i => !i.act); if (pa.length) it.push(`por activar en el plan de cerveza: ${pa.map(i => GPROD[i.k] || i.k).join(" y ")}`); }
+  if (p.vpo && (p.vpo.pct || 0) < 1){ const f = p.vpo.meta != null ? Math.max(0, p.vpo.meta - (p.vpo.real || 0)) : null; it.push(`en el VPO va al ${Math.round((p.vpo.pct || 0) * 100)} por ciento${f ? `, le faltan ${fmt(f, 1)} cajas` : ""}`); }
+  const wp = wellPend(p).length; if (wp) it.push(`${wp === 1 ? "un equipo" : wp + " equipos"} sin lectura Wellington`);
+  if (DB.rn && DB.rn.sem){ const nr = rnEq(p).length, ne = rnNec(p); if (nr) it.push(`${nr === 1 ? "un equipo" : nr + " equipos"} en rojo o negro${ne ? `, necesita ${fmt(ne)} cajas para salir` : ""}`); }
+  const np = nPromosCliente(p);
+  let m = it.length ? `${nom}: ${it.join(". ")}.` : `${nom} está al día, no tiene pendientes.`;
+  if (np) m += ` Tiene ${np === 1 ? "una promoción" : np + " promociones"} para ofrecerle; pídeme "promociones" y te las leo.`;
+  if (!visitedToday(p.c) && frDays(p.fr).includes(todayLetter())) m += " Está programado hoy y todavía no lo marcas como visitado.";
+  return m;
+}
+function cliPromosTexto(p){
+  const nom = (p.n || "Este cliente").toLowerCase(), P = promosCliente(p);
+  const L = (P.elig || []).slice().sort((a, b) => (promoDiasRest(a) ?? 99) - (promoDiasRest(b) ?? 99));
+  if (!L.length) return P.otras && P.otras.length ? `${nom} no tiene promociones del catálogo, pero en la base de acciones comerciales aparece: ${P.otras.slice(0, 3).join(", ")}.` : `${nom} no tiene promociones dirigidas vigentes. Puedes ofrecerle las generales del catálogo.`;
+  const fd = d => d ? d.getDate() + " de " + MESES[d.getMonth()] : "";
+  const txt = L.slice(0, 5).map(pr => { const meta = promoCliDe(pr, p), pre = pr.pa != null ? ` a $${pr.pa.toFixed(2)}` : "", hasta = pr.d2 ? `, hasta el ${fd(pr.d2)}` : "", cond = pr.cond ? `, ${pr.cond.split(/[.;]/)[0].slice(0, 70)}` : "";
+    return `${pr.n}${pre}${hasta}${cond}${meta && (meta.cj || meta.un) ? `, su meta es ${meta.cj ? fmt(meta.cj, 1) + " cajas" : fmt(meta.un) + " unidades"}` : ""}`; });
+  return `${nom} tiene ${L.length === 1 ? "una promoción" : L.length + " promociones"}. ${txt.join(". ")}.${L.length > 5 ? ` Y ${L.length - 5} más en la ficha.` : ""}`;
 }
 function vozProgreso(){
   const L = filtered(true), tl = todayLetter(), hoy = tl ? L.filter(p => frDays(p.fr).includes(tl)) : [], vis = hoy.filter(p => visitedToday(p.c)).length;
@@ -6208,7 +6328,15 @@ function vozProgreso(){
 function runVozAct(c){
   if (c.act === "vozcfg"){ if (c.que === "sig") vozCambiar(true); else { VOZ_CFG.rate = c.que === "norm" ? 1 : Math.min(1.4, Math.max(.75, (VOZ_CFG.rate || 1) + (c.que === "mas" ? .1 : -.1))); ls.set(VOZ_CFG_KEY, VOZ_CFG); toast(`Velocidad de la voz: ${Math.round(VOZ_CFG.rate * 100)}%`); vozHablar(c.que === "mas" ? "Va, hablo un poco más rápido." : c.que === "norm" ? "Listo, velocidad normal." : "Va, hablo más despacio."); } return true; }
   if (c.act === "manos"){ if (window.vozManos) window.vozManos(c.on); return true; }
-  if (c.act === "fmark"){ vozFichaMark(c); return true; }
+  if (c.act === "fmark" || c.act === "fvis"){ vozFichaMark(c); return true; }
+  if (c.act === "fmulti"){ (async () => { const ms = []; for (const x of c.list){ ms.push(vozFichaMark1(x)); await new Promise(r => setTimeout(r, 120)); } const ok = ms.filter(m => /^(Marcado|Desmarcado|Visita registrada)/.test(m)).map(m => m.replace(/^(Marcado|Desmarcado): /, "")), no = ms.filter(m => !/^(Marcado|Desmarcado|Visita registrada)/.test(m));
+    const m = (ok.length ? `Listo, ${/^Desmarcado/.test(ms[0]) ? "desmarqué" : "marqué"}: ${ok.join(", ").replace(/, ([^,]*)$/, " y $1")}.` : "") + (no.length ? " " + no.join(". ") + "." : ""); toast(m); if (vozHablaOn()) vozHablar(m); })(); return true; }
+  if (c.act === "fnota"){ const el = document.getElementById("vNote"), v = visit(openC, true); v.note = (v.note ? v.note + "\n" : "") + c.txt; saveVis(); if (el) el.value = v.note; const m = "Anotado en la ficha: " + c.txt; toast(m); if (vozHablaOn()) vozHablar("Anotado."); return true; }
+  if (c.act === "cliinfo"){ const L = vozCliente(c.who);
+    if (!L.length){ const m = `No encontré al cliente "${c.who}"`; toast(m); vozHablar("No encontré ese cliente."); return true; }
+    if (L.length > 1 && L.length <= 4){ const m = `Encontré ${L.length} clientes parecidos: ${L.map(p => p.n).join(", ")}. ¿Cuál?`; F.q = c.who; $("#q").value = c.who; renderAll(); setTab("list"); toast(m); vozHablar(m); return true; }
+    if (L.length > 4){ F.q = c.who; $("#q").value = c.who; renderAll(); setTab("list"); toast(`${fmt(L.length)} clientes parecidos a "${c.who}": elige uno`); vozHablar(`Hay ${L.length} clientes parecidos. Elige uno de la lista.`); return true; }
+    const p = L[0]; openPdv(p.c); const m = c.que === "promos" ? cliPromosTexto(p) : cliPendTexto(p); toast(m.slice(0, 300)); vozHablar(m); return true; }
   if (c.act === "finfo"){ vozFichaInfo(c); return true; }
   if (c.act === "progreso"){ vozProgreso(); return true; }
   if (c.act === "donde"){ const L = vozCliente(c.who); if (!L.length){ toast(`No encontré al cliente "${c.who}"`); vozHablaOn() && vozHablar("No encontré ese cliente"); return true; }
@@ -6269,6 +6397,7 @@ const VOZ_SIGLAS = new Set(["VPO", "AC", "CSD", "ETP", "SKU", "CVZ", "SS", "MS",
 // lo que se escribe para la pantalla, dicho como lo diría una persona
 function vozTexto(t){
   t = String(t || "")
+    .replace(/\s*\((?:[A-Z]{2}\d{4,}|[A-Z]{2,}-[A-Z0-9-]+)\)/g, "")   // códigos internos entre paréntesis (BA023141): no se leen
     .replace(/[«»"“”]/g, "").replace(/\s*·\s*/g, ", ").replace(/\s*→\s*/g, ": ").replace(/\s*[—–]\s*/g, ", ").replace(/✓|✔|⚡|🍺|📦|🧊|🏷️|★/g, "")
     .replace(/\bR\s*\+\s*N\b/gi, "R más N").replace(/\s*\+\s*/g, " más ")
     .replace(/(\d+(?:[.,]\d+)?)\s*%/g, "$1 por ciento")
@@ -6519,7 +6648,7 @@ function undoVoz(){
 document.addEventListener("click", e => { if (e.target.closest("[data-vozundo]")) undoVoz(); if (e.target.closest("[data-vozhelp]")){ $("#menu").hidden = true; vozHelp(); } });
 function vozHelp(){
   toast("Toca el micrófono o escribe en el buscador y presiona Enter, por ejemplo: \"compra cero de cerveza de la ruta 265115\"");
-  const ej = ["cambia la voz · habla más despacio · habla más rápido", "mantén presionado el micrófono: manos libres (orden tras orden; di «listo» para terminar)", "cómo voy hoy · cuántos me faltan por visitar", "dónde queda tienda la bendición", "con la ficha abierta: «vendí cobertura de cerveza», «activé regia 750», «leí el equipo», «vendí la promo de lipton», «resumen», «dirección», «llévame»", "clientes de hoy con necesidad de equipo frío en el mapa", "los que les falta solo una cobertura", "les faltan 2 coberturas", "les falta cerveza y gatorade el lunes", "los que no han comprado este mes", "compra menor a 2 cajas", "mayor volumen de compra", "ruta 113 sector Bolívar", "clientes de Erick con R más N", "tiendas 5 estrellas con promo de Gatorade", "clientes con promoción de Lipton que estén en R más N de la ruta 265113", "clientes compra cero de la ruta 265114", "clientes gambito de la ruta 265113", "promociones de lata", "promos de 600", "promo a 20.60", "promos de menos de 15 dólares", "precios de regia 330", "(paso a paso) clientes gambito → los compra cero → de la ruta 265122 → de la frecuencia de hoy", "(paso a paso) R más N → los de 15 o más → sin visitar → de la ruta 265113", "(paso a paso) con promo de lipton → y de gatorade → sin gambito", "(paso a paso) les falta cerveza → y gatorade → 5 estrellas → rs", "VPO por cumplir → los cumplidos", "Wellington pendiente → más de 60 días", "deshacer", "quita la ruta", "nuevo filtro: clientes con R más N", "quiero ver los clientes de R más N de la ruta 265113", "tienda blanca de la ruta 265119", "gambito rs de la ruta 265113", "ruta 265115 frecuencia lj y mv", "compra cero de cerveza de la ruta 265115", "compra cero de Gatorade", "los que nunca compran Regia 750", "clientes con plan Gambito", "sin lectura Wellington", "cuántos clientes tienen VPO por cumplir", "abre la ficha de tienda Rosita", "llévame a tacos el Taurino", "catálogo de tienda Rosita", "desafíos del día", "panel emergente", "quitar filtros"];
+  const ej = ["qué promociones tiene tienda la bendición · qué tiene pendiente tienda rosita", "con la ficha abierta: «promociones», «pendientes»", "marcar hablando: «vendí lata y 3 litros», «vendí cobertura de gatorade y la promo de lipton», «activé regia 750», «leí el equipo», «ya lo visité», «anota que pidió pasar el jueves»", "cambia la voz · habla más despacio · habla más rápido", "mantén presionado el micrófono: manos libres (orden tras orden; di «listo» para terminar)", "cómo voy hoy · cuántos me faltan por visitar", "dónde queda tienda la bendición", "con la ficha abierta: «vendí cobertura de cerveza», «activé regia 750», «leí el equipo», «vendí la promo de lipton», «resumen», «dirección», «llévame»", "clientes de hoy con necesidad de equipo frío en el mapa", "los que les falta solo una cobertura", "les faltan 2 coberturas", "les falta cerveza y gatorade el lunes", "los que no han comprado este mes", "compra menor a 2 cajas", "mayor volumen de compra", "ruta 113 sector Bolívar", "clientes de Erick con R más N", "tiendas 5 estrellas con promo de Gatorade", "clientes con promoción de Lipton que estén en R más N de la ruta 265113", "clientes compra cero de la ruta 265114", "clientes gambito de la ruta 265113", "promociones de lata", "promos de 600", "promo a 20.60", "promos de menos de 15 dólares", "precios de regia 330", "(paso a paso) clientes gambito → los compra cero → de la ruta 265122 → de la frecuencia de hoy", "(paso a paso) R más N → los de 15 o más → sin visitar → de la ruta 265113", "(paso a paso) con promo de lipton → y de gatorade → sin gambito", "(paso a paso) les falta cerveza → y gatorade → 5 estrellas → rs", "VPO por cumplir → los cumplidos", "Wellington pendiente → más de 60 días", "deshacer", "quita la ruta", "nuevo filtro: clientes con R más N", "quiero ver los clientes de R más N de la ruta 265113", "tienda blanca de la ruta 265119", "gambito rs de la ruta 265113", "ruta 265115 frecuencia lj y mv", "compra cero de cerveza de la ruta 265115", "compra cero de Gatorade", "los que nunca compran Regia 750", "clientes con plan Gambito", "sin lectura Wellington", "cuántos clientes tienen VPO por cumplir", "abre la ficha de tienda Rosita", "llévame a tacos el Taurino", "catálogo de tienda Rosita", "desafíos del día", "panel emergente", "quitar filtros"];
   $("#vozBar").innerHTML = `<span class="vzi">🎙</span><span class="vzt"><b>Puedes decir, por ejemplo:</b><br>${ej.map(x => "· " + esc(x)).join("<br>")}<br>O di el nombre o código del cliente.</span><button class="vzx" data-vozundo>Cerrar</button>`;
   $("#vozBar").hidden = false; setTab("list");
 }
