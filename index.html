@@ -4163,12 +4163,12 @@ setInterval(async () => {   // con el panel abierto, se refresca solo
 }, 60000);
 
 /* indicadores del día por ruta: salen solos de lo que se marca en las fichas (coberturas, R+N, lecturas) */
-const REP_AUTO = ["cfam", "css", "cgat", "ccvz", "rn"];
+const REP_AUTO = ["cfam", "css", "cgat", "ccvz", "rn", "g750", "g330", "gs330", "gtot"];
 function repInd(r, st){
-  const o = {cfam:0, css:0, cgat:0, ccvz:0, rn:0, wl:0, gmb:0, cli:new Set()};
+  const o = {cfam:0, css:0, cgat:0, ccvz:0, rn:0, wl:0, gmb:0, g750:0, g330:0, gs330:0, gtot:0, cli:new Set()};
   for (const e of st.values()){ if (e.r !== r || !e.v || e.k === "rep") continue;
     if (e.k === "cov"){ const k = {multi:"cfam", single:"css", gatorade:"cgat", cerveza:"ccvz"}[covGroupOf(e.i)]; if (k) o[k]++; }
-    else if (e.k === "rn") o.rn++; else if (e.k === "wl") o.wl++; else if (e.k === "gmb") o.gmb++;
+    else if (e.k === "rn") o.rn++; else if (e.k === "wl") o.wl++; else if (e.k === "gmb"){ o.gmb++; o.gtot++; const k = {R750:"g750", R330:"g330", S330:"gs330"}[e.i]; if (k) o[k]++; }
     if (e.c) o.cli.add(e.c); }
   o.cli = o.cli.size; return o;
 }
@@ -4198,8 +4198,10 @@ document.addEventListener("input", e => {
 const REP_COLS = [
   {k:"colas", l:"Colas", g:"vol"}, {k:"licores", l:"Licores", g:"vol"}, {k:"iso", l:"ISO/AD", g:"vol"}, {k:"oro", l:"Oro", g:"vol"}, {k:"csd", l:"CSD", g:"vol"}, {k:"total", l:"Total", g:"vol", tot:1},
   {k:"cvz", l:"Volumen CVZ", g:"eme"}, {k:"lipton", l:"Lipton 12 oz", g:"eme"}, {k:"frutado", l:"Frutado 600", g:"eme"}, {k:"black", l:"Black", g:"eme"},
-  {k:"cfam", l:"Cob familiares", g:"cob"}, {k:"css", l:"Cob SS", g:"cob"}, {k:"cgat", l:"Cob Gatorade", g:"cob"}, {k:"ccvz", l:"Cob CVZ", g:"cob"}, {k:"etp", l:"ETP", g:"cob"}, {k:"rn", l:"R+N", g:"cob"}
+  {k:"cfam", l:"Cob familiares", g:"cob"}, {k:"css", l:"Cob SS", g:"cob"}, {k:"cgat", l:"Cob Gatorade", g:"cob"}, {k:"ccvz", l:"Cob CVZ", g:"cob"}, {k:"etp", l:"ETP", g:"cob"}, {k:"rn", l:"R+N", g:"cob"},
+  {k:"g750", l:"Regia 750", g:"gmb"}, {k:"g330", l:"Regia 330", g:"gmb"}, {k:"gs330", l:"Suprema 330", g:"gmb"}, {k:"gtot", l:"Total Gambito", g:"gmb", tot:1}   // coberturas Gambito del día (marcas "Lo activé" en la ficha)
 ];
+const repColsVis = () => REP_COLS.filter(c => c.g !== "gmb" || (DB.vp && DB.vp.cli && DB.vp.cli.size));
 const repKey = r => "rutapdv_rep_" + todayKey() + "_" + r;
 function liveMarkRuta(r, kind, id, val){
   const K = liveKeys(); if (!K) return false;
@@ -4247,7 +4249,7 @@ function repConsolidado(rutas){
   rutas = rutas.filter(r => !/999$/.test(r));   // la ruta agencia no reporta
   const st = (liveKeys() && LIVE.data) ? new Map([...liveLocal(), ...LIVE.data.st]) : liveLocal(), rows = [];
   for (const r of rutas){
-    const e = st.get("0|rep|" + r), loc = ls.get(repKey(r), null), vol = (e && e.v) || loc || null, rep = !!(vol && REP_COLS.some(c => c.g !== "cob" && vol[c.k] != null));
+    const e = st.get("0|rep|" + r), loc = ls.get(repKey(r), null), vol = (e && e.v) || loc || null, rep = !!(vol && REP_COLS.some(c => c.g !== "cob" && c.g !== "gmb" && vol[c.k] != null));
     const ind = repInd(r, st), o = Object.assign({}, vol || {});
     for (const k of REP_AUTO) o[k] = Math.max(ind[k] || 0, (vol && vol[k]) || 0);   // indicadores: lo marcado en vivo
     const em = DB.em && DB.em.rutas.get(r);
@@ -4269,17 +4271,17 @@ function repConSub(R){
 }
 function repTabla(rutas){
   const R = repConsolidado(rutas), nRep = R.filter(x => x.rep).length;
-  const tot = {}; for (const c of REP_COLS) tot[c.k] = R.reduce((a, x) => a + (+x.o[c.k] || 0), 0);
+  const RC = repColsVis(), tot = {}; for (const c of RC) tot[c.k] = R.reduce((a, x) => a + (+x.o[c.k] || 0), 0);
   const emR = R.map(x => DB.em && DB.em.rutas.get(x.r)).filter(Boolean), emTot = emR.length ? Math.round(emR.reduce((a, e) => a + e.real, 0) / emR.reduce((a, e) => a + e.meta, 0) * 100) + "%" : "—";
   let h = `<div class="avh" style="margin-top:6px"><b>Consolidado del día</b><span>${nRep} de ${R.length} rutas reportadas</span><button class="btn sm pri" data-repimg>Generar imagen</button></div>`;
-  h += `<div class="tw"><table class="rt avtab"><thead><tr><th>Ruta</th>${REP_COLS.map(c => `<th>${esc(c.l)}</th>` + (c.k === "black" ? "<th>Emerg. alcance mes</th>" : "")).join("")}</tr></thead><tbody>` + repConSub(R).map(y => y.t === "s" ? `<tr class="sub"><td><b>${esc(y.s || "Sin supervisor")}</b><small> ${y.rep} de ${y.n}</small></td>${REP_COLS.map(c => `<td class="num"><b>${fmt(y.o[c.k], 2)}</b></td>` + (c.k === "black" ? `<td class="num"><b>${y.em != null ? Math.round(y.em * 100) + "%" : "—"}</b></td>` : "")).join("")}</tr>` : (x => `<tr class="${x.rep ? "" : "norep"}"><td><b>${esc(x.r)}</b>${x.rep ? "" : "<small> sin reporte</small>"}</td>${REP_COLS.map(c => `<td class="num">${x.o[c.k] != null ? fmt(x.o[c.k], 2) : "—"}</td>` + (c.k === "black" ? `<td class="num">${x.em != null ? Math.round(x.em * 100) + "%" : "—"}</td>` : "")).join("")}</tr>`)(y.x)).join("") + `<tr class="tot"><td><b>Total</b></td>${REP_COLS.map(c => `<td class="num"><b>${fmt(tot[c.k], 2)}</b></td>` + (c.k === "black" ? `<td class="num"><b>${emTot}</b></td>` : "")).join("")}</tr></tbody></table></div>`;
+  h += `<div class="tw"><table class="rt avtab"><thead><tr><th>Ruta</th>${RC.map(c => `<th>${esc(c.l)}</th>` + (c.k === "black" ? "<th>Emerg. alcance mes</th>" : "")).join("")}</tr></thead><tbody>` + repConSub(R).map(y => y.t === "s" ? `<tr class="sub"><td><b>${esc(y.s || "Sin supervisor")}</b><small> ${y.rep} de ${y.n}</small></td>${RC.map(c => `<td class="num"><b>${fmt(y.o[c.k], 2)}</b></td>` + (c.k === "black" ? `<td class="num"><b>${y.em != null ? Math.round(y.em * 100) + "%" : "—"}</b></td>` : "")).join("")}</tr>` : (x => `<tr class="${x.rep ? "" : "norep"}"><td><b>${esc(x.r)}</b>${x.rep ? "" : "<small> sin reporte</small>"}</td>${RC.map(c => `<td class="num">${x.o[c.k] != null ? fmt(x.o[c.k], 2) : "—"}</td>` + (c.k === "black" ? `<td class="num">${x.em != null ? Math.round(x.em * 100) + "%" : "—"}</td>` : "")).join("")}</tr>`)(y.x)).join("") + `<tr class="tot"><td><b>Total</b></td>${RC.map(c => `<td class="num"><b>${fmt(tot[c.k], 2)}</b></td>` + (c.k === "black" ? `<td class="num"><b>${emTot}</b></td>` : "")).join("")}</tr></tbody></table></div>`;
   return h;
 }
 // imagen para WhatsApp (mismo estilo del consolidado que se manda al grupo)
 async function repImagen(rutas){
   const R = repConsolidado(rutas), nRep = R.filter(x => x.rep).length, RS = repConSub(R);
   const supUno = R.sups && R.sups.size === 1 ? [...R.sups][0] : "";
-  const cols = [...REP_COLS]; cols.splice(cols.findIndex(c => c.k === "black") + 1, 0, {k:"_em", l:"Alcance mes", g:"eme", pct:1});   // el alcance del emergente va dentro de su segmento
+  const cols = [...repColsVis()]; cols.splice(cols.findIndex(c => c.k === "black") + 1, 0, {k:"_em", l:"Alcance mes", g:"eme", pct:1});   // el alcance del emergente va dentro de su segmento
   const W0 = 130, CW = 86, padX = 34, top = 110, hh = 64, rh = 46;
   const W = padX * 2 + W0 + cols.length * CW, H = top + 34 + hh + rh * (RS.length + 1) + 50, sc = 2;
   const cv = document.createElement("canvas"); cv.width = W * sc; cv.height = H * sc; const g = cv.getContext("2d"); g.scale(sc, sc);
@@ -4288,11 +4290,11 @@ async function repImagen(rutas){
   g.fillStyle = "#FFFFFF"; g.font = F(800, 26); g.fillText("CONSOLIDADO DE VENTA · PREVENTA", padX, 52);
   const d = new Date(), dia = d.toLocaleDateString("es-SV", {weekday:"long"}); g.fillStyle = "#9AA6B5"; g.font = F(500, 14);
   g.fillText(`${dia.charAt(0).toUpperCase() + dia.slice(1)} ${d.toLocaleDateString("es-SV")}  ·  ${nRep} de ${R.length} rutas reportadas${supUno ? "  ·  Sup. " + supUno : R.sups && R.sups.size > 1 ? "  ·  " + R.sups.size + " supervisores" : ""}`, padX, 80);
-  const x0 = padX + W0, groups = [["vol", "VOLUMEN", "#4FB3E8"], ["eme", "EMERGENTES", "#E8B44F"], ["cob", "COBERTURAS", "#6FCF7F"]];
+  const x0 = padX + W0, groups = [["vol", "VOLUMEN", "#4FB3E8"], ["eme", "EMERGENTES", "#E8B44F"], ["cob", "COBERTURAS", "#6FCF7F"], ["gmb", "GAMBITO · COBERTURAS", "#E58B5A"]];
   let gx = x0; for (const [k, t, col] of groups){ const n = cols.filter(c => c.g === k).length; if (!n) continue; g.fillStyle = col; g.font = F(800, 12); g.textAlign = "center"; g.fillText(t, gx + n * CW / 2, top + 12); g.fillRect(gx + 4, top + 22, n * CW - 8, 2); gx += n * CW; }
   const y0 = top + 34; g.fillStyle = "#172030"; g.fillRect(padX, y0, W - padX * 2, hh);
   g.textAlign = "left"; g.fillStyle = "#C9D3DF"; g.font = F(700, 12); g.fillText("RUTA", padX + 12, y0 + hh / 2 + 4);
-  cols.forEach((c, i) => { const cx = x0 + i * CW + CW / 2; g.textAlign = "center"; g.fillStyle = c.tot ? "#F2C94C" : c.g === "cob" ? "#8FE3A0" : c.g === "vol" ? "#79C8F2" : "#F2C94C"; g.font = F(800, 11);
+  cols.forEach((c, i) => { const cx = x0 + i * CW + CW / 2; g.textAlign = "center"; g.fillStyle = c.tot ? "#F2C94C" : c.g === "cob" ? "#8FE3A0" : c.g === "vol" ? "#79C8F2" : c.g === "gmb" ? "#F4B08A" : "#F2C94C"; g.font = F(800, 11);
     const words = c.l.toUpperCase().split(" "); const lines = words.length > 1 && c.l.length > 9 ? [words.slice(0, Math.ceil(words.length / 2)).join(" "), words.slice(Math.ceil(words.length / 2)).join(" ")] : [c.l.toUpperCase()];
     lines.forEach((ln, j) => g.fillText(ln, cx, y0 + hh / 2 + 4 + (j - (lines.length - 1) / 2) * 14)); });
   const tot = {}; const val = (x, c) => c.k === "_em" ? (x.em != null ? Math.round(x.em * 100) + "%" : "—") : x.o[c.k] != null ? String(Math.round(x.o[c.k] * 100) / 100) : "—";
@@ -4307,6 +4309,7 @@ async function repImagen(rutas){
   const emR = R.map(x => DB.em && DB.em.rutas.get(x.r)).filter(Boolean), emTot = emR.length ? Math.round(emR.reduce((a, e) => a + e.real, 0) / emR.reduce((a, e) => a + e.meta, 0) * 100) + "%" : "—";
   cols.forEach((c, j) => { g.textAlign = "center"; g.fillText(c.k === "_em" ? emTot : String(Math.round((tot[c.k] || 0) * 100) / 100), x0 + j * CW + CW / 2, yt + rh / 2 + 5); });
   const xs = x0 + cols.filter(c => c.g === "vol" || c.g === "eme").length * CW; g.fillStyle = "#3E7A4A"; g.fillRect(xs, y0, 1.5, hh + rh * (RS.length + 1));
+  if (cols.some(c => c.g === "gmb")){ const xg = x0 + cols.findIndex(c => c.g === "gmb") * CW; g.fillStyle = "#8A5A3E"; g.fillRect(xg, y0, 1.5, hh + rh * (RS.length + 1)); }
   g.textAlign = "left"; g.fillStyle = "#5E6B7A"; g.font = F(500, 11); g.fillText("Ruta PDV · generado " + d.toLocaleTimeString("es-SV", {hour:"2-digit", minute:"2-digit"}) + " · Alcance mes = avance acumulado del desafío emergente (documento emergente)", padX, H - 18);
   const blob = await new Promise(res => cv.toBlob(res, "image/png"));
   const name = `consolidado_${todayKey()}.png`, file = new File([blob], name, {type:"image/png"});
