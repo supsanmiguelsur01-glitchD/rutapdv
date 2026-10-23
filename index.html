@@ -883,6 +883,18 @@ select.sm{height:38px;border:1px solid var(--line);border-radius:10px;background
 .msheet .msb{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:8px}
 .msheet .msb .btn{width:100%;margin:0;text-align:center}
 .msheet .msl{display:flex;flex-direction:column;gap:6px;max-height:40vh;overflow:auto}
+.navban{position:absolute;z-index:640;top:10px;left:62px;right:62px;max-width:520px;margin:0 auto;display:flex;align-items:center;gap:12px;background:#1F4E8C;color:#fff;border-radius:16px;padding:10px 14px;box-shadow:0 8px 24px rgba(15,30,60,.3)}
+.navban[hidden]{display:none}
+.navban .nbi{width:40px;height:40px;flex:none;display:inline-flex;color:#fff}
+.navban .nbi svg{width:100%;height:100%}
+.navban .nbi.garr{color:#7CF0A0}
+.navban .nbt{display:flex;flex-direction:column;min-width:0;flex:1;line-height:1.2}
+.navban .nbt b{font:800 19px var(--f-tech)}
+.navban .nbt span{font-size:14px;font-weight:600;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+#mapPane.navon .mapctl select{display:none}
+.navban .nbt small{font-size:12px;opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.navban .nbr{display:flex;flex-direction:column;align-items:flex-end;flex:none;font-size:12px;opacity:.95}
+.navban .nbr b{font:700 15px var(--f-tech)}
 .routebar{position:absolute;z-index:600;left:12px;right:12px;bottom:64px;background:rgba(255,255,255,.96);border:1px solid var(--cyan);border-radius:16px;padding:10px 12px;box-shadow:var(--glow);display:flex;flex-direction:column;gap:8px;max-width:560px;margin:0 auto}
 .rt-t{display:flex;flex-direction:column;min-width:0}
 .rt-t b{font-size:15px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1425,6 +1437,43 @@ body.cat-open .toast{bottom:calc(env(safe-area-inset-bottom,0px) + 110px)}
 .qwrap{position:relative}.qwrap input{padding-right:56px!important}
 .qmic{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:10px;border:0;background:transparent;color:var(--cyan);display:flex;align-items:center;justify-content:center}
 .qmic:hover{background:var(--chip)}
+.lvbox{border:1px solid rgba(23,128,61,.35);background:rgba(23,128,61,.06);border-radius:14px;padding:9px 12px;margin-bottom:10px}
+.lvh{display:flex;align-items:center;gap:8px}.lvh b{font-size:14px;white-space:nowrap}.lvh .btn{flex:0 0 auto;width:auto;min-width:0;padding:4px 10px}.lvh small{flex:1;color:var(--muted);font-size:12px}
+.lvdot{width:9px;height:9px;border-radius:50%;background:#17803D;box-shadow:0 0 0 0 rgba(23,128,61,.5);animation:lvp 1.8s infinite}.lvdot.off{background:#9aa5b1;animation:none}
+@keyframes lvp{0%{box-shadow:0 0 0 0 rgba(23,128,61,.5)}70%{box-shadow:0 0 0 8px rgba(23,128,61,0)}100%{box-shadow:0 0 0 0 rgba(23,128,61,0)}}
+.lvl{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:220px;overflow:auto}
+.lvl li{display:grid;grid-template-columns:22px 1fr;column-gap:6px;font-size:13.5px;line-height:1.3}.lvl .lvi{grid-row:span 2;text-align:center;color:#17803D;font-weight:700}
+.lvl small{color:var(--muted);font-size:11.5px}
+.lvmk{outline:1.5px dashed rgba(23,128,61,.55);outline-offset:-1px}.lvtag{display:block;font-style:normal;font-size:11px;color:#17803D;font-weight:600}
+.visb{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;margin-bottom:10px;background:var(--panel2,#f3f6fa);border:1px solid var(--line,rgba(127,127,127,.2))}
+.visb .vbt{flex:1;min-width:0;display:flex;flex-direction:column}.visb .vbt b{font-size:14.5px}.visb .vbt small{color:var(--muted);font-size:12.5px}
+.visb .btn{width:auto;margin:0;flex:none}
+.visb .vbi{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:800;color:#fff;flex:none}
+.visb.ok{background:rgba(23,128,61,.1);border-color:rgba(23,128,61,.35)}.visb.ok .vbi{background:#17803D}
+.visb.nv{background:rgba(224,138,30,.12);border-color:rgba(224,138,30,.4)}.visb.nv .vbi{background:#E08A1E}
+.visb.pend{border-color:#1F4E8C}
+.vismot{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 10px}
+.vismot[hidden]{display:none}
+.mvis{display:flex!important;align-items:center;justify-content:center;font:900 11px/1 var(--f-body);color:#fff;pointer-events:none}
+.mvis.nv{color:#fff;background:#E08A1E;border-radius:50%}
+.msheet .msvis{width:100%;margin:0}
+.mapvis{position:absolute;z-index:520;left:62px;top:12px;max-width:calc(100% - 230px);display:flex;flex-direction:column;align-items:flex-start;gap:1px;background:var(--panel,#fff);border:none;border-radius:12px;padding:6px 10px 8px;box-shadow:0 4px 14px rgba(15,30,60,.14);font-size:11.5px;color:var(--muted);overflow:hidden;min-width:96px}
+.mapvis b{font:800 16px var(--f-tech);color:#17803D}
+.mapvis i{position:absolute;left:0;bottom:0;height:3px;background:#17803D}
+.mapvis.on{outline:2px solid #1F4E8C}
+.mapvis[hidden]{display:none}
+.visaviso{position:fixed;z-index:9100;left:12px;right:12px;top:12px;max-width:520px;margin:0 auto;background:var(--panel,#fff);border-radius:16px;box-shadow:0 10px 30px rgba(15,30,60,.3);padding:10px 12px;display:flex;align-items:center;gap:8px}
+.visaviso[hidden]{display:none}
+.visaviso>div{flex:1;min-width:0;display:flex;flex-direction:column}.visaviso b{font-size:14.5px}.visaviso small{color:var(--muted)}
+.visaviso .btn{width:auto;margin:0;flex:none}
+.vozfab{position:fixed;z-index:9000;right:16px;bottom:calc(84px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:50%;border:none;background:#1F4E8C;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 22px rgba(15,30,60,.35);touch-action:manipulation;transition:transform .15s}
+.vozfab:active{transform:scale(.93)}
+.vozfab.rec{background:#C0352F;animation:micp 1.2s ease-in-out infinite}
+.vozfab.hf{background:#1F8A4C;box-shadow:0 0 0 5px rgba(31,138,76,.3),0 8px 22px rgba(15,30,60,.35)}
+.vozpanel{position:fixed;z-index:9000;right:16px;bottom:calc(152px + env(safe-area-inset-bottom));max-width:min(340px,calc(100vw - 32px));background:var(--panel,#fff);color:var(--ink);border-radius:16px;padding:10px 14px;box-shadow:0 10px 28px rgba(15,30,60,.25);display:flex;flex-direction:column;gap:3px;font-size:14px;line-height:1.35}
+.vozpanel[hidden]{display:none}
+.vozpanel b{font:700 12px var(--f-tech);color:var(--cyan);text-transform:uppercase;letter-spacing:.04em}
+@media (min-width:900px){ .vozfab{bottom:24px} .vozpanel{bottom:92px} }
 .qmic.rec{background:var(--bad);color:#fff;animation:micp 1.2s ease-in-out infinite}#btnMapSave.dl{position:relative}#btnMapSave.dl::after{content:"";position:absolute;right:3px;top:3px;width:8px;height:8px;border-radius:50%;background:var(--ok,#1f8a4c);animation:micp 1.2s ease-in-out infinite}.qmic.hf{background:var(--ok,#1f8a4c);color:#fff;box-shadow:0 0 0 3px rgba(31,138,76,.35)}.qmic.hf.rec{background:var(--ok,#1f8a4c);animation:micp 1.2s ease-in-out infinite}
 @keyframes micp{0%,100%{box-shadow:0 0 0 0 rgba(192,53,47,.45)}50%{box-shadow:0 0 0 8px rgba(192,53,47,0)}}
 .vozbar{display:flex;align-items:flex-start;gap:8px;background:rgba(31,78,140,.07);border:1px solid rgba(31,78,140,.25);border-radius:12px;padding:8px 10px;font-size:13px;color:var(--ink)}
@@ -2263,7 +2312,7 @@ function parseVp(rows, info){
 }
 /* Metas y necesidades por categoría (Power BI, meta planilla): por ruta el total y cada categoría, con la necesidad diaria del cubo */
 const MD_CATS = [["PORTAFOLIO ORO", "Portafolio Oro"], ["VOLUMEN CSD", "Volumen CSD"], ["ISO/ADR", "Iso / ADR"], ["ALCOHOLICAS", "Alcohólicas"]];
-const MD_SUB = {"CORE COLAS": "Core colas", "OTRAS": "Otras CSD"};
+const MD_SUB = {"CORE COLAS": "Colas", "OTRAS": "Otras CSD"};
 function parseMd(rows, info){
   const md = {rutas:new Map(), info: info || null};
   if (!rows || rows.length < 2) return md;
@@ -2473,8 +2522,91 @@ const VKEY = "rutapdv_visitas_v1";
 let VIS = ls.get(VKEY, {});
 const visit = (c, create) => { const d = todayKey(); if (!VIS[d]) { if (!create) return null; VIS[d] = {}; } if (!VIS[d][c] && create) VIS[d][c] = {cov:{}, ac:{}, wl:{}, rn:{}, note:"", t:null}; return VIS[d][c] || null; };
 const saveVis = () => ls.set(VKEY, VIS);
-// La app es un apoyo visual de indicadores (no registra visitas ni pedidos: eso va en la app oficial).
-const visitedToday = c => false;
+/* seguimiento de visitas: cada cliente queda "visitado" (✓), "no se pudo" (con el motivo) o pendiente.
+   Para el supervisor también cuentan las visitas que llegan en vivo de los vendedores. */
+let VIS_LIVE = {t:-1, ok:new Map(), nv:new Map()};
+function visLive(){
+  if (typeof LIVE === "undefined" || !LIVE.data) return VIS_LIVE;
+  if (VIS_LIVE.t !== LIVE.t){ VIS_LIVE = {t:LIVE.t, ok:new Map(), nv:new Map()}; for (const e of LIVE.data.st.values()){ if (e.k === "vis" && e.v) VIS_LIVE.ok.set(e.c, e.t || 0); else if (e.k === "vnv" && e.v) VIS_LIVE.nv.set(e.c, {mot:e.i, t:e.t || 0}); } }
+  return VIS_LIVE;
+}
+const visEstado = c => { const v = VIS[todayKey()] && VIS[todayKey()][c]; if (v && v.t && !v.nv) return {st:"ok", t:v.t}; if (v && v.nv) return {st:"nv", t:v.nvt || v.t, mot:v.nv}; const L0 = visLive(); if (L0.ok.has(c) && !(L0.nv.has(c) && L0.nv.get(c).t > L0.ok.get(c))) return {st:"ok", t:L0.ok.get(c), vivo:true}; if (L0.nv.has(c)){ const x = L0.nv.get(c); return {st:"nv", t:x.t, mot:x.mot, vivo:true}; } return null; };
+const visitedToday = c => { const e = visEstado(c); return !!e && e.st === "ok"; };
+const VIS_MOT = ["Cerrado", "No estaba el encargado", "No compró", "Tenía inventario", "Sin dinero", "Otro"];
+function visMarcar(c, st, mot){
+  const v = visit(c, true);
+  if (st === "ok"){ v.t = v.t && !v.nv ? v.t : Date.now(); delete v.nv; delete v.nvt; liveMark(c, "vis", "1", true); }
+  else if (st === "nv"){ v.nv = mot || "Otro"; v.nvt = Date.now(); v.t = null; liveMark(c, "vnv", v.nv, true); liveMark(c, "vis", "1", false); }
+  else { v.t = null; delete v.nv; delete v.nvt; liveMark(c, "vis", "1", false); }
+  saveVis(); try{ renderList(); renderMap(); }catch(e){}
+}
+// últimas visitas guardadas en el teléfono (días anteriores)
+function visHist(c){ const out = []; for (const d of Object.keys(VIS).sort().reverse()){ const v = VIS[d][c]; if (!v) continue; if (v.t || v.nv) out.push({d, st: v.nv ? "nv" : "ok", mot:v.nv, t:v.t || v.nvt, n: ["cov","ac","wl","rn","tu","gmb"].reduce((a, k) => a + Object.values(v[k] || {}).filter(Boolean).length, 0)}); if (out.length >= 5) break; } return out; }
+
+/* ---------- ficha en vivo: supervisor / agencia / acceso total ven lo que el vendedor va marcando en cada cliente ---------- */
+const liveLector = () => !!liveKeys() && !incVendedor();
+function liveCli(c){ if (typeof LIVE === "undefined" || !LIVE.data) return []; const out = []; for (const e of LIVE.data.st.values()) if (e.c == c) out.push(e); return out.sort((a, b) => (b.t || 0) - (a.t || 0)); }
+// lo marcado en este teléfono + lo que llega en vivo (lo local manda)
+function visitVer(c){
+  const loc = visit(c, false), v = {cov:{}, ac:{}, wl:{}, rn:{}, note:"", t:null};
+  if (loc) for (const k of Object.keys(loc)) v[k] = loc[k] && typeof loc[k] === "object" ? Object.assign({}, loc[k]) : loc[k];
+  v._lv = {};
+  if (liveKeys()) for (const e of liveCli(c)){ if (!["cov", "ac", "wl", "rn"].includes(e.k)) continue; v[e.k] = v[e.k] || {};
+    const mio = loc && loc[e.k] && Object.prototype.hasOwnProperty.call(loc[e.k], e.i); if (!mio){ v[e.k][e.i] = !!e.v; if (e.v) v._lv[e.k + "|" + e.i] = e; } }
+  return v;
+}
+const LVH = t => t ? new Date(t).toLocaleTimeString("es-SV", {hour:"2-digit", minute:"2-digit"}) : "";
+function liveQuien(e){ const yo = SRC && SRC.code ? SRC.code.slice(-4) : ""; return e.u && yo && e.u === yo ? "tú" : "Ruta " + (e.r || "—"); }
+function liveEvTxt(e){
+  const g = e.k, i = e.i;
+  if (g === "vis") return e.v ? ["✓", "Visita registrada"] : null;
+  if (g === "vnv") return e.v ? ["✕", "No se pudo visitar: " + i] : null;
+  if (g === "cov") return e.v ? ["▣", "Cobertura vendida: " + i] : null;
+  if (g === "ac") return e.v ? ["%", "Promo vendida: " + promoNombre(i)] : null;
+  if (g === "wl") return e.v ? ["◉", "Lectura Wellington: equipo " + i] : null;
+  if (g === "rn") return e.v ? ["❄", "Equipo sacado de R+N: " + i] : null;
+  if (g === "tu") return e.v ? ["★", "TU de pago: " + i] : null;
+  if (g === "gmb") return e.v ? ["♞", (i === "S330" ? "Suprema (VPO) activada" : "Gambito activado: " + i)] : null;
+  if (g === "cart") return +e.v ? ["🛒", "Pedido: " + fmt(+e.v, 2) + " CJ"] : null;
+  if (g === "nota") return e.v ? ["✎", "Nota: " + e.v] : null;
+  return null;
+}
+function liveFichaHTML(c){
+  if (!liveLector()) return "";
+  const L0 = liveCli(c).map(e => ({e, x:liveEvTxt(e)})).filter(o => o.x);
+  const hace = LIVE.t ? Math.max(0, Math.round((Date.now() - LIVE.t) / 1000)) : null;
+  const est = LIVE.loading || LIVE_P ? "actualizando…" : LIVE.err && !LIVE.data ? esc(LIVE.err) : hace == null ? "sin leer todavía" : hace < 60 ? `actualizado hace ${hace} s` : `actualizado a las ${LVH(LIVE.t)}`;
+  return `<div class="lvbox" id="lvBox"><div class="lvh"><span class="lvdot${LIVE.data ? "" : " off"}"></span><b>En vivo hoy</b><small>${est}</small><button class="btn sm" data-lvref aria-label="Actualizar">↻</button></div>`
+    + (L0.length ? `<ul class="lvl">${L0.map(({e, x}) => `<li><span class="lvi">${x[0]}</span><span class="lvt">${esc(x[1])}</span><small>${LVH(e.t)} · ${esc(liveQuien(e))}</small></li>`).join("")}</ul>`
+      : `<p class="note" style="margin:6px 0 0">${LIVE.data ? "El vendedor todavía no ha marcado nada en este cliente hoy." : "Leyendo las marcas del equipo…"}</p>`) + `</div>`;
+}
+const LVF = {sig:"", tm:null, n:-1};
+const liveSigCli = c => liveCli(c).map(e => e.k + e.i + e.v + e.t).join("|");
+// refresca la ficha abierta sin perder lo que se está escribiendo
+function liveFichaRefresh(){
+  if (openC == null || $("#dDrawer").hidden) return;
+  const sig = liveSigCli(openC), box = document.getElementById("lvBox");
+  const escribiendo = document.activeElement && $("#dBody").contains(document.activeElement) && /^(TEXTAREA|INPUT)$/.test(document.activeElement.tagName) && document.activeElement.type !== "checkbox";
+  if (sig !== LVF.sig && !escribiendo){ LVF.sig = sig; const b = $("#dBody"), y = b.scrollTop, c = openC; openPdv(c); b.scrollTop = y; return; }
+  if (box) box.outerHTML = liveFichaHTML(openC);
+}
+async function liveFichaTick(force){
+  if (!liveLector() || openC == null || $("#dDrawer").hidden) return;
+  if (force || !LIVE.data || Date.now() - LIVE.t > 15000){ if (!LIVE_P){ LIVE.loading = true; LIVE_P = liveFetch(true).finally(() => { LIVE.loading = false; LIVE_P = null; LIVE.tried = Date.now(); }); } const bx = document.getElementById("lvBox"); if (bx) bx.outerHTML = liveFichaHTML(openC); await LIVE_P; }
+  liveFichaRefresh(); liveMapaSiCambio();
+}
+// mapa y lista: cuando llegan visitas nuevas se repintan solos
+function liveMapaSiCambio(){ if (!LIVE.data) return; if (LIVE.data.n !== LVF.n){ LVF.n = LIVE.data.n; try{ renderList(); renderMap(); }catch(e){} } }
+setInterval(() => { if (!liveLector() || document.hidden || !navigator.onLine) return;
+  if (openC != null && !$("#dDrawer").hidden) return liveFichaTick(false);
+  if (LIVE_P || (LIVE.t && Date.now() - LIVE.t < 40000)) return;
+  LIVE.loading = true; LIVE_P = liveFetch(true).finally(() => { LIVE.loading = false; LIVE_P = null; LIVE.tried = Date.now(); liveMapaSiCambio(); });
+}, 20000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden && liveLector()) setTimeout(() => liveFichaTick(true), 300); });
+document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-lvref]"); if (!b) return; liveFichaTick(true); });
+// la nota de la visita también le llega al supervisor
+let NOTA_TM = null;
+function notaLive(c, txt){ clearTimeout(NOTA_TM); NOTA_TM = setTimeout(() => liveMark(c, "nota", "1", String(txt || "").slice(0, 500)), 1500); }
 
 /* ---------- estado UI ---------- */
 const F = Object.assign({ag:"", sup:DEFAULT_SUP, rutas:[], frs:[], dias:[], vpo:"", cov:"", vis:"", segs:[], emps:[], promos:[], modo:"and", q:"", sort:"dist", colorBy:"ruta"}, ls.get("rutapdv_filters", {}));
@@ -2565,6 +2697,11 @@ function promoCardHTML(pr, v, i, check, p){
 }
 const empLabel = k => (COV_GROUPS.find(g => g.k === k) || {}).label || k;
 const focusN = () => F.segs.length + F.emps.length + F.promos.length;
+/* empaques de la base de coberturas (columnas de listados) y cómo se dicen */
+const PK_DEF = [[/\b(3 l|3l|3 litros|tres litros|3 0|3punto0)\b/, "3\\.0L", "3 L"], [/\b(1 5|1punto5|1 5 l|1 5 litros|litro y medio|uno punto cinco|1 punto 5)\b/, "1\\.5L", "1.5 L"], [/\b(1 25|1punto25|1 25 l|uno veinticinco|1 punto 25)\b/, "1\\.25L", "1.25 L"],
+  [/\b(lata|latas|355 lata)\b/, "Lata", "lata"], [/\b(600|seiscientos|600 ml)\b/, "600ML", "600 ML"], [/\b(12 onzas|doce onzas|12 oz|pet 12|355 pet|botella de 12|12 onzas pet)\b/, "355ML Pet", "12 oz PET"], [/\b(vidrio|retornable|grb)\b/, "GRB", "vidrio"],
+  [/\b(gatorade|isotonicos?)\b/, "Isotonicos", "Gatorade"], [/\b(regia 750|750)\b/, "Regia 750", "Regia 750"]];
+const PK_LAB = Object.fromEntries(PK_DEF.map(x => [x[1], x[2]]));
 /* filtros dinámicos (los arma el dictado): x:campo:op:valor */
 const XOPS = {"<": (a, b) => a < b, "<=": (a, b) => a <= b, ">": (a, b) => a > b, ">=": (a, b) => a >= b, "=": (a, b) => a === b};
 function segFn(k){
@@ -2578,7 +2715,8 @@ function segFn(k){
   if (f === "est") return p => qnorm(p.est).includes(qnorm(v));
   if (f === "name") return p => (p._qnn || (p._qnn = qnorm(p.n))).split(" ").some(w => w.startsWith(v));
   if (f === "etq"){ const set = new Set(v.split("|")); return p => set.has(p.etq); }
-  if (f === "buy"){ const re = new RegExp(v, "i"); return p => !!p.cov && p.cov.items.some(it => re.test(it.k) && (it.v || 0) > 0); }
+  if (f === "buy"){ const re = new RegExp(v, "i"); return op === "no" ? (p => !!p.cov && p.cov.items.some(it => re.test(it.k)) && !p.cov.items.some(it => re.test(it.k) && (it.v || 0) > 0)) : (p => !!p.cov && p.cov.items.some(it => re.test(it.k) && (it.v || 0) > 0)); }
+  if (f === "pkq"){ const [rx, nn] = v.split("@"), re = new RegExp(rx, "i"), lim = parseFloat(nn); return p => { if (!p.cov) return false; const it = p.cov.items.filter(x => re.test(x.k)); if (!it.length) return false; return cmp(it.reduce((a, x) => a + (x.v || 0), 0), lim); }; }   // cajas del mes de un empaque
   if (f === "gps") return op === "no" ? (p => p.lat == null) : (p => p.lat != null);
   if (f === "fr") return p => (p.fr || "").toUpperCase() === v;
   if (f === "promo"){ const ids = v.split(","); return p => ids.some(id => promoPassK(p, id)); }
@@ -2597,7 +2735,8 @@ function segLabel(k){
   if (f === "est") return `Estrellas: ${v}`;
   if (f === "name") return `Tipo: ${v}`;
   if (f === "etq") return "Tipo: " + v.split("|").join(" o ");
-  if (f === "buy") return "Compran " + v.replace(/\\/g, "").replace("Isotonicos", "isotónicos").replace("Cerveza", "cerveza");
+  if (f === "buy"){ const l = PK_LAB[v] || v.replace(/\\/g, "").replace("Isotonicos", "isotónicos").replace("Cerveza", "cerveza"); return op === "no" ? "Compra cero de " + l : "Compran " + l; }
+  if (f === "pkq"){ const [rx, nn] = v.split("@"); return `${PK_LAB[rx] || rx.replace(/\\/g, "")}: compra del mes ${opT} ${nn} CJ`; }
   if (f === "gps") return op === "no" ? "Sin coordenadas" : "Con coordenadas";
   if (f === "fr") return `Frecuencia ${v}`;
   if (f === "promo") return "Promo: " + v.split(",").map(id => (promoById(id) || {}).n || id).join(" o ");
@@ -2618,7 +2757,7 @@ function segFam(k){
   if (k.startsWith("x:ac:")) return "ac";
   if (k.startsWith("x:est:")) return "est";
   if (k.startsWith("x:name:") || k.startsWith("x:etq:")) return "tipo";
-  if (k.startsWith("x:buy:")) return "buy";
+  if (k.startsWith("x:buy:") || k.startsWith("x:pkq:")) return "buy:" + k.split(":")[3].split("@")[0];
   if (k === "visto" || k === "novis") return "vis";
   if (k === "well" || k === "well60") return "well";
   if (k === "vpo" || k === "vpopend" || k === "vpook") return "vpo";
@@ -2780,7 +2919,7 @@ function cardHTML(p){
   </button>`;
 }
 function renderList(){
-  current = filtered();
+  current = roadOrden(filtered());
   const n = current.length;
   const vis = current.filter(p => visitedToday(p.c)).length;
   const withCov = current.filter(p => p.cov); const avg = withCov.length ? withCov.reduce((a,p)=>a+p.cov.okN,0)/withCov.length : 0; const nItems = withCov[0]?.cov.n || COV_GROUPS.length;
@@ -3465,7 +3604,7 @@ if (typeof L !== "undefined") L.TileLayer.Guardado = L.TileLayer.extend({
 let BASES_M = null;
 function mapaBases(){
   if (BASES_M) return BASES_M;
-  const opt0 = {maxZoom:21, keepBuffer:4, updateWhenZooming:false, updateWhenIdle:false};   // carga cuadros mientras arrastras (sin esperar a soltar)
+  const opt0 = {maxZoom:21, keepBuffer:3, updateWhenZooming:false};
   const esri = (svc, opt={}) => new L.TileLayer.Guardado(`https://server.arcgisonline.com/ArcGIS/rest/services/${svc}/MapServer/tile/{z}/{y}/{x}`, Object.assign({}, opt0, {maxNativeZoom:19, attribution:"© Esri"}, opt));
   BASES_M = [
     ["Calles", esri("World_Street_Map"), "Topográfico"],
@@ -3562,7 +3701,7 @@ async function mapaGuardarZona(){
 function initMap(){
   if (map || typeof L === "undefined") return;
   // un solo lienzo para todos los puntos: evita capas que tapan los toques; tolerance agranda el área de toque en celular
-  PTS = L.canvas({padding:.5, tolerance: L.Browser.mobile ? 14 : 6});
+  PTS = L.svg({padding:.15});   /* SVG: al moverse solo se desplaza (el lienzo canvas se volvía a crear completo en cada movimiento y trababa el celular en navegación); ahora se dibujan solo los puntos a la vista */   // lienzo pequeño: en celulares de pantalla densa uno grande se vuelve a dibujar muy lento
   map = L.map("map", {preferCanvas:true, renderer:PTS, zoomControl:true, tapTolerance:20, maxZoom:21, zoomSnap:0.5, zoomDelta:0.5, wheelPxPerZoomLevel:110, inertiaDeceleration:2600, easeLinearity:0.22, bounceAtZoomLimits:false, rotate:true, bearing:0, touchRotate:false, rotateControl:false, compassBearing:false}).setView([13.48,-88.18], 11);
   const BASES = mapaBases();
   let bi = Math.max(0, BASES.findIndex(b => b[0] === mapaBaseNombre()));
@@ -3619,8 +3758,9 @@ function mapSheet(list){
     el.innerHTML = `<button class="msx" data-msx aria-label="Cerrar">✕</button>
       <div class="msh"><div class="mst"><b>${esc(p.n || "(sin nombre)")}</b><small class="num">${p.c} · Ruta ${esc(p.ruta || "—")} · FR ${esc(p.fr || "—")}${p.dir ? " · " + esc(p.dir.toLowerCase()) : ""}</small></div>
       ${d != null ? `<span class="msd"><i class="darr" style="--b:${dirRumbo(ME.lat, ME.lng, p.lat, p.lng).toFixed(1)}deg;--hd:${(DIRL.h || 0).toFixed(1)}deg"><svg viewBox="0 0 24 24"><path d="M12 2.5l7 18-7-4.2-7 4.2z"/></svg></i><b class="num">${gdist(d)}</b></span>` : ""}</div>
-      <div class="msp"><span class="pill ${cc}">${p.cov ? `Cob. ${p.cov.okN}/${p.cov.n}` : "Sin cobertura"}</span>${tu ? `<span class="pill ${tu.ok ? "ok" : tu.falta === 1 ? "warn" : "bad"}">TU ${Math.min(4, tu.n)}/4</span>` : ""}${nPromosCliente(p) ? `<span class="pill acc">${nPromosCliente(p)} promo</span>` : ""}${gambPlans(p).length ? `<span class="pill">🍺 Gambito</span>` : ""}${visitedToday(p.c) ? `<span class="pill ok">Visitado hoy</span>` : ""}</div>
+      <div class="msp"><span class="pill ${cc}">${p.cov ? `Cob. ${p.cov.okN}/${p.cov.n}` : "Sin cobertura"}</span>${tu ? `<span class="pill ${tu.ok ? "ok" : tu.falta === 1 ? "warn" : "bad"}">TU ${Math.min(4, tu.n)}/4</span>` : ""}${nPromosCliente(p) ? `<span class="pill acc">${nPromosCliente(p)} promo</span>` : ""}${gambPlans(p).length ? `<span class="pill">🍺 Gambito</span>` : ""}${(() => { const e = visEstado(p.c); return e ? (e.st === "ok" ? `<span class="pill ok">✓ Visitado ${new Date(e.t).toLocaleTimeString("es-SV", {hour:"2-digit", minute:"2-digit"})}</span>` : `<span class="pill warn">✕ ${esc(e.mot)}</span>`) : frDays(p.fr).includes(todayLetter()) ? `<span class="pill bad">Pendiente hoy</span>` : ""; })()}</div>
       ${guia ? `<div class="msg">${guia}</div>` : ""}
+      ${visitedToday(p.c) ? "" : `<button class="btn sm msvis" data-msvis="${p.c}">✓ Marcar visitado</button>`}
       <div class="msb"><button class="btn sm pri popbtn" data-pdv="${p.c}">Abrir ficha</button><button class="btn sm popbtn alt2" data-route="${p.c}">Ruta</button><a class="btn sm" href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}&travelmode=driving" target="_blank" rel="noopener">Google Maps</a></div>`;
   } else {
     SHEET_P = null;
@@ -3628,7 +3768,8 @@ function mapSheet(list){
   }
   el.classList.add("on");
 }
-document.addEventListener("click", e => { if (e.target.closest && e.target.closest("[data-msx]")) mapSheet(null); if (e.target.closest && e.target.closest("#mapSheet .popbtn[data-route]")) mapSheet(null); });
+document.addEventListener("click", e => { const mv = e.target.closest && e.target.closest("[data-msvis]"); if (mv){ const c = +mv.dataset.msvis, p = DB.pdv.get(c); visMarcar(c, "ok"); toast("Visita registrada: " + (p ? p.n : c)); if (p) mapSheet([p]); return; }
+  if (e.target.closest && e.target.closest("[data-msx]")) mapSheet(null); if (e.target.closest && e.target.closest("#mapSheet .popbtn[data-route]")) mapSheet(null); });
 let mapDirty = false;
 /* puntos del mapa: solo se dibuja lo que está a la vista; alejado y con muchos clientes, se agrupan en burbujas con el número
    (toca una burbuja y se acerca); de cerca (zoom 17+) cada punto lleva el nombre del cliente */
@@ -3693,6 +3834,15 @@ function mapEnVista(s0, n0, w0, e0){
   const out = []; for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++){ const L0 = I.m.get(x + ":" + y); if (L0) for (const p of L0) if (p.lat >= s0 && p.lat <= n0 && p.lng >= w0 && p.lng <= e0) out.push(p); }
   return out;
 }
+// contador de visitas del día sobre el mapa (toca para ver los pendientes de hoy)
+function mapVisChip(){
+  let el = document.getElementById("mapVis");
+  const tl = todayLetter(), hoy = tl ? MAPV.pts.filter(p => frDays(p.fr).includes(tl)) : [];
+  if (!hoy.length){ if (el) el.hidden = true; return; }
+  if (!el){ el = document.createElement("button"); el.id = "mapVis"; el.className = "mapvis"; $("#mapPane").appendChild(el); el.onclick = () => { F.segs = F.segs.includes("novis") ? F.segs.filter(k => k !== "novis" && k !== "hoy") : [...new Set([...F.segs, "hoy", "novis"])]; buildFilterUI(); renderAll(); toast(F.segs.includes("novis") ? "Mostrando los pendientes de hoy" : "Mostrando todos"); }; }
+  const ok = hoy.filter(p => visitedToday(p.c)).length, nv = hoy.filter(p => { const e = visEstado(p.c); return e && e.st === "nv"; }).length, pct = Math.round(ok / hoy.length * 100);
+  el.innerHTML = `<b>${ok}/${hoy.length}</b><span>visitados hoy${nv ? ` · ${nv} no se pudo` : ""}</span><i style="width:${pct}%"></i>`; el.hidden = false; el.classList.toggle("on", F.segs.includes("novis"));
+}
 function mapDraw(){
   if (!map || $("#mapPane").hidden) return;
   if (!window.MK) window.MK = new Map();
@@ -3704,18 +3854,31 @@ function mapDraw(){
   let ind, Gz = null;
   if (agrupar){ Gz = mapGrupos(z); ind = Gz.solos.filter(enV); }
   else ind = visAll;
-  // puntos sueltos (con los mismos colores de siempre)
-  const R = PTS, want = new Set();
+  // puntos sueltos (con los mismos colores de siempre); visitado = verde, no se pudo = borde naranja, pendiente de hoy = borde azul
+  const R = PTS, want = new Set(), tlHoy = todayLetter();
   for (const p of ind){
-    const v = visitedToday(p.c), col = colorFor(p), key = (v ? 1 : 0) + col;
+    const e = visEstado(p.c), st = e ? e.st : (tlHoy && frDays(p.fr).includes(tlHoy) ? "pend" : ""), col = colorFor(p), key = st + col;
+    const sty = st === "ok" ? {radius:9, color:"#FFFFFF", weight:2.5, fillColor:"#17803D", dashArray:null} : st === "nv" ? {radius:8, color:"#E08A1E", weight:3, fillColor: col, dashArray:null} : st === "pend" ? {radius:8, color:"#1F4E8C", weight:2.5, fillColor: col, dashArray:null} : {radius:7, color:"#FFFFFF", weight:1.4, fillColor: col, dashArray:null};
     let m = MK.get(p.c);
-    if (!m){ m = L.circleMarker([p.lat, p.lng], {renderer:R, interactive:false, radius: v ? 9 : 7, color: v ? "#17803D" : "#FFFFFF", weight: v ? 3 : 1.4, fillColor: col, fillOpacity:.95}); m._k = key; MK.set(p.c, m); }
-    else if (m._k !== key){ m.setStyle({color: v ? "#17803D" : "#FFFFFF", weight: v ? 3 : 1.4, fillColor: col}); m.setRadius(v ? 9 : 7); m._k = key; }
+    if (!m){ m = L.circleMarker([p.lat, p.lng], Object.assign({renderer:R, interactive:false, fillOpacity:.95}, sty)); m._k = key; MK.set(p.c, m); }
+    else if (m._k !== key){ m.setStyle(sty); m.setRadius(sty.radius); m._k = key; }
     want.add(m);
   }
   const quitar = []; layer.eachLayer(l => { if (!want.has(l)) quitar.push(l); }); for (const l of quitar) layer.removeLayer(l);
   for (const m of want) if (!layer.hasLayer(m)) layer.addLayer(m);
   MAPV.ind = ind;
+  // ✓ y ✕ sobre los puntos visitados (de cerca) y el recorrido del día
+  if (!MAPV.vl){ MAPV.vl = L.layerGroup().addTo(map); MAPV.vm = new Map(); }
+  { const keep = new Set();
+    if (z >= 14) for (const p of ind){ const e = visEstado(p.c); if (!e) continue; const k = p.c + e.st; let m = MAPV.vm.get(k);
+      if (!m){ m = L.marker([p.lat, p.lng], {icon: L.divIcon({className:"mvis " + e.st, html: e.st === "ok" ? "✓" : "✕", iconSize:[16, 16], iconAnchor:[8, 8]}), interactive:false, keyboard:false}); MAPV.vm.set(k, m); }
+      keep.add(m); if (!MAPV.vl.hasLayer(m)) MAPV.vl.addLayer(m); }
+    const out = []; MAPV.vl.eachLayer(l => { if (!keep.has(l) && l !== MAPV.reco) out.push(l); }); for (const l of out) MAPV.vl.removeLayer(l);
+    const V = MAPV.pts.map(p => [p, visEstado(p.c)]).filter(([, e]) => e && e.st === "ok" && !e.vivo).sort((a, b) => a[1].t - b[1].t).map(([p]) => [p.lat, p.lng]);
+    const sig = V.map(x => x.join(",")).join(";");
+    if (MAPV.recoSig !== sig){ MAPV.recoSig = sig; if (MAPV.reco){ MAPV.vl.removeLayer(MAPV.reco); MAPV.reco = null; } if (V.length > 1){ MAPV.reco = L.polyline(V, {renderer:PTS, interactive:false, color:"#17803D", weight:3, opacity:.7, dashArray:"6 8"}); MAPV.vl.addLayer(MAPV.reco); } }
+  }
+  mapVisChip();
   // burbujas: se reusan; solo se agregan o quitan las que entran o salen de la vista
   if (!agrupar){ if (MAPV.cl.getLayers().length) MAPV.cl.clearLayers(); }
   else {
@@ -3812,9 +3975,11 @@ function startGps(quiet){
       gpsBar("ok", `Ubicación en tiempo real activa · precisión ±${fmt(ME.acc)} m` + (ME.acc > 500 ? `<br>La precisión es baja (normal en PC sin GPS). En el teléfono será de pocos metros.` : ""));
       setTimeout(() => { if ($("#gpsBar").classList.contains("ok")) gpsBar(null); }, 6000);
     }
-    renderList(); updateOpenDist(); routeOnMove();
+    { const lv = !$("#listPane").hidden && $("#listPane").offsetParent !== null; if (lv) renderList(); else LIST_DIRTY = true; }   // en el mapa no se redibuja la lista a cada paso
+    updateOpenDist(); routeOnMove();
     { const c = pos.coords; if (c.heading != null && !isNaN(c.heading) && (c.speed || 0) > 1.2 && Date.now() - DIRL.tB > 2500) dirHeading(c.heading, "gps"); }
-    dirUpdate(); guiaTick();
+    if (!$("#listPane").hidden){ dirUpdate(); guiaTick(); }
+    visLlegada();
   };
   const fail = err => {
     if (watchId != null) navigator.geolocation.clearWatch(watchId);
@@ -3843,11 +4008,29 @@ function setManualMe(lat, lng){
   setTimeout(() => { if ($("#gpsBar").classList.contains("ok")) gpsBar(null); }, 5000);
 }
 
+/* llegada: si te quedas cerca (≈35 m) de un cliente pendiente de hoy por más de 1 minuto, la app te ofrece marcar la visita */
+const LLEG = {c:null, t:0, ofrecido:new Set()};
+function visLlegada(){
+  if (!ME || !DB || !DB.pdv) return; const tl = todayLetter(); if (!tl) return;
+  let best = null, bd = 0.035;
+  for (const p of (MAPV.pts && MAPV.pts.length ? MAPV.pts : current)){ if (p.lat == null || !frDays(p.fr).includes(tl) || visEstado(p.c)) continue; const d = haversine(ME.lat, ME.lng, p.lat, p.lng); if (d < bd){ bd = d; best = p; } }
+  if (!best){ LLEG.c = null; return; }
+  if (LLEG.c !== best.c){ LLEG.c = best.c; LLEG.t = Date.now(); return; }
+  if (Date.now() - LLEG.t < 60000 || LLEG.ofrecido.has(best.c)) return;
+  LLEG.ofrecido.add(best.c);
+  let bar = document.getElementById("visAviso");
+  if (!bar){ bar = document.createElement("div"); bar.id = "visAviso"; bar.className = "visaviso"; document.body.appendChild(bar);
+    bar.addEventListener("click", e => { const b = e.target.closest("[data-avok],[data-avnv],[data-avx]"); if (!b) return; const c = +bar.dataset.c; if (b.dataset.avok !== undefined){ visMarcar(c, "ok"); toast("Visita registrada"); } else if (b.dataset.avnv !== undefined){ openPdv(c); setTimeout(() => { const m = $("#visMot"); if (m) m.hidden = false; }, 100); } bar.hidden = true; }); }
+  bar.dataset.c = best.c;
+  bar.innerHTML = `<div><b>Estás en ${esc(best.n || best.c)}</b><small>¿Registrar la visita?</small></div><button class="btn sm pri" data-avok>✓ Visitado</button><button class="btn sm" data-avnv>No se pudo</button><button class="btn sm" data-avx aria-label="Cerrar">✕</button>`;
+  bar.hidden = false; if (vozHablaOn()) vozHablar(`Estás en ${best.n}. ¿Registro la visita?`);
+  setTimeout(() => { if (bar.dataset.c == String(best.c)) bar.hidden = true; }, 45000);
+}
 /* ---------- ruta dentro del mapa ---------- */
 let ROUTE = null, ROUTE_WAIT = null, routeLayer = null, routeBusy = false;
 async function fetchRoute(a, b){
   // Servicio público de rutas por calles (OSRM, basado en OpenStreetMap). Solo recibe las dos coordenadas.
-  const url = `https://router.project-osrm.org/route/v1/driving/${a.lng.toFixed(6)},${a.lat.toFixed(6)};${b.lng.toFixed(6)},${b.lat.toFixed(6)}?overview=full&geometries=geojson&alternatives=false&steps=false`;
+  const url = `https://router.project-osrm.org/route/v1/driving/${a.lng.toFixed(6)},${a.lat.toFixed(6)};${b.lng.toFixed(6)},${b.lat.toFixed(6)}?overview=full&geometries=geojson&alternatives=false&steps=true`;
   const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 12000);
   try{
     const r = await fetch(url, {signal:ctl.signal});
@@ -3855,7 +4038,8 @@ async function fetchRoute(a, b){
     const j = await r.json();
     if (j.code !== "Ok" || !j.routes || !j.routes.length) throw new Error(j.code || "sin ruta");
     const rt = j.routes[0];
-    return {coords: rt.geometry.coordinates.map(([x, y]) => [y, x]), dist: rt.distance, dur: rt.duration};
+    const st = ((rt.legs && rt.legs[0] && rt.legs[0].steps) || []).map(x => ({lat:x.maneuver.location[1], lng:x.maneuver.location[0], type:x.maneuver.type, mod:x.maneuver.modifier || "", name:x.name || x.ref || "", dist:x.distance, exit:x.maneuver.exit || 0}));
+    return {coords: rt.geometry.coordinates.map(([x, y]) => [y, x]), dist: rt.distance, dur: rt.duration, st};
   } finally { clearTimeout(t); }
 }
 const fmtDur = s => { const m = Math.max(1, Math.round(s / 60)); return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${m % 60} min`; };
@@ -3865,7 +4049,7 @@ function routeBar(html){
   el.hidden = false; el.innerHTML = html;
 }
 function clearRoute(){
-  ROUTE = null; ROUTE_WAIT = null; navStop();
+  ROUTE = null; ROUTE_WAIT = null; navStop(); navBanner();
   if (routeLayer) routeLayer.clearLayers();
   routeBar(null);
 }
@@ -3906,8 +4090,12 @@ async function drawRoute(p, fit){
   routeLayer.addLayer(L.polyline(pts, {renderer:R, interactive:false, color:"#1F4E8C", weight:11, opacity:.22, lineCap:"round", lineJoin:"round"}));
   routeLayer.addLayer(L.polyline(pts, {renderer:R, interactive:false, color:"#1F4E8C", weight:5, opacity:.95, dashArray: res ? null : "8 10", lineCap:"round", lineJoin:"round"}));
   routeLayer.addLayer(L.circleMarker([p.lat, p.lng], {renderer:R, interactive:false, radius:13, color:"#FFFFFF", weight:3, fillColor:"#1F4E8C", fillOpacity:.25}));
-  ROUTE = {p, from, t:Date.now(), ok:!!res, pts};
-  navStart();
+  ROUTE = {p, from, t:Date.now(), ok:!!res, pts, dist: res ? res.dist : null, dur: res ? res.dur : null, off:0, pi:0,
+    g: res && res.st && res.st.length ? {st:res.st, idx: res.st.length > 1 ? 1 : 0, from, co:pts, said:{}} : null};
+  // largo acumulado de la ruta (para saber cuánto falta sin volver a preguntar)
+  { const acc = [0]; for (let i = 1; i < pts.length; i++) acc.push(acc[i - 1] + haversine(pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1])); ROUTE.acc = acc; }
+  navStart(); navBanner();
+  if (res) rutaPrecarga(pts);
   const info = res ? `${fmtDist(res.dist / 1000)} · ${fmtDur(res.dur)} en vehículo` : `Línea directa ${fmtDist(haversine(from.lat, from.lng, p.lat, p.lng))} · no se pudo calcular por calles (revisa tu conexión)`;
   routeBar(`<div class="rt-t"><b>${esc(p.n)}</b><span>${info}</span></div><div class="rt-b"><button class="btn sm pri" id="routeOpen" data-c="${p.c}">Ficha</button>${routeLinks(p)}</div>`); wireRouteBar();
   if (fit) map.fitBounds(L.latLngBounds(pts), {paddingTopLeft:[40, 70], paddingBottomRight:[40, 150], maxZoom:18});
@@ -3922,8 +4110,42 @@ function routeOnMove(){
     routeBar(`<div class="rt-t"><b>${esc(ROUTE.p.n)}</b><span class="ok">Llegaste al punto de venta</span></div><div class="rt-b"><button class="btn sm pri" id="routeOpen" data-c="${ROUTE.p.c}">Abrir ficha</button><button class="btn sm" id="routeClose">Quitar ruta</button></div>`); wireRouteBar();
     return;
   }
-  // recalcular si te alejaste más de 150 m del último punto de partida (máximo cada 20 s)
-  if (haversine(ME.lat, ME.lng, ROUTE.from.lat, ROUTE.from.lng) > 0.15 && Date.now() - ROUTE.t > 20000) drawRoute(ROUTE.p, false);
+  // dónde vas sobre la ruta (se busca cerca del último punto: rápido aunque la ruta sea larga)
+  const P = ROUTE.pts; let bi = ROUTE.pi || 0, bd = Infinity;
+  for (let i = Math.max(0, bi - 15); i < Math.min(P.length, bi + 60); i++){ const d = haversine(ME.lat, ME.lng, P[i][0], P[i][1]); if (d < bd){ bd = d; bi = i; } }
+  if (bd > 0.08) for (let i = 0; i < P.length; i++){ const d = haversine(ME.lat, ME.lng, P[i][0], P[i][1]); if (d < bd){ bd = d; bi = i; } }
+  ROUTE.pi = bi; ROUTE.resta = (ROUTE.acc ? ROUTE.acc[ROUTE.acc.length - 1] - ROUTE.acc[bi] : 0) + bd;
+  // fuera del camino: se recalcula solo si te saliste (2 lecturas seguidas a más de 45 m), no a cada rato
+  if (ROUTE.ok && bd > 0.045){ if (++ROUTE.off >= 2 && Date.now() - ROUTE.t > 8000 && navigator.onLine){ ROUTE.off = 0; if (vozHablaOn()) vozHablar("Recalculando la ruta."); drawRoute(ROUTE.p, false); return; } }
+  else ROUTE.off = 0;
+  navBanner();
+}
+/* banda de indicaciones arriba del mapa: la próxima vuelta, a cuánto está, la que sigue y cuánto falta */
+function navBanner(){
+  let el = document.getElementById("navBan");
+  if (!ROUTE || !ROUTE.g || !ME){ if (el) el.hidden = true; $("#mapPane").classList.remove("navon"); return; }
+  if (!el){ el = document.createElement("div"); el.id = "navBan"; el.className = "navban"; el.setAttribute("role", "status"); $("#mapPane").appendChild(el); }
+  const g = ROUTE.g, s = guiaPaso(g); if (!s){ el.hidden = true; return; }
+  const d = haversine(ME.lat, ME.lng, s.lat, s.lng), nx = g.st[g.idx + 1], resta = ROUTE.resta != null ? ROUTE.resta : d;
+  const vel = ROUTE.dist && ROUTE.dur ? ROUTE.dist / ROUTE.dur : 8, min = Math.max(1, Math.round(resta * 1000 / vel / 60));
+  el.innerHTML = `<i class="nbi ${s.type === "arrive" ? "garr" : ""}">${guiaIcono(s)}</i><div class="nbt"><b>${d < 0.03 ? "Ahora" : "En " + gdist(d)}</b><span>${esc(guiaFrase(s))}</span>${nx && s.type !== "arrive" ? `<small>Luego ${esc(guiaFrase(nx))}</small>` : ""}</div><div class="nbr"><b>${gdist(resta)}</b><small>${min} min</small></div>`;
+  el.hidden = false; $("#mapPane").classList.add("navon");
+  // avisos por voz: una vez lejos (≈250 m) y otra al llegar a la esquina (≈50 m)
+  if (vozHablaOn()){ const k = g.idx, lv = g.said[k] || 0, fr = guiaFrase(s);
+    if (s.type === "arrive"){ if (d < 0.06 && lv < 2){ g.said[k] = 2; vozHablar("Llegaste: " + fr.replace(/^llegas al cliente,?\s*/, "") + ". " + (ROUTE.p.n || "")); } }
+    else if (d < 0.06 && lv < 2){ g.said[k] = 2; vozHablar("Ahora, " + fr + "."); }
+    else if (d < 0.27 && d > 0.12 && lv < 1){ g.said[k] = 1; vozHablar(`En ${gdist(d).replace(" m", " metros")}, ${fr}.`); } }
+}
+/* al trazar una ruta, con conexión se guardan los cuadros del mapa a lo largo del camino (por si se pierde la señal en el trayecto) */
+function rutaPrecarga(pts){
+  try{
+    if (!tilesOK() || !navigator.onLine || MAPA_AUTO.run) return;
+    const layers = mapaCapasGuardables(); if (!layers.length) return;
+    const keys = new Set(), out = []; let acc = 0, last = pts[0];
+    const pas = [pts[0]]; for (const q of pts){ acc += haversine(last[0], last[1], q[0], q[1]); last = q; if (acc > 0.12){ pas.push(q); acc = 0; } } pas.push(pts[pts.length - 1]);
+    for (const z of [15, 16, 17]) for (const q of pas){ const [x, y] = owTile(q[0], q[1], z), r = z === 17 ? 1 : 0; for (let dx = -r; dx <= r; dx++) for (let dy = -r; dy <= r; dy++){ const k = z + "/" + (x + dx) + "/" + (y + dy); if (keys.has(k)) continue; keys.add(k); for (const l of layers) if (z <= (l.options.maxNativeZoom || 19)) out.push(tileUrlFor(l, x + dx, y + dy, z)); } }
+    if (out.length) mapaBajar(out.slice(0, 900)).catch(() => {});
+  }catch(e){}
 }
 
 /* ---------- navegación: con una ruta activa tu punto se vuelve una flecha y el mapa avanza y gira con ella ---------- */
@@ -4006,11 +4228,11 @@ function navTick(ts){
   // seguir: el mapa gira con tu sentido y te deja en la parte de abajo para ver más calle adelante
   if (NAV.follow && now >= NAV.t0){
     if (map.getZoom() < 17 && !NAV.zoomed){ NAV.zoomed = true; map.setZoom(17, {animate:false}); }
-    if (map.setBearing && NAV.dHead != null){ const want = (360 - NAV.dHead) % 360; if (Math.abs(angDiff(map.getBearing(), want)) > 0.4) map.setBearing(want); }
+    if (map.setBearing && NAV.dHead != null){ const want = (360 - NAV.dHead) % 360; if (Math.abs(angDiff(map.getBearing(), want)) > 3 && now - (NAV.lastRot || 0) > 250){ NAV.lastRot = now; map.setBearing(want); } }
     const sz = map.getSize(), mpp = 156543.03 * Math.cos(NAV.disp.lat * Math.PI / 180) / 2 ** map.getZoom();
     const C = NAV.dHead != null ? destPt(NAV.disp, NAV.dHead, sz.y * 0.2 * mpp) : NAV.disp;
     const d = map.latLngToContainerPoint([C.lat, C.lng]).subtract(sz.divideBy(2));
-    if (Math.abs(d.x) + Math.abs(d.y) > 0.6) map.panBy(d, {animate:false});
+    if (Math.abs(d.x) + Math.abs(d.y) > 4 && now - (NAV.lastPan || 0) > 100){ NAV.lastPan = now; map.setView([C.lat, C.lng], map.getZoom(), {animate:false}); }   // setView respeta el giro del mapa (panBy con el mapa girado se desfasaba y reiniciaba todo: pantalla en blanco)
   }
   navRender();
   // sigue animando mientras te mueves o mientras la flecha/el mapa no han llegado a su lugar
@@ -4525,7 +4747,7 @@ async function owGuardarZona(s, w, n, e){
 }
 function owDraw(force){
   if (!map) return;
-  if (!OW.rnd){ map.createPane("owPane", map.getPane("rotatePane") || map.getPane("mapPane"));   /* dentro del panel que gira con el mapa */ map.getPane("owPane").style.zIndex = 390; map.getPane("owPane").style.pointerEvents = "none"; OW.rnd = L.canvas({pane:"owPane", padding:.6}); }
+  if (!OW.rnd){ map.createPane("owPane", map.getPane("rotatePane") || map.getPane("mapPane"));   /* dentro del panel que gira con el mapa */ map.getPane("owPane").style.zIndex = 390; map.getPane("owPane").style.pointerEvents = "none"; OW.rnd = L.canvas({pane:"owPane", padding:.15}); }
   if (!OW.layer) OW.layer = L.layerGroup().addTo(map);
   const z = map.getZoom();
   if (!OW.on || z < 16){ OW.layer.clearLayers(); OW.lastC = null; return; }
@@ -4653,7 +4875,7 @@ const fmtDist = d => d < 1 ? Math.round(d*1000)+" m" : fmt(d,1)+" km";
 function openPdv(c){
   const p = DB.pdv.get(Number(c)); if (!p) return;
   openC = p.c;
-  const v = visit(p.c, false) || {cov:{}, ac:{}, note:"", t:null};
+  const v = visitVer(p.c);
   $("#dTitle").textContent = p.n || "(sin nombre)";
   $("#dChips").innerHTML = `<span class="num">${String(p.c).padStart(10,"0")}</span><span>Ruta ${esc(p.ruta||"—")}</span><span>${esc(p.fr||"Sin FR")}</span>${visitedToday(p.c)?`<span style="border-color:var(--ok);color:var(--ok)">Visitado hoy</span>`:""}`;
   // resumen de un vistazo (toca para ir a la sección)
@@ -4672,7 +4894,12 @@ function openPdv(c){
   const d = (ME && p.lat != null) ? fmtDist(haversine(ME.lat,ME.lng,p.lat,p.lng)) : null;
   const kv = (l, val, cls="") => `<div><div class="l">${l}</div><div class="v ${cls}">${val}</div></div>`;
 
-  let h = `<div class="dirb${p.dir ? "" : " nod"}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><div><div class="l">Dirección</div><div class="v">${p.dir ? esc(p.dir) : "Sin dirección registrada"}</div></div>${p.dir ? `<button class="btn sm" data-copydir="${esc(p.dir)}">Copiar</button>` : ""}</div>`;
+  const ve = visEstado(p.c), hoyProg = frDays(p.fr).includes(todayLetter()), hh = visHist(p.c).filter(x => x.d !== todayKey()), hm = x => new Date(x).toLocaleTimeString("es-SV", {hour:"2-digit", minute:"2-digit"});
+  let h = `<div class="visb ${ve ? ve.st : hoyProg ? "pend" : ""}" id="visBar">${ve && ve.st === "ok" ? `<span class="vbi">✓</span><div class="vbt"><b>Visitado hoy</b><small>a las ${hm(ve.t)}${ve.vivo ? " · registrado por el vendedor" : ""}</small></div><button class="btn sm" data-visx>Deshacer</button>`
+    : ve && ve.st === "nv" ? `<span class="vbi">✕</span><div class="vbt"><b>No se pudo: ${esc(ve.mot)}</b><small>a las ${hm(ve.t)}</small></div><button class="btn sm pri" data-visok>Sí lo visité</button><button class="btn sm" data-visx aria-label="Deshacer">↺</button>`
+    : `<div class="vbt"><b>${hoyProg ? "Pendiente de visita hoy" : "Visita"}</b><small>${hh.length ? `Última: ${fCorta(hh[0].d)}${hh[0].st === "nv" ? " (no se pudo: " + esc(hh[0].mot) + ")" : ""}` : "Sin visitas registradas"}</small></div><button class="btn sm pri" data-visok>✓ Visitado</button><button class="btn sm" data-visnv>No se pudo</button>`}</div>
+    <div class="vismot" id="visMot" hidden>${VIS_MOT.map(m => `<button class="fopt" data-vismot="${esc(m)}">${esc(m)}</button>`).join("")}</div>` + liveFichaHTML(p.c);
+  h += `<div class="dirb${p.dir ? "" : " nod"}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><div><div class="l">Dirección</div><div class="v">${p.dir ? esc(p.dir) : "Sin dirección registrada"}</div></div>${p.dir ? `<button class="btn sm" data-copydir="${esc(p.dir)}">Copiar</button>` : ""}</div>`;
   // identidad + ubicación
   h += `<div class="sec"><h3>Identidad<span class="r" id="dDist">${d ?? (p.lat==null ? "Sin coordenadas" : "")}</span></h3><div class="in">
     <div class="kv2">
@@ -4743,13 +4970,13 @@ function openPdv(c){
   // Lectura Wellington (equipos sin lectura): solo si el cliente tiene alguno
   if (p.eq.length) h += `<div class="sec"><h3>Lectura Wellington<span class="r"><span class="pill ${p.eq.some(e => /\+60/.test(e.status)) ? "bad" : "warn"}">${p.eq.length} sin lectura</span></span></h3><div class="in">${p.eq.length ? p.eq.map((e,i) => `<div class="eq"><h4>Equipo ${i+1} · <span class="num">${esc(e.serie)}</span></h4><div class="kv2">
       ${kv("Modelo", esc(e.modelo||"—"))}${kv("Status", `<span class="pill ${/\+60/.test(e.status)?"bad":/30/.test(e.status)?"warn":"ok"}">${esc(e.status||"—")}</span>`)}
-      ${kv("Visto por", esc(e.visto||"—"))}${kv("GPS equipo", e.gps?`<a style="color:var(--cyan)" href="https://www.google.com/maps?q=${esc(e.gps)}" target="_blank" rel="noopener">Ver ubicación</a>`:"—")}</div>${(() => { const vv = visit(p.c, false), k = String(e.serie || i), on = !!(vv && vv.wl && vv.wl[k]); return `<label class="chk ${on ? "done" : ""}"><input type="checkbox" data-kind="wl" data-k="${esc(k)}" ${on ? "checked" : ""}><span class="t">Lo lecturé hoy</span></label>`; })()}</div>`).join("") : `<p class="note" style="margin:0">Sin equipos de monitoreo registrados.</p>`}</div></div>`;
+      ${kv("Visto por", esc(e.visto||"—"))}${kv("GPS equipo", e.gps?`<a style="color:var(--cyan)" href="https://www.google.com/maps?q=${esc(e.gps)}" target="_blank" rel="noopener">Ver ubicación</a>`:"—")}</div>${(() => { const vv = v, k = String(e.serie || i), on = !!(vv && vv.wl && vv.wl[k]); return `<label class="chk ${on ? "done" : ""}"><input type="checkbox" data-kind="wl" data-k="${esc(k)}" ${on ? "checked" : ""}><span class="t">Lo lecturé hoy</span></label>`; })()}</div>`).join("") : `<p class="note" style="margin:0">Sin equipos de monitoreo registrados.</p>`}</div></div>`;
   // R+N
   {
     const sem = DB.rn && DB.rn.sem, nRN = rnEq(p).length;
     const semPill = e => !e.sem ? "" : `<span class="pill ${e.sem === "VERDE" ? "ok" : e.sem === "AMARILLO" ? "warn" : "bad"}" ${e.sem === "NEGRO" ? `style="background:#000;color:#fff;border-color:#555"` : ""}>${esc(e.sem === "ROJO" && e.rango ? "Rojo " + e.rango : e.sem.charAt(0) + e.sem.slice(1).toLowerCase())}</span>`;
     const ord = [...p.rn].sort((x, y) => (isRN(y) - isRN(x)) || ((y.nec || 0) - (x.nec || 0)));
-    if (p.rn.length) h += `<div class="sec"><h3>R+N · Equipos fríos<span class="r">${sem ? (nRN ? `<span class="pill bad">${nRN} en rojo/negro</span>` : `<span class="pill ok">Sin R+N</span>`) : p.rn.length}</span></h3><div class="in">${p.rn.length ? `<div class="kv2">${ord.map(r => kv(`${esc(r.mat||"—")}${r.serie?` · <span class="num">${esc(r.serie)}</span>`:""}`, `${semPill(r)} ${r.nec ? `<span class="num">Nec. ${fmt(r.nec,2)} cj</span>` : (isRN(r) ? "" : "Sin necesidad")}`)).join("")}</div>${sem ? ord.filter(isRN).map((r, j) => { const vv = visit(p.c, false), k = String(r.serie || r.mat || j), on = !!(vv && vv.rn && vv.rn[k]); return `<label class="chk ${on ? "done" : ""}"><input type="checkbox" data-kind="rn" data-k="${esc(k)}" ${on ? "checked" : ""}><span class="t">Saqué de R+N ${esc(r.serie || r.mat || "")} (le vendí la necesidad)</span></label>`; }).join("") : ""}${nRN ? `<p class="note" style="margin:0">Para sacar el equipo de rojo/negro hay que llevarlo a amarillo: "Nec." son las cajas que le faltan.</p>` : ""}` : `<p class="note" style="margin:0">Sin equipos en la base R+N.</p>`}</div></div>`;
+    if (p.rn.length) h += `<div class="sec"><h3>R+N · Equipos fríos<span class="r">${sem ? (nRN ? `<span class="pill bad">${nRN} en rojo/negro</span>` : `<span class="pill ok">Sin R+N</span>`) : p.rn.length}</span></h3><div class="in">${p.rn.length ? `<div class="kv2">${ord.map(r => kv(`${esc(r.mat||"—")}${r.serie?` · <span class="num">${esc(r.serie)}</span>`:""}`, `${semPill(r)} ${r.nec ? `<span class="num">Nec. ${fmt(r.nec,2)} cj</span>` : (isRN(r) ? "" : "Sin necesidad")}`)).join("")}</div>${sem ? ord.filter(isRN).map((r, j) => { const vv = v, k = String(r.serie || r.mat || j), on = !!(vv && vv.rn && vv.rn[k]); return `<label class="chk ${on ? "done" : ""}"><input type="checkbox" data-kind="rn" data-k="${esc(k)}" ${on ? "checked" : ""}><span class="t">Saqué de R+N ${esc(r.serie || r.mat || "")} (le vendí la necesidad)</span></label>`; }).join("") : ""}${nRN ? `<p class="note" style="margin:0">Para sacar el equipo de rojo/negro hay que llevarlo a amarillo: "Nec." son las cajas que le faltan.</p>` : ""}` : `<p class="note" style="margin:0">Sin equipos en la base R+N.</p>`}</div></div>`;
   }
   // visita
   // nota de la visita (también se llena por voz: "anota que…")
@@ -4757,6 +4984,9 @@ function openPdv(c){
 
   if (stampOf("base")) h += `<p class="note" style="text-align:center">${stampHTML("base")}</p>`;
   $("#dBody").innerHTML = h; $("#dBody").scrollTop = 0;
+  // lo que marcó el vendedor (en vivo) se ve marcado y con su hora
+  for (const inp of $("#dBody").querySelectorAll("input[type=checkbox][data-kind]")){ const e = v._lv[inp.dataset.kind + "|" + inp.dataset.k]; if (!e) continue; const box = inp.closest(".chk, .pcard"); if (box){ box.classList.add("lvmk"); const t = box.querySelector(".t") || box; t.insertAdjacentHTML("beforeend", `<i class="lvtag">● ${esc(liveQuien(e))} ${LVH(e.t)}</i>`); } }
+  LVF.sig = liveSigCli(p.c); if (liveLector()) setTimeout(() => liveFichaTick(false), 50);
   // secciones plegables: abiertas las que sirven en la visita; se recuerda lo que el usuario abre o cierra
   const FSEC = ls.get("rutapdv_fsec", {});
   document.querySelectorAll("#dBody > .sec").forEach(sec => {
@@ -4997,7 +5227,14 @@ function wire(){
     if (c){ const p = DB.pdv.get(Number(c.dataset.center)); closeDrawers(); setTab("map"); setTimeout(() => { map.setView([p.lat,p.lng], 19); }, 80); return; }
     if (e.target.id === "vDone"){ const v = visit(openC, true); v.t = v.t || Date.now(); v.note = $("#vNote").value; saveVis(); liveMark(openC, "vis", "1", true); toast("Visita registrada"); const cc = openC; renderList(); renderMap(); openPdv(cc); }
   });
-  $("#dBody").addEventListener("input", e => { if (e.target.id === "vNote" && openC != null){ const v = visit(openC, true); v.note = e.target.value; saveVis(); } });
+  $("#dBody").addEventListener("click", e => {
+    if (openC == null) return; const sc = $("#dBody").scrollTop, re = () => { openPdv(openC); $("#dBody").scrollTop = sc; };
+    if (e.target.closest("[data-visok]")){ visMarcar(openC, "ok"); toast("Visita registrada"); re(); return; }
+    if (e.target.closest("[data-visx]")){ visMarcar(openC, null); toast("Visita quitada"); re(); return; }
+    if (e.target.closest("[data-visnv]")){ const m = $("#visMot"); if (m) m.hidden = !m.hidden; return; }
+    const mo = e.target.closest("[data-vismot]"); if (mo){ visMarcar(openC, "nv", mo.dataset.vismot); toast("Registrado: no se pudo (" + mo.dataset.vismot + ")"); re(); return; }
+  });
+  $("#dBody").addEventListener("input", e => { if (e.target.id === "vNote" && openC != null){ const v = visit(openC, true); v.note = e.target.value; saveVis(); notaLive(openC, v.note); } });
   $("#btnExport").onclick = () => { $("#menu").hidden = true; exportVisits(); };
   $("#fileIn").onchange = e => { handleFile(e.target.files); e.target.value = ""; $("#menu").hidden = true; };
 
@@ -5193,10 +5430,16 @@ async function guiaFetch(p){
 // distancia (km) de tu posición al camino trazado
 function guiaFuera(g){ let m = 1e9; const co = g.co; for (let i = 0; i < co.length; i++){ const d = haversine(ME.lat, ME.lng, co[i][0], co[i][1]); if (d < m) m = d; } return m; }
 function guiaPaso(g){
-  // avanza a la siguiente maniobra cuando ya pasaste por la esquina
-  while (g.idx < g.st.length - 1 && haversine(ME.lat, ME.lng, g.st[g.idx].lat, g.st[g.idx].lng) < 0.02) g.idx++;
-  // si la siguiente esquina ya quedó atrás (está más cerca la otra), también avanza
-  while (g.idx < g.st.length - 1){ const a = g.st[g.idx], b = g.st[g.idx + 1], da = haversine(ME.lat, ME.lng, a.lat, a.lng), ab = haversine(a.lat, a.lng, b.lat, b.lng), db = haversine(ME.lat, ME.lng, b.lat, b.lng); if (haversine(ME.lat, ME.lng, g.from.lat, g.from.lng) > 0.03 && db < ab * 0.9 && da > 0.03 && db < da) g.idx++; else break; }
+  // en qué punto del camino vas (se busca cerca del último) y en qué punto queda cada esquina
+  const co = g.co;
+  if (co && co.length > 1){
+    if (!g.sti){ g.sti = g.st.map(x => { let bi = 0, bd = Infinity; for (let i = 0; i < co.length; i++){ const d = haversine(x.lat, x.lng, co[i][0], co[i][1]); if (d < bd){ bd = d; bi = i; } } return bi; }); g.pi = 0; }
+    let bi = g.pi || 0, bd = Infinity;
+    for (let i = Math.max(0, bi - 10); i < Math.min(co.length, bi + 80); i++){ const d = haversine(ME.lat, ME.lng, co[i][0], co[i][1]); if (d < bd){ bd = d; bi = i; } }
+    if (bd < 0.06) g.pi = Math.max(g.pi || 0, bi);   // solo hacia adelante y si vas sobre el camino
+    // ya pasaste la esquina cuando tu punto en el camino va más allá de ella (o estás encima)
+    while (g.idx < g.st.length - 1 && (g.sti[g.idx] < g.pi || haversine(ME.lat, ME.lng, g.st[g.idx].lat, g.st[g.idx].lng) < 0.02)) g.idx++;
+  } else while (g.idx < g.st.length - 1 && haversine(ME.lat, ME.lng, g.st[g.idx].lat, g.st[g.idx].lng) < 0.02) g.idx++;
   return g.st[g.idx];
 }
 function guiaIcono(s){
@@ -5221,17 +5464,49 @@ function guiaHTML(p){
   const g = GUIA.m.get(p.c);
   if (!g || !ME) return navigator.onLine ? `<i class="gico gwait"></i><span class="gtx">Buscando el camino por calles…</span>` : `<span class="gtx gmut">Sin señal: sigue la flecha (línea recta)</span>`;
   if (g.err) return `<span class="gtx gmut">Sin ruta por calles: sigue la flecha (línea recta)</span>`;
-  const s = guiaPaso(g), d = haversine(ME.lat, ME.lng, s.lat, s.lng);
+  const s = g.st && g.st.length ? guiaPaso(g) : null; if (!s) return `<span class="gtx gmut">Sin indicaciones por calles: sigue la flecha</span>`;
+  const d = haversine(ME.lat, ME.lng, s.lat, s.lng);
   let resto = d; for (let k = g.idx; k < g.st.length; k++) resto += (g.st[k].dist || 0) / 1000;
-  const frase = guiaFrase(s), ya = d < 0.03;
-  return `<i class="gico ${s.type === "arrive" ? "garr" : ""}">${guiaIcono(s)}</i><span class="gtx"><b>${ya ? "Ahora" : "En " + gdist(d)}</b> ${esc(frase)}<small>${gdist(resto)} por calles</small></span>`;
+  const frase = guiaFrase(s), ya = d < 0.03, nx = g.st[g.idx + 1], RT = ROADT.m.get(p.c);
+  const luego = nx && s.type !== "arrive" && haversine(s.lat, s.lng, nx.lat, nx.lng) < 0.35 ? ` · luego ${guiaFrase(nx).replace(/ en .*$/, "")}` : "";
+  return `<i class="gico ${s.type === "arrive" ? "garr" : ""}">${guiaIcono(s)}</i><span class="gtx"><b>${ya ? "Ahora" : "En " + gdist(d)}</b> ${esc(frase)}<small>${gdist(resto)} por calles${RT ? ` · ${Math.max(1, Math.round(RT.dur / 60))} min` : ""}${esc(luego)}</small></span>`;
+}
+/* tiempo por calles a los 25 más cercanos en UNA consulta (OSRM table): la lista se ordena por lo que de verdad tardas en llegar
+   (respeta sentidos y el rodeo de las calles), no solo por la línea recta */
+const ROADT = {m:new Map(), from:null, t:0, busy:false, key:""};
+async function roadTabla(){
+  if (ROADT.busy || !ME || !navigator.onLine || !dirActivo()) return;
+  const C = current.filter(p => p.lat != null).slice(0, 25); if (C.length < 2) return;
+  const key = C.map(p => p.c).join(",");
+  if (ROADT.from && haversine(ME.lat, ME.lng, ROADT.from.lat, ROADT.from.lng) < 0.12 && Date.now() - ROADT.t < 180000 && key.split(",").slice(0, 10).every(c => ROADT.m.has(+c))) return;
+  const wait = 1100 - (Date.now() - GUIA.prev); if (wait > 0) await new Promise(r => setTimeout(r, wait));
+  ROADT.busy = true; GUIA.prev = Date.now();
+  try{
+    const co = [[ME.lng, ME.lat], ...C.map(p => [p.lng, p.lat])].map(([x, y]) => x.toFixed(6) + "," + y.toFixed(6)).join(";");
+    const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 12000);
+    const r = await fetch(`https://router.project-osrm.org/table/v1/driving/${co}?sources=0&annotations=duration,distance`, {signal:ctl.signal}); clearTimeout(to);
+    if (!r.ok) throw new Error("http " + r.status); const j = await r.json(); if (j.code !== "Ok") throw new Error(j.code);
+    const du = j.durations[0], di = (j.distances || [])[0] || [];
+    ROADT.m = new Map(); C.forEach((p, i) => { const d = du[i + 1]; if (d != null) ROADT.m.set(p.c, {dur:d, dist:di[i + 1] != null ? di[i + 1] : null}); });
+    ROADT.from = {lat:ME.lat, lng:ME.lng}; ROADT.t = Date.now();
+    const L = $("#list"); if (L && !$("#listPane").hidden){ L._sig = ""; renderList(); }
+  }catch(e){} finally { ROADT.busy = false; }
+}
+// la lista por cercanía: los que tienen tiempo por calles van primero, del más rápido al más lento
+function roadOrden(arr){
+  if (!dirActivo() || !ROADT.m.size || !ROADT.from || haversine(ME.lat, ME.lng, ROADT.from.lat, ROADT.from.lng) > 0.4) return arr;
+  const con = [], sin = []; for (const p of arr) (ROADT.m.has(p.c) && con.length < 40 ? con : sin).push(p);
+  if (!con.length) return arr;
+  con.sort((a, b) => ROADT.m.get(a.c).dur - ROADT.m.get(b.c).dur);
+  return con.concat(sin);
 }
 // repinta las guías de la lista y pide las rutas que falten (de una en una, para no saturar el servicio)
 function guiaTick(){
   if (!dirActivo()){ return; }
   const top = current.filter(p => p.lat != null).slice(0, GUIA_N), ids = new Set(top.map(p => p.c));
-  for (const el of document.querySelectorAll("#list [data-guia]")){ const c = +el.dataset.guia, p = DB.pdv.get(c); if (!p) continue; if (!ids.has(c)){ if (!GUIA.m.has(c)) el.innerHTML = `<span class="gtx gmut">Guía por calles: se muestra en los ${GUIA_N} más cercanos</span>`; else el.innerHTML = guiaHTML(p); continue; } el.innerHTML = guiaHTML(p); }
+  for (const el of document.querySelectorAll("#list [data-guia]")){ const c = +el.dataset.guia, p = DB.pdv.get(c); if (!p) continue; if (!ids.has(c)){ const RT = ROADT.m.get(c); if (!GUIA.m.has(c)) el.innerHTML = RT ? `<span class="gtx"><b>${Math.max(1, Math.round(RT.dur / 60))} min</b> por calles${RT.dist != null ? ` · ${gdist(RT.dist / 1000)}` : ""}<small>La guía vuelta por vuelta aparece al quedar entre los ${GUIA_N} más cercanos</small></span>` : `<span class="gtx gmut">Guía por calles: se muestra en los ${GUIA_N} más cercanos</span>`; else el.innerHTML = guiaHTML(p); continue; } el.innerHTML = guiaHTML(p); }
   if (!navigator.onLine || !ME) return;
+  roadTabla();
   for (const p of top){
     const g = GUIA.m.get(p.c);
     const nueva = !g || (g.err && Date.now() - g.t > 60000) || (!g.err && guiaFuera(g) > 0.06 && Date.now() - g.t > 15000);   // te saliste del camino: recalcula
@@ -5291,6 +5566,29 @@ async function toggleCompass(){
   setTimeout(() => { if (COMP.on && COMP.cur === 0 && !COMP.last) toast("No llegan datos de brújula: mueve el teléfono en forma de 8 para calibrarla"); }, 4000);
 }
 
+/* ---------- burbuja del asistente: en cualquier pantalla (lista, mapa, panel, ficha, desafíos) ---------- */
+(function(){
+  const b = document.createElement("button"); b.id = "vozFab"; b.className = "vozfab"; b.type = "button"; b.title = "Asistente de voz · toca para hablar, mantén presionado para manos libres"; b.setAttribute("aria-label", "Asistente de voz");
+  b.innerHTML = `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>`;
+  const pn = document.createElement("div"); pn.id = "vozPanel"; pn.className = "vozpanel"; pn.hidden = true; pn.setAttribute("role", "status");
+  document.body.appendChild(b); document.body.appendChild(pn);
+  // reusa el mismo motor del micrófono del buscador (toque = una orden, mantener = manos libres)
+  const mic = () => document.getElementById("qMic");
+  let lp = null, lpHecho = false;
+  b.addEventListener("pointerdown", () => { lpHecho = false; clearTimeout(lp); lp = setTimeout(() => { lpHecho = true; if (navigator.vibrate) navigator.vibrate(40); if (window.vozManos) window.vozManos(!document.body.classList.contains("vozhf")); }, 650); });
+  ["pointerup", "pointerleave", "pointercancel"].forEach(ev => b.addEventListener(ev, () => clearTimeout(lp)));
+  b.addEventListener("contextmenu", e => e.preventDefault());
+  b.addEventListener("click", () => { if (lpHecho){ lpHecho = false; return; } const m = mic(); if (m && !m.hidden) m.click(); else toast("Este navegador no permite dictar por voz"); });
+  // el panel muestra lo que va entendiendo y lo que responde el asistente
+  const q = () => document.getElementById("q");
+  // que no tape la barra de la ruta ni la tarjeta del cliente en el mapa: se sube por encima de ellas
+  const subir = () => { let top = Infinity; for (const id of ["routeBar", "mapSheet"]){ const el = document.getElementById(id); if (!el || el.hidden || (id === "mapSheet" && !el.classList.contains("on")) || $("#mapPane").hidden) continue; const r = el.getBoundingClientRect(); if (r.height && r.right > window.innerWidth - 90) top = Math.min(top, r.top); }
+    const bt = top < Infinity ? Math.max(84, window.innerHeight - top + 12) : null; b.style.bottom = bt ? bt + "px" : ""; pn.style.bottom = bt ? (bt + 68) + "px" : ""; };
+  setInterval(() => { subir(); const m = mic(), on = m && m.classList.contains("rec"); b.classList.toggle("rec", !!on); b.classList.toggle("hf", document.body.classList.contains("vozhf"));
+    if (on){ pn.hidden = false; pn.innerHTML = `<b>${document.body.classList.contains("vozhf") ? "Manos libres · te escucho" : "Te escucho…"}</b><span>${esc((q() && q().value) || "Di una orden: «compra cero de 3 litros de la ruta 113», «cómo voy», «promociones»…")}</span>`; } }, 200);
+  window.vozPanelDecir = txt => { if (!txt) return; pn.hidden = false; pn.innerHTML = `<b>Asistente</b><span>${esc(String(txt).slice(0, 260))}</span>`; clearTimeout(window.vozPanelDecir.t); window.vozPanelDecir.t = setTimeout(() => { if (!b.classList.contains("rec")) pn.hidden = true; }, 6000); };
+  pn.addEventListener("click", () => { pn.hidden = true; });
+})();
 /* ---------- buscar clientes por voz ---------- */
 (function(){
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition, btn = $("#qMic"), inp = $("#q");
@@ -5680,17 +5978,19 @@ function mdHTML(rs, multi){
   const ord = MD_CATS.map(x => x[0]).concat(["OTROS"]);
   const cats = T.cats.filter(c => c.meta > 0).sort((a, b) => ord.indexOf(a.k) - ord.indexOf(b.k));
   const chip = c => { const cl = c.nec > 0 ? mdCls(c) : "ok", w = Math.max(0, Math.min(100, c.meta > 0 ? c.real / c.meta * 100 : 0));
-    const subs = c.subs.filter(s => s.meta > 0).map(s => `${esc(s.lab)} <b>${s.nec > 0 ? fmt(mdHoy(s.nec)) : "✓"}</b>`).join(" · ");
+    const subs = c.subs.filter(s => s.meta > 0 && !/colas/i.test(s.lab)).map(s => `${esc(s.lab)} <b>${s.nec > 0 ? fmt(mdHoy(s.nec)) : "✓"}</b>`).join(" · ");
     return `<div class="dch ${cl}"><small>${esc(c.lab)}</small><b>${c.nec > 0 ? fmt(mdHoy(c.nec)) : "✓"}</b><span>${c.nec > 0 ? "cajas hoy" : "meta asegurada"}</span><div class="dbar"><i style="width:${w.toFixed(0)}%"></i></div><em>${fmt(c.real)} de ${fmt(c.meta)} CJ · tendencia ${pc(c.tend, c.meta)}</em>${subs ? `<div class="dsubs">${subs}</div>` : ""}</div>`; };
   let h = `<div class="dmd"><div class="dmdh"><h3>Volumen por categoría · meta planilla</h3><small class="note">${esc(info.periodo || "")}${info.corte ? ` · Power BI al <b>${esc(info.corte)}</b>${typeof staleTag === "function" ? staleTag(info.corte) : ""}` : ""}</small></div>`;
   h += `<div class="dmdt"><div><span>${multi ? `El equipo necesita vender hoy` : `Necesitas vender hoy`}</span><br><b class="dbig">${fmt(mdHoy(T.tot.nec))} CJ</b></div><div class="dmr"><span>Llevas <b>${fmt(T.tot.real)}</b> de ${fmt(T.tot.meta)} CJ (${pc(T.tot.real, T.tot.meta)})</span><br><span>Tendencia al cierre: <b>${pc(T.tot.tend, T.tot.meta)}</b></span></div></div>`;
-  h += `<div class="dgrid">${cats.map(chip).join("")}</div>`;
+  h += `<div class="dgrid">${cats.map(c => { let x = chip(c); if (c.k === "VOLUMEN CSD"){ const cl = c.subs.find(sb => /colas/i.test(sb.lab) && sb.meta > 0); if (cl) x += chip(Object.assign({}, cl, {k:"COLAS", lab:"Core colas · categoría de pago", subs:[]})); } return x; }).join("")}</div>`;
   if (multi){
     const rows = rs.map(r => DB.md.rutas.get(r) ? [r, DB.md.rutas.get(r)] : null).filter(Boolean).sort((a, b) => (b[1].tot.nec || 0) - (a[1].tot.nec || 0));
     const cell = C => !C || !(C.meta > 0) ? `<td>—</td>` : C.nec > 0 ? `<td><b>${fmt(mdHoy(C.nec))}</b></td>` : `<td class="ok">✓</td>`;
-    h += `<div class="dmdtab"><table><thead><tr><th>Ruta</th><th>Total hoy</th>${cats.map(c => `<th>${esc(c.lab)}</th>`).join("")}<th>Tend.</th></tr></thead><tbody>` +
-      rows.map(([r, R]) => `<tr data-desruta="${esc(r)}"><td><b>${esc(r)}</b></td>${cell(R.tot)}${cats.map(c => cell(R.cats.get(c.k))).join("")}<td class="${mdCls(R.tot) === "ok" ? "ok" : ""}">${pc(R.tot.tend, R.tot.meta)}</td></tr>`).join("") +
-      `</tbody><tfoot><tr><td>Equipo</td>${cell(T.tot)}${cats.map(c => cell(c)).join("")}<td>${pc(T.tot.tend, T.tot.meta)}</td></tr></tfoot></table></div>`;
+    const colasDe = X => { const C = X && X.cats ? X.cats.get("VOLUMEN CSD") : X; return C && C.subs ? C.subs.find(sb => /colas/i.test(sb.lab)) : null; };
+    const hayColas = cats.some(c => c.k === "VOLUMEN CSD" && c.subs.some(sb => /colas/i.test(sb.lab) && sb.meta > 0));
+    h += `<div class="dmdtab"><table><thead><tr><th>Ruta</th><th>Total hoy</th>${cats.map(c => `<th>${esc(c.lab)}</th>` + (hayColas && c.k === "VOLUMEN CSD" ? "<th>Colas</th>" : "")).join("")}<th>Tend.</th></tr></thead><tbody>` +
+      rows.map(([r, R]) => `<tr data-desruta="${esc(r)}"><td><b>${esc(r)}</b></td>${cell(R.tot)}${cats.map(c => cell(R.cats.get(c.k)) + (hayColas && c.k === "VOLUMEN CSD" ? cell(colasDe(R)) : "")).join("")}<td class="${mdCls(R.tot) === "ok" ? "ok" : ""}">${pc(R.tot.tend, R.tot.meta)}</td></tr>`).join("") +
+      `</tbody><tfoot><tr><td>Equipo</td>${cell(T.tot)}${cats.map(c => cell(c) + (hayColas && c.k === "VOLUMEN CSD" ? cell(colasDe(c)) : "")).join("")}<td>${pc(T.tot.tend, T.tot.meta)}</td></tr></tfoot></table></div>`;
   }
   h += `<p class="note">Cajas físicas que hay que vender hoy para cerrar la meta planilla del mes (necesidad diaria de Power BI). ✓ = la categoría ya va cumplida.</p></div>`;
   return h;
@@ -5713,7 +6013,13 @@ function desItems(rutas, Lby){
   // volumen (Power BI meta planilla)
   if (DB.md && DB.md.rutas.size){ const rr = rutas.filter(r => DB.md.rutas.has(r)); if (rr.length){ const T = mdSum(rr);
     it.push({grp:"Volumen", lab:"Volumen total", unit:"CJ", hoy:mdHoy(T.tot.nec), falt:Math.max(0, T.tot.meta - T.tot.real), meta:T.tot.meta, real:T.tot.real, tend:T.tot.tend, log: lg.rep.total, top:true,
-      cats: T.cats.filter(c => c.meta > 0).map(c => ({lab:c.lab, hoy:mdHoy(c.nec), al:c.real / c.meta, log: lg.rep[{"PORTAFOLIO ORO":"oro", "VOLUMEN CSD":"csd", "ISO/ADR":"iso", "ALCOHOLICAS":"licores"}[c.k]]}))}); } }
+      cats: T.cats.filter(c => c.meta > 0).flatMap(c => { const o = [{lab:c.lab, hoy:mdHoy(c.nec), al:c.real / c.meta, log: lg.rep[{"PORTAFOLIO ORO":"oro", "VOLUMEN CSD":"csd", "ISO/ADR":"iso", "ALCOHOLICAS":"licores"}[c.k]]}];
+        if (c.k === "VOLUMEN CSD") for (const sb of c.subs) if (/colas/i.test(sb.lab) && sb.meta > 0) o.push({lab:"Colas", hoy:mdHoy(sb.nec), al:sb.real / sb.meta, log: lg.rep.colas});   // necesidad de Core colas (dentro de CSD, del Excel de estatus de pago)
+        return o; })});
+    // Core colas: categoría de pago con su propia meta (CSD se mantiene igual; colas va además, aparte)
+    { const csd = T.cats.find(c => c.k === "VOLUMEN CSD"), cl = csd && csd.subs.find(sb => /colas/i.test(sb.lab));
+      if (cl && cl.meta > 0) it.push({grp:"Categoría de pago", lab:"Core colas", unit:"CJ", hoy:mdHoy(cl.nec), falt:Math.max(0, cl.meta - cl.real), meta:cl.meta, real:cl.real, tend:cl.tend, log: lg.rep.colas, top:true,
+        nota: cl.meta - cl.real > 0 ? `faltan ${fmt(Math.max(0, cl.meta - cl.real))} de ${fmt(cl.meta)} CJ · tendencia ${Math.round(cl.tend / cl.meta * 100)}%` : ""}); } } }
   // coberturas, desafíos e incentivos (suma de lo que le falta a cada ruta)
   const tot = new Map();
   for (const d of D) for (const x of d.items){ const k = x.grp + "|" + x.lab; const o = tot.get(k) || {grp:x.grp, lab:x.lab, unit:x.unit, falt:0, meta:0, real:0, dias:x.dias}; o.falt += x.falt; o.meta += x.meta || 0; o.real += x.real || 0; tot.set(k, o); }
@@ -6083,12 +6389,33 @@ function parseVoz(text, inner){
     c.segs = c.segs.filter(k => !/^(cov|x:covn)/.test(k)); c.emps = []; c.lab = c.lab.filter(x => !/cobertura|falta/i.test(x));
     seg(has(/\b(cumplen|cumplida|cumplidas|completa|completas|ya tienen|ok)\b/) ? "tuok" : has(/\b(1|uno|una|solo un|solo 1)\b.*\b(empaque|sku)\b|\bfalta (solo )?(1|un|una)\b/) ? "tu1" : "tupend");
   }
+  // ---- por empaque: "compra cero de 3 L", "los que no compran lata", "compran 1.5 pero no 600", "más de 2 cajas de 3 litros"
+  let pkDone = false;
+  { const hits = []; for (const [re, k, l] of PK_DEF){ const g = new RegExp(re.source, "g"); let m; while ((m = g.exec(t))){ hits.push({k, l, i:m.index}); } }
+    const cuant = t.match(/\b(mas de|mayor a|arriba de|al menos|minimo|menos de|menor a|abajo de|hasta)\s+(\d+(?: punto \d+)?|media|una|un)\s+(?:cajas?|cj)\s+(?:de\s+)?/);
+    const NEG = /(compra cero|compran cero|compras cero|cero compra|cero de|compra 0|compran 0|compras 0|0 de|no compran|no compra|no llevan|no lleva|no han comprado|no ha comprado|sin compra de|sin comprar|no piden|les falta|le falta|faltan|falta|sin|pero no|y no|no)\s+(?:de\s+|el\s+|la\s+|los\s+|las\s+)?(?:empaque\s+(?:de\s+)?)?$/;
+    const tuCtx = /\b(tu de pago|4 sku|cobertura de pago)\b/.test(t), gmbCtx = /\b(gambito|activad|por activar)\b/.test(t);
+    if (hits.length && !tuCtx && !gmbCtx && (/\b(compra|compran|compras|llevan|lleva|cero|0|no|sin|falta|faltan|cajas?|piden|clientes|vende|venden)\b/.test(t))){
+      const seen = new Set();
+      const acCC = /\b(compras? (cero|0)|compra 0)\b/.test(t) && (DB.acCols || []).some(c2 => /gatorade/i.test(c2) && /compra cero|\(cc\)/i.test(c2));
+      for (const h of hits.sort((a, b) => a.i - b.i)){ if (seen.has(h.k)) continue; seen.add(h.k);
+        if (h.k === "Isotonicos" && acCC) continue;   // "compra cero de gatorade" = segmento oficial de la base AC
+        const antes = t.slice(Math.max(0, h.i - 40), h.i);
+        if (cuant && cuant.index < h.i && h.i - (cuant.index + cuant[0].length) < 4){ const op = /mas de|mayor a|arriba de/.test(cuant[1]) ? ">" : /al menos|minimo/.test(cuant[1]) ? ">=" : /hasta/.test(cuant[1]) ? "<=" : "<"; const n = /media/.test(cuant[2]) ? 0.5 : /^un/.test(cuant[2]) ? 1 : parseFloat(cuant[2].replace(" punto ", ".")); seg(`x:pkq:${op}:${h.k}@${n}`); pkDone = true; continue; }
+        if (NEG.test(antes.replace(/\s+(de|del|la|el)\s*$/, " $1 ")) || /(compra cero|compra 0|compran 0|no compran|no compra|sin compra)\s+(?:de\s+)?(?:\S+\s+(?:y|ni|o)\s+)*$/.test(antes)){ seg("x:buy:no:" + h.k); pkDone = true; }
+        else if (/\b(compran|compra|llevan|lleva|piden|venden|si compran)\b/.test(antes) || seen.size > 1 && c.segs.some(k => k.startsWith("x:buy:has:"))){ seg("x:buy:has:" + h.k); pkDone = true; }
+      }
+      if (pkDone){   // lo de empaque manda: se quitan lecturas más generales que pudo haber hecho antes (coberturas Everest por grupo)
+        c.emps = c.emps.filter(e => !["multi", "single", "gatorade", "cerveza"].includes(e)); c.lab = c.lab.filter(x => !/^(Les falta|La que falta)/.test(x));
+        c.segs = c.segs.filter(k => k !== "covpend"); }
+    }
+  }
   // ---- Plan Gambito (cerveza): se pueden pedir varias categorías juntas: "gambito nunca compra, compra cero y caídos"
   const gctx = has(/\b(gambito|gambitos|gambit|plan de cerveza|plan cerveza)\b/), beerW = has(/\b(cerveza|cervezas|regia|suprema|chela|chelas|750|330)\b/);
   const gc = {nc: has(/\bnunca\b/), c0: has(/\b(compras? (cero|0)|cero compras?|compra 0)\b/), cai: has(/\b(caidos?|caidas?)\b/), vpo: has(/\b(vpo|escalas?)\b/)};
   const gst = has(/\b(por activar|sin activar|no activados?|no se han activado|faltan? (de )?activar|pendientes? de activar|no activos)\b/) ? "gambpend" : has(/\b(activados?|activadas?|activos|ya se activaron|ya activaron|activaron)\b/) ? "gambact" : "";
   let gambDone = false;
-  if (DB.vp && DB.vp.cli.size && (gctx || (beerW && (gc.nc || gc.c0 || gc.cai || gst)))){
+  if (DB.vp && DB.vp.cli.size && !(pkDone && !gctx) && (gctx || (beerW && (gc.nc || gc.c0 || gc.cai || gst)))){
     const prods = [has(/\b750\b/) ? "R750" : "", has(/\b330\b/) && !has(/suprema/) ? "R330" : "", has(/suprema/) ? "S330" : ""].filter(Boolean);
     const plans = [gc.nc && "Nunca compra", gc.c0 && "Compra 0", gc.cai && "Caídos", gc.vpo && "VPO"].filter(Boolean);
     if (!gctx && gc.c0 && !gc.nc && !gc.cai) plans.push("Nunca compra");   // "compra cero de cerveza" incluye a los que nunca compran
@@ -6102,7 +6429,7 @@ function parseVoz(text, inner){
   // ---- compra / volumen
   const vm = t.match(/\b(compra|compran|compro|promedio|volumen|venden|vende)\b.{0,20}?\b(menor(es)?( a| de| que)?|menos de|debajo de|bajo|hasta|mayor(es)?( a| de| que)?|mas de|arriba de|encima de|sobre)\s+(?<num>\d+(?:\s?punto\s?\d+)?)\s*(cajas?|cj)?\b/);
   if (vm){ const n = parseFloat(vm.groups.num.replace(/\s?punto\s?/, ".")); const op = /menor|menos|debajo|bajo/.test(vm[2]) ? "<" : /hasta/.test(vm[2]) ? "<=" : ">"; seg(`x:${has(/\b(este mes|del mes|mes actual|real)\b/) ? "real" : "prom"}:${op}:${n}`); }
-  else if (!gambDone && has(/\b(compras? (cero|0)|compra 0|nunca compra(n|do)?|nunca han comprado|caidos?|caido)\b/)){
+  else if (!gambDone && !pkDone && has(/\b(compras? (cero|0)|compra 0|nunca compra(n|do)?|nunca han comprado|caidos?|caido)\b/)){
     // "compra cero" = segmentos de la base AC (U3M) por producto; en cerveza, los planes del Plan Gambito
     const cc = has(/\b(caidos?|caido)\b/) ? "caidos" : has(/\bnunca\b/) ? "nunca" : "cero";
     const acAll = (DB.acCols || []).map(String), byCat = [[/\bgatorade\b/, /gatorade/i], [/\b(aqua|agua)\b/, /aqua/i], [/\b(lipton|te)\b/, /lipton/i], [/\b(petit|nectar|nectares)\b/, /petit/i], [/\bfrutado\b/, /frutado/i], [/\b(amp|adrenaline|energizante|energizantes)\b/, /amp|adrenaline/i]];
@@ -6180,7 +6507,7 @@ function parseVoz(text, inner){
   if (c.near && !c.sort){ c.sort = "dist"; }
   // productos que SÍ compra (según listados): "que compran cerveza", "los que llevan lata"
   const BUY = [[/\b(cerveza|cervezas|regia|suprema)\b/, "Cerveza", "cerveza"], [/\b(gatorade|isotonicos?)\b/, "Isotonicos", "isotónicos"], [/\b(3 l|3 litros|tres litros)\b/, "3\\.0L", "3 L"], [/\b(1 5|litro y medio|uno punto cinco)\b/, "1\\.5L", "1.5 L"], [/\b(1 25)\b/, "1\\.25L", "1.25 L"], [/\b(lata|latas)\b/, "Lata", "lata"], [/\b(600)\b/, "600ML", "600 ml"]];
-  if (has(/\b(que compran|que compra|compran|que llevan|llevan|que si compran|que piden)\b/) && !has(/\b(no compran|no compra|compra cero|nunca)\b/)){ for (const [re, k, l] of BUY) if (has(re)) seg("x:buy:has:" + k, "Compran " + l); }
+  if (!pkDone && has(/\b(que compran|que compra|compran|que llevan|llevan|que si compran|que piden)\b/) && !has(/\b(no compran|no compra|compra cero|nunca)\b/)){ for (const [re, k, l] of BUY) if (has(re)) seg("x:buy:has:" + k, "Compran " + l); }
   // tipo de negocio exacto de la maestra ("farmacias", "comedores", "mini super", "bares"…)
   if (!c.segs.some(k => /^x:name:/.test(k))){ const tipos = tiposNegocio(); const hit = tipos.filter(e => { const w = qnorm(e).split(" ").filter(x => x.length > 3); return w.length && (w.every(x => t.includes(" " + x.replace(/s$/, ""))) || new RegExp("\\s" + w[0].replace(/s$/, "") + "(s|es)?\\s").test(t)); }); if (hit.length && hit.length <= 4) seg("x:etq:has:" + hit.join("|"), "Tipo: " + hit.join(" o ")); }
   // "cerca de la iglesia", "cerca del parque central" → se ubica el lugar en el mapa
@@ -6200,7 +6527,7 @@ const VOZ_STOP = new Set("nuevo nueva empezar empieza olvida unicamente ahora ta
 function vozLeft(t, c){
   if (!VOZ_VOCAB) VOZ_VOCAB = new Set((parseVoz.toString() + vozNorm.toString()).replace(/\/\*[\s\S]*?\*\//g, " ").replace(/\/\/[^\n]*/g, " ").replace(/\\[a-z]/gi, " ").toLowerCase().match(/[a-z]{2,}/g));
   const used = new Set([...qnorm(c.sector || "").split(" "), ...qnorm(c.sup || "").split(" ")]);
-  const w = t.trim().split(" ").filter(x => x && !VOZ_STOP.has(x) && !VOZ_VOCAB.has(x) && !used.has(x) && !c.rutas.some(r => r === x || r.endsWith(x)) && !/^\d{1,3}$/.test(x) && !/^\d{6}$/.test(x) && !/^\d+punto\d+$/.test(x) && x.length > 1 && !(x.length >= 3 && /^[a-z]+$/.test(x) && VOZ_KW.some(k => k.length > x.length && k.startsWith(x))) && !(c.frs || []).includes(x.toUpperCase()));
+  const w = t.trim().split(" ").filter(x => x && !/^(caja|cajas|cj|media|medio|litros?|onzas|ml|empaques?|pero)$/.test(x) && !PK_DEF.some(([re]) => re.test(" " + x + " ")) && !VOZ_STOP.has(x) && !VOZ_VOCAB.has(x) && !used.has(x) && !c.rutas.some(r => r === x || r.endsWith(x)) && !/^\d{1,3}$/.test(x) && !/^\d{6}$/.test(x) && !/^\d+punto\d+$/.test(x) && x.length > 1 && !(x.length >= 3 && /^[a-z]+$/.test(x) && VOZ_KW.some(k => k.length > x.length && k.startsWith(x))) && !(c.frs || []).includes(x.toUpperCase()));
   return w.join(" ");
 }
 // busca un cliente por lo que se dijo (nombre o código), con la búsqueda tolerante
@@ -6219,6 +6546,8 @@ function vozFichaParse(t){
   if (/\b(clientes|ruta \d|rutas|frecuencia|supervisor|todos los|filtra|filtrar|mapa|lista)\b/.test(t)) return null;   // es un filtro, no una pregunta sobre este cliente
   const nm = VOZ_RAW.match(/^\s*(?:anota|anótame|anotame|apunta|apúntame|apuntame|escribe|agrega una nota|nota)\s*(?:que|:)?\s+(.{3,})$/i);
   if (nm) return {act:"fnota", txt: nm[1].trim(), lab:["Nota"]};
+  { const nv = t.match(/\b(no se pudo|no lo pude visitar|no pude|no se visito|visita fallida|estaba cerrado|esta cerrado|cerrado|no estaba el encargado|no estaba el dueno|no estaba|no compro|tenia inventario|tiene inventario|sin dinero|no tenia dinero)\b/);
+    if (nv && !/\b(promo|cobertura|lata|litros|600|empaque)\b/.test(t)){ const mot = /cerrad/.test(t) ? "Cerrado" : /no estaba/.test(t) ? "No estaba el encargado" : /no compro/.test(t) ? "No compró" : /inventario/.test(t) ? "Tenía inventario" : /dinero/.test(t) ? "Sin dinero" : "Otro"; return {act:"fvis", mot, lab:["No se pudo visitar"]}; } }
   if (/\b(ya lo visite|lo visite|visitado|registra la visita|marca la visita|marca visita|marcar visita|visita hecha|visita registrada|termine con este|listo con este cliente|cierra la visita)\b/.test(t)) return {act:"fvis", lab:["Visita registrada"]};
   const off = /\b(desmarca|desmarcar|desmarcalo|quita la marca|quitale la marca|no lo vendi|no se vendio|no compro|me equivoque|borra la marca)\b/.test(t);
   const verb = off || /\b(marca|marcar|marcame|marcalo|vendi|vendimos|le vendi|se vendio|cubri|cubrimos|ya compro|compro|active|activo|activamos|lo active|lo activo|quedo activado|activado|lei|leimos|ya lei|saque|sacamos|ya saque|lectura hecha|registra)\b/.test(t);
@@ -6257,7 +6586,7 @@ function vozFichaParse(t){
 function vozFichaMark(c){ const m = vozFichaMark1(c); if (m){ toast(m); if (vozHablaOn()) vozHablar(m); } }
 function vozFichaMark1(c){
   const box = $("#dBody"), p = DB.pdv.get(openC); if (!box || !p) return "";
-  if (c.act === "fvis"){ const b = document.getElementById("vDone"); if (visitedToday(p.c)) return "La visita ya estaba registrada"; if (b){ b.click(); return "Visita registrada"; } const v = visit(p.c, true); v.t = v.t || Date.now(); saveVis(); liveMark(p.c, "vis", "1", true); return "Visita registrada"; }
+  if (c.act === "fvis"){ if (c.mot){ visMarcar(p.c, "nv", c.mot); setTimeout(() => openPdv(p.c), 0); return "Registrado: no se pudo, " + c.mot.toLowerCase(); } if (visitedToday(p.c)) return "La visita ya estaba registrada"; visMarcar(p.c, "ok"); setTimeout(() => openPdv(p.c), 0); return "Visita registrada"; const v = visit(p.c, true); v.t = v.t || Date.now(); saveVis(); liveMark(p.c, "vis", "1", true); return "Visita registrada"; }
   if (c.kind === "pack"){
     const L0 = [...box.querySelectorAll('input[type=checkbox][data-kind="cov"], input[type=checkbox][data-kind="tu"]')].filter(x => c.re.test(x.dataset.k));
     if (!L0.length) return `En esta ficha no hay ${c.pl} para marcar (puede que ya cumpla)`;
@@ -6331,7 +6660,7 @@ function runVozAct(c){
   if (c.act === "fmark" || c.act === "fvis"){ vozFichaMark(c); return true; }
   if (c.act === "fmulti"){ (async () => { const ms = []; for (const x of c.list){ ms.push(vozFichaMark1(x)); await new Promise(r => setTimeout(r, 120)); } const ok = ms.filter(m => /^(Marcado|Desmarcado|Visita registrada)/.test(m)).map(m => m.replace(/^(Marcado|Desmarcado): /, "")), no = ms.filter(m => !/^(Marcado|Desmarcado|Visita registrada)/.test(m));
     const m = (ok.length ? `Listo, ${/^Desmarcado/.test(ms[0]) ? "desmarqué" : "marqué"}: ${ok.join(", ").replace(/, ([^,]*)$/, " y $1")}.` : "") + (no.length ? " " + no.join(". ") + "." : ""); toast(m); if (vozHablaOn()) vozHablar(m); })(); return true; }
-  if (c.act === "fnota"){ const el = document.getElementById("vNote"), v = visit(openC, true); v.note = (v.note ? v.note + "\n" : "") + c.txt; saveVis(); if (el) el.value = v.note; const m = "Anotado en la ficha: " + c.txt; toast(m); if (vozHablaOn()) vozHablar("Anotado."); return true; }
+  if (c.act === "fnota"){ const el = document.getElementById("vNote"), v = visit(openC, true); v.note = (v.note ? v.note + "\n" : "") + c.txt; saveVis(); notaLive(openC, v.note); if (el) el.value = v.note; const m = "Anotado en la ficha: " + c.txt; toast(m); if (vozHablaOn()) vozHablar("Anotado."); return true; }
   if (c.act === "cliinfo"){ const L = vozCliente(c.who);
     if (!L.length){ const m = `No encontré al cliente "${c.who}"`; toast(m); vozHablar("No encontré ese cliente."); return true; }
     if (L.length > 1 && L.length <= 4){ const m = `Encontré ${L.length} clientes parecidos: ${L.map(p => p.n).join(", ")}. ¿Cuál?`; F.q = c.who; $("#q").value = c.who; renderAll(); setTab("list"); toast(m); vozHablar(m); return true; }
@@ -6423,6 +6752,7 @@ function vozFrases(t){
 }
 let VOZ_KEEP = null;
 function vozHablar(txt, opts){
+  try{ if (window.vozPanelDecir) window.vozPanelDecir(txt); }catch(e){}
   try{
     if (!("speechSynthesis" in window) || !txt) return;
     const v = vozElegida(), frases = vozFrases(vozTexto(txt)); if (!frases.length) return;
@@ -6608,6 +6938,7 @@ function qSugUpdate(txt){
   el.innerHTML = `<span class="vzi">⚡</span><span class="vzt"><b>${D.merge ? "Afinar lo que tienes:" : "Filtrar:"}</b> ${r.lab.map(esc).join(" · ")} → <b class="num">${fmt(r.n)}</b> cliente${r.n === 1 ? "" : "s"}</span><button class="btn sm pri" data-qsugok>Aplicar</button>`;
 }
 function applyVoz(c, text){
+  if (!c.act && (c.segs.length || c.emps.length || c.rutas.length || c.dias.length || (c.frs || []).length || c.near || c.sup || c.clear || c.q)){ if (typeof fichaAbierta === "function" && fichaAbierta()) closeDrawers(); const dv = document.getElementById("desView"); if (dv && !dv.hidden) dv.hidden = true; }
   if (text && F.q && vozNorm(F.q).trim() === vozNorm(text).trim()) F.q = "";   // lo escrito en el buscador era la orden, no un nombre
   if (c.act){ $("#q").value = ""; qSugHide(); qAutoHide(); runVozAct(c); return; }
   const porVoz = !!c.voz;

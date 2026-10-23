@@ -1,5 +1,5 @@
 // Pendientes · service worker (comparte dominio con RutaPDV: solo toca sus propias cachés): funciona sin internet y recibe lo que se comparte desde WhatsApp.
-const CACHE = "pendientes-v1792686865980";
+const CACHE = "pendientes-v1792769486914";
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
