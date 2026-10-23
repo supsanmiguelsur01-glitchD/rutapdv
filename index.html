@@ -813,9 +813,10 @@ select.sm{height:38px;border:1px solid var(--line);border-radius:10px;background
 .dirbar{display:flex;align-items:center;gap:10px;padding:8px 12px;margin:0 0 8px;border-radius:12px;background:var(--panel2, rgba(0,160,200,.08));color:var(--ink2, inherit);font-size:13px;line-height:1.3}
 .dirbar .dirdial{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;border:1.5px solid var(--cyan);color:var(--bad, #d33);flex:none}
 .dirbar .dirdial .darr{width:18px;height:18px;transform:rotate(calc(0deg - var(--hd, 0deg)))}
-.dirbar .dirtx{flex:1}
+.dirbar .dirtx{flex:1;min-width:0}.dirbar .btn{flex:none;width:auto;min-width:0;white-space:nowrap}
 @media (prefers-reduced-motion: reduce){ .darr{transition:none} }
 .pill{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700;white-space:nowrap;border:1px solid transparent}
+.kv2 .v .pill{white-space:normal;max-width:100%;line-height:1.25}
 .pill.ok{background:var(--ok-soft);color:var(--ok);border-color:rgba(23,128,61,.3)}
 .pill.warn{background:var(--warn-soft);color:var(--warn);border-color:rgba(178,94,9,.3)}
 .pill.bad{background:var(--bad-soft);color:var(--bad);border-color:rgba(192,53,47,.3)}
@@ -2521,7 +2522,8 @@ const DEFAULT_SUP = EMBED ? "BRYAN ESCOBAR" : "";
 const VKEY = "rutapdv_visitas_v1";
 let VIS = ls.get(VKEY, {});
 const visit = (c, create) => { const d = todayKey(); if (!VIS[d]) { if (!create) return null; VIS[d] = {}; } if (!VIS[d][c] && create) VIS[d][c] = {cov:{}, ac:{}, wl:{}, rn:{}, note:"", t:null}; return VIS[d][c] || null; };
-const saveVis = () => ls.set(VKEY, VIS);
+let VIS_VER = 0;
+const saveVis = () => { VIS_VER++; ls.set(VKEY, VIS); };
 /* seguimiento de visitas: cada cliente queda "visitado" (✓), "no se pudo" (con el motivo) o pendiente.
    Para el supervisor también cuentan las visitas que llegan en vivo de los vendedores. */
 let VIS_LIVE = {t:-1, ok:new Map(), nv:new Map()};
@@ -2967,7 +2969,7 @@ function renderQuick(){
   el.innerHTML = QUICK.filter(([k]) => (k !== "rn" || (DB.rn && DB.rn.sem)) && (k !== "gamb" || (DB.vp && DB.vp.cli.size))).map(([k, l]) => `<button class="${act === k ? "on" : ""}" data-quick="${k}" aria-pressed="${act === k}">${l}</button>`).join("");
   renderQuickSub(); renderConds();
   const n = [F.ag, F.sup && DB.sups.length > 1 ? F.sup : "", F.rutas.length && DB.rutas.length > 1 ? 1 : 0, F.frs.length, F.vpo, F.cov, F.vis].filter(Boolean).length;
-  $("#fCount").textContent = n ? `(${n} activos)` : "";
+  $("#fCount").textContent = n ? `(${n} activo${n === 1 ? "" : "s"})` : "";
 }
 /* al elegir Gambito aparecen sus categorías: se pueden marcar varias a la vez (nunca compra + compra 0 + caídos…) */
 const COND_GROUPS = [
@@ -2990,6 +2992,7 @@ function compactNotes(root){
   if (!root) return;
   root.querySelectorAll("p.note").forEach(p => {
     if (p.closest("details.ninfo") || p.textContent.length < 120) return;
+    const prev = p.previousElementSibling; if (prev && prev.matches("details.ninfo")){ prev.appendChild(p); return; }   // notas seguidas: un solo "Cómo se calcula"
     const d = document.createElement("details"); d.className = "ninfo";
     d.innerHTML = `<summary>ⓘ Cómo se calcula</summary>`; p.replaceWith(d); d.appendChild(p);
   });
@@ -3874,11 +3877,14 @@ function mapDraw(){
       if (!m){ m = L.marker([p.lat, p.lng], {icon: L.divIcon({className:"mvis " + e.st, html: e.st === "ok" ? "✓" : "✕", iconSize:[16, 16], iconAnchor:[8, 8]}), interactive:false, keyboard:false}); MAPV.vm.set(k, m); }
       keep.add(m); if (!MAPV.vl.hasLayer(m)) MAPV.vl.addLayer(m); }
     const out = []; MAPV.vl.eachLayer(l => { if (!keep.has(l) && l !== MAPV.reco) out.push(l); }); for (const l of out) MAPV.vl.removeLayer(l);
+    const vsig = VIS_VER + "|" + (typeof LIVE !== "undefined" ? LIVE.t : 0) + "|" + todayKey(), ptsCambio = MAPV._vp !== MAPV.pts;
+    if (MAPV._vsig !== vsig || ptsCambio){ MAPV._vsig = vsig; MAPV._vp = MAPV.pts;   // el recorrido y el contador solo se recalculan si cambió algo
     const V = MAPV.pts.map(p => [p, visEstado(p.c)]).filter(([, e]) => e && e.st === "ok" && !e.vivo).sort((a, b) => a[1].t - b[1].t).map(([p]) => [p.lat, p.lng]);
     const sig = V.map(x => x.join(",")).join(";");
     if (MAPV.recoSig !== sig){ MAPV.recoSig = sig; if (MAPV.reco){ MAPV.vl.removeLayer(MAPV.reco); MAPV.reco = null; } if (V.length > 1){ MAPV.reco = L.polyline(V, {renderer:PTS, interactive:false, color:"#17803D", weight:3, opacity:.7, dashArray:"6 8"}); MAPV.vl.addLayer(MAPV.reco); } }
+    mapVisChip(); }
+    else { const el = document.getElementById("mapVis"); if (el) el.classList.toggle("on", F.segs.includes("novis")); }
   }
-  mapVisChip();
   // burbujas: se reusan; solo se agregan o quitan las que entran o salen de la vista
   if (!agrupar){ if (MAPV.cl.getLayers().length) MAPV.cl.clearLayers(); }
   else {
@@ -4976,7 +4982,7 @@ function openPdv(c){
     const sem = DB.rn && DB.rn.sem, nRN = rnEq(p).length;
     const semPill = e => !e.sem ? "" : `<span class="pill ${e.sem === "VERDE" ? "ok" : e.sem === "AMARILLO" ? "warn" : "bad"}" ${e.sem === "NEGRO" ? `style="background:#000;color:#fff;border-color:#555"` : ""}>${esc(e.sem === "ROJO" && e.rango ? "Rojo " + e.rango : e.sem.charAt(0) + e.sem.slice(1).toLowerCase())}</span>`;
     const ord = [...p.rn].sort((x, y) => (isRN(y) - isRN(x)) || ((y.nec || 0) - (x.nec || 0)));
-    if (p.rn.length) h += `<div class="sec"><h3>R+N · Equipos fríos<span class="r">${sem ? (nRN ? `<span class="pill bad">${nRN} en rojo/negro</span>` : `<span class="pill ok">Sin R+N</span>`) : p.rn.length}</span></h3><div class="in">${p.rn.length ? `<div class="kv2">${ord.map(r => kv(`${esc(r.mat||"—")}${r.serie?` · <span class="num">${esc(r.serie)}</span>`:""}`, `${semPill(r)} ${r.nec ? `<span class="num">Nec. ${fmt(r.nec,2)} cj</span>` : (isRN(r) ? "" : "Sin necesidad")}`)).join("")}</div>${sem ? ord.filter(isRN).map((r, j) => { const vv = v, k = String(r.serie || r.mat || j), on = !!(vv && vv.rn && vv.rn[k]); return `<label class="chk ${on ? "done" : ""}"><input type="checkbox" data-kind="rn" data-k="${esc(k)}" ${on ? "checked" : ""}><span class="t">Saqué de R+N ${esc(r.serie || r.mat || "")} (le vendí la necesidad)</span></label>`; }).join("") : ""}${nRN ? `<p class="note" style="margin:0">Para sacar el equipo de rojo/negro hay que llevarlo a amarillo: "Nec." son las cajas que le faltan.</p>` : ""}` : `<p class="note" style="margin:0">Sin equipos en la base R+N.</p>`}</div></div>`;
+    if (p.rn.length) h += `<div class="sec"><h3>R+N · Equipos fríos<span class="r">${sem ? (nRN ? `<span class="pill bad">${nRN} en rojo/negro</span>` : `<span class="pill ok">Sin R+N</span>`) : p.rn.length}</span></h3><div class="in">${p.rn.length ? `<div class="kv2">${ord.map(r => kv(`${esc(r.mat||"—")}${r.serie?` · <span class="num">${esc(r.serie)}</span>`:""}`, `${semPill(r)} ${r.nec ? `<span class="num" style="white-space:nowrap">Nec. ${fmt(r.nec,2)} cj</span>` : (isRN(r) ? "" : "Sin necesidad")}`)).join("")}</div>${sem ? ord.filter(isRN).map((r, j) => { const vv = v, k = String(r.serie || r.mat || j), on = !!(vv && vv.rn && vv.rn[k]); return `<label class="chk ${on ? "done" : ""}"><input type="checkbox" data-kind="rn" data-k="${esc(k)}" ${on ? "checked" : ""}><span class="t">Saqué de R+N ${esc(r.serie || r.mat || "")} (le vendí la necesidad)</span></label>`; }).join("") : ""}${nRN ? `<p class="note" style="margin:0">Para sacar el equipo de rojo/negro hay que llevarlo a amarillo: "Nec." son las cajas que le faltan.</p>` : ""}` : `<p class="note" style="margin:0">Sin equipos en la base R+N.</p>`}</div></div>`;
   }
   // visita
   // nota de la visita (también se llena por voz: "anota que…")
@@ -6462,8 +6468,8 @@ function parseVoz(text, inner){
   const EMPQ = [[/\b600\b/, /600\s*ml/i], [/\b(lata|latas)\b/, /lata/i], [/\b(1 5|1punto5|uno punto cinco|litro y medio)\b/, /1\.5\s*l/i], [/\b(3 l|3 litros|tres litros|3l)\b/, /\b3\s*l\b|3\.0\s*l/i], [/\b750\b/, /750/], [/\b(330|12 oz|12 onzas|doce onzas)\b/, /330|12\s*oz/i], [/\b473\b/, /473/], [/\b355\b/, /355/], [/\b(300)\b/, /300\s*ml/i], [/\b500\b/, /500\s*ml/i], [/\b350\b/, /350\s*ml/i], [/\b(1 25|1punto25)\b/, /1\.25\s*l/i], [/\b(vidrio|retornable|retornables|vr)\b/, /vidrio|\bvr\b|retornable/i], [/\b(tetra)\b/, /tetra/i], [/\b(combo|combos)\b/, /combo/i]];
   // precio: "a 20.60", "de 21 dolares", "menos de 15", "entre 10 y 15", "mas de 20"
   const pnum = x => parseFloat(String(x).replace("punto", "."));
-  const pm = t.match(/\b(?:menos de|menor a|menores a|debajo de|hasta|maximo)\s+(\d+(?:punto\d+)?)\b/), pM = t.match(/\b(?:mas de|mayor a|mayores a|arriba de|desde)\s+(\d+(?:punto\d+)?)\b/), pe = t.match(/\bentre\s+(\d+(?:punto\d+)?)\s+y\s+(\d+(?:punto\d+)?)\b/), px = t.match(/\b(?:a|en|de|precio|por|cuesta|cuestan|vale)\s+(\d+punto\d{1,2})\b(?!\s*(l|lt|lts|litros?|ml|oz|onzas)\b)/) || (has(/\b(precio|precios|dolares|dolar|cuesta|cuestan|vale|valen|promo|promos|promocion|promociones)\b/) ? t.match(/\b(\d+punto\d{1,2})\b(?!\s*(l|lt|lts|litros?|ml|oz|onzas)\b)/) : null);
-  if (px && +pnum(px[1]) < 3) px = null;   /* 1.5, 2.5… son empaques, no precios */
+  const pm = t.match(/\b(?:menos de|menor a|menores a|debajo de|hasta|maximo)\s+(\d+(?:punto\d+)?)\b/), pM = t.match(/\b(?:mas de|mayor a|mayores a|arriba de|desde)\s+(\d+(?:punto\d+)?)\b/), pe = t.match(/\bentre\s+(\d+(?:punto\d+)?)\s+y\s+(\d+(?:punto\d+)?)\b/), px0 = t.match(/\b(?:a|en|de|precio|por|cuesta|cuestan|vale)\s+(\d+punto\d{1,2})\b(?!\s*(l|lt|lts|litros?|ml|oz|onzas)\b)/) || (has(/\b(precio|precios|dolares|dolar|cuesta|cuestan|vale|valen|promo|promos|promocion|promociones)\b/) ? t.match(/\b(\d+punto\d{1,2})\b(?!\s*(l|lt|lts|litros?|ml|oz|onzas)\b)/) : null);
+  const px = px0 && +pnum(px0[1]) < 3 ? null : px0;   /* 1.5, 2.5… son empaques, no precios */
   const hayPrecio = has(/\b(precio|precios|dolares|dolar|cuesta|cuestan|vale|valen)\b/) || !!px || (has(/\b(promo|promos|promocion|promociones)\b/) && (pm || pM || pe));
   const prRange = !hayPrecio ? null : pe ? [pnum(pe[1]), pnum(pe[2])] : px ? [pnum(px[1]) - 0.005, pnum(px[1]) + 0.005] : pm || pM ? [pM ? pnum(pM[1]) : 0, pm ? pnum(pm[1]) : 1e9] : null;
   const empq = EMPQ.filter(([re]) => has(re)).map(([, rp]) => rp);
@@ -6586,7 +6592,7 @@ function vozFichaParse(t){
 function vozFichaMark(c){ const m = vozFichaMark1(c); if (m){ toast(m); if (vozHablaOn()) vozHablar(m); } }
 function vozFichaMark1(c){
   const box = $("#dBody"), p = DB.pdv.get(openC); if (!box || !p) return "";
-  if (c.act === "fvis"){ if (c.mot){ visMarcar(p.c, "nv", c.mot); setTimeout(() => openPdv(p.c), 0); return "Registrado: no se pudo, " + c.mot.toLowerCase(); } if (visitedToday(p.c)) return "La visita ya estaba registrada"; visMarcar(p.c, "ok"); setTimeout(() => openPdv(p.c), 0); return "Visita registrada"; const v = visit(p.c, true); v.t = v.t || Date.now(); saveVis(); liveMark(p.c, "vis", "1", true); return "Visita registrada"; }
+  if (c.act === "fvis"){ if (c.mot){ visMarcar(p.c, "nv", c.mot); setTimeout(() => openPdv(p.c), 0); return "Registrado: no se pudo, " + c.mot.toLowerCase(); } if (visitedToday(p.c)) return "La visita ya estaba registrada"; visMarcar(p.c, "ok"); setTimeout(() => openPdv(p.c), 0); return "Visita registrada"; }
   if (c.kind === "pack"){
     const L0 = [...box.querySelectorAll('input[type=checkbox][data-kind="cov"], input[type=checkbox][data-kind="tu"]')].filter(x => c.re.test(x.dataset.k));
     if (!L0.length) return `En esta ficha no hay ${c.pl} para marcar (puede que ya cumpla)`;
