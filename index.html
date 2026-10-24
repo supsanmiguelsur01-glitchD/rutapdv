@@ -1670,7 +1670,10 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const ls = {
   get(k, d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
-  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+  set(k, v){ let s; try{ s = JSON.stringify(v); localStorage.setItem(k, s); return true; }catch(e){
+    // memoria del navegador llena: se libera el caché del sentido de calles (vive en IndexedDB) y se reintenta
+    try{ if (k !== "rutapdv_ow_cache" && localStorage.getItem("rutapdv_ow_cache") != null){ localStorage.removeItem("rutapdv_ow_cache"); localStorage.setItem(k, s); return true; } }catch(e2){}
+    return false; } }
 };
 const ALIAS = {"VLADIMIR AMAYA":"BLADIMIR AMAYA"};
 const normSup = s => { s = String(s ?? "").trim().toUpperCase().replace(/\s+/g," "); return ALIAS[s] || s; };
@@ -2123,7 +2126,7 @@ function build(S){
       if (!p.fr) p.fr = normFr(r[cF]);
       if (!p.ef) p.ef = str(r[cE]);
       const items = covCols.map((k,j) => {
-        const v = num(r[start+j]); const thr = /cerveza/i.test(k) ? 1 : 0.5;
+        const v = num(r[start+j]); const thr = covThr(k);
         return {k, v, ok: v != null && Math.round(v*100)/100 >= thr, nd: v == null};
       });
       const groups = COV_GROUPS.map(g => { const its = items.filter(i => covGroupOf(i.k) === g.k); return {k:g.k, label:g.label, items:its, ok:its.some(i => i.ok), nd:its.length > 0 && its.every(i => i.nd)}; }).filter(g => g.items.length);
@@ -2450,15 +2453,18 @@ function covR750(D){
 /* TU de pago (rutas top): el cliente cuenta cuando vende 0.5 caja o más de 4 empaques distintos de Pepsi
    (3L, 1.5L, 1.25L, lata, 600 ML, 12 oz PET o vidrio). Se calcula con los empaques del cliente en listados. */
 function tuPago(D){
+  const TU_AB_GRUPOS = ["multi"];   // TU de rutas AB: solo Pepsi 3L y 1.5L (lata y 600 ML no cuentan)
   if (!D || !D.cp || !D.cp.rutas || !D.cp.rutas.size) return;
   let n = 0;
   for (const p of D.pdv.values()){
     const o = D.cp.rutas.get(p.ruta); p.tu = null;
-    if (!o || !o.top || !p.cov) continue;
+    if (!o || !p.cov) continue;
+    const ab = !o.top && !!(o.ms && o.ms.meta);   // rutas AB (meta de 1.5L y 3L): TU = cobertura de Pepsi 3L o 1.5L con 0.5 CJ
+    if (!o.top && !ab) continue;
     const seen = new Set(), packs = [];
-    for (const i of p.cov.items || []){ if (!/pepsi/i.test(i.k) || seen.has(i.k)) continue; seen.add(i.k); packs.push({k:i.k, v:i.v, ok: i.v != null && Math.round(i.v * 100) / 100 >= 0.5}); }
+    for (const i of p.cov.items || []){ if (!/pepsi/i.test(i.k) || seen.has(i.k)) continue; if (ab && !TU_AB_GRUPOS.includes(covGroupOf(i.k))) continue; seen.add(i.k); packs.push({k:i.k, v:i.v, ok: i.v != null && Math.round(i.v * 100) / 100 >= 0.5}); }
     if (!packs.length) continue;
-    p.tu = {packs, n: packs.filter(x => x.ok).length}; n++;
+    p.tu = {packs, n: packs.filter(x => x.ok).length, need: ab ? 1 : 4, ab}; n++;
   }
   D.tu = {n};
 }
@@ -2468,7 +2474,7 @@ const COV_GROUPS = [
   {k:"multi", label:"Pepsi multiserve (3L y 1.5L)"},
   {k:"single", label:"Pepsi singleserve (lata y 600 ML)"}
 ];
-function covGroupOf(name){
+function covThr(k){ return /cerveza|regia|suprema/i.test(k) ? 1 : covGroupOf(k) === 'single' ? 0.25 : 0.5; } function covGroupOf(name){
   const n = String(name).toLowerCase();
   if (/cerveza|regia|suprema/.test(n)) return "cerveza";
   if (/isot|gatorade/.test(n)) return "gatorade";
@@ -2521,9 +2527,25 @@ const DEFAULT_SUP = EMBED ? "BRYAN ESCOBAR" : "";
 /* ---------- visitas (checks) ---------- */
 const VKEY = "rutapdv_visitas_v1";
 let VIS = ls.get(VKEY, {});
+const VIS_DIAS = 45;   // se guardan los últimos 45 días (la TU de pago usa el mes)
+function visPodar(V){ const lim = new Date(Date.now() - VIS_DIAS * 864e5), k = lim.getFullYear() + "-" + String(lim.getMonth() + 1).padStart(2, "0") + "-" + String(lim.getDate()).padStart(2, "0"); for (const d of Object.keys(V)) if (d < k) delete V[d]; return V; }
+visPodar(VIS);
+let VIS_IDB_T = null, VIS_AVISO = false;
 const visit = (c, create) => { const d = todayKey(); if (!VIS[d]) { if (!create) return null; VIS[d] = {}; } if (!VIS[d][c] && create) VIS[d][c] = {cov:{}, ac:{}, wl:{}, rn:{}, note:"", t:null}; return VIS[d][c] || null; };
 let VIS_VER = 0;
-const saveVis = () => { VIS_VER++; ls.set(VKEY, VIS); };
+const saveVis = () => { VIS_VER++; const ok = ls.set(VKEY, VIS);
+  clearTimeout(VIS_IDB_T); VIS_IDB_T = setTimeout(() => { try{ IDB.set("visitas", VIS); }catch(e){} }, 400);   // copia de respaldo
+  if (!ok && !VIS_AVISO){ VIS_AVISO = true; try{ toast("La memoria del teléfono está llena: tus visitas se guardan en el respaldo de la app"); }catch(e){} } };
+// al abrir: recupera del respaldo las visitas que no estén en localStorage (si el navegador no las pudo guardar)
+async function visRestaurar(){
+  const R = await IDB.get("visitas"); if (!R || typeof R !== "object") { IDB.set("visitas", VIS); return 0; }
+  let n = 0;
+  for (const [d, cs] of Object.entries(R)){ if (!cs || typeof cs !== "object") continue; if (!VIS[d]) VIS[d] = {};
+    for (const [c, v] of Object.entries(cs)){ const a = VIS[d][c]; if (!a){ VIS[d][c] = v; n++; continue; }
+      if (!a.t && !a.nv && (v.t || v.nv)){ VIS[d][c] = Object.assign({}, v, a, {t:v.t, nv:v.nv, nvt:v.nvt}); n++; }
+      for (const k of ["cov", "ac", "wl", "rn", "gmb", "tu"]) if (v[k]) for (const [i, on] of Object.entries(v[k])) if (!a[k] || !(i in a[k])){ a[k] = a[k] || {}; a[k][i] = on; n++; } } }
+  visPodar(VIS); if (n){ VIS_VER++; ls.set(VKEY, VIS); } IDB.set("visitas", VIS); return n;
+}
 /* seguimiento de visitas: cada cliente queda "visitado" (✓), "no se pudo" (con el motivo) o pendiente.
    Para el supervisor también cuentan las visitas que llegan en vivo de los vendedores. */
 let VIS_LIVE = {t:-1, ok:new Map(), nv:new Map()};
@@ -2656,7 +2678,7 @@ const SEG_FN = {
   tupend: p => { const e = tuEstado(p); return !!e && !e.ok; },
   tu1: p => { const e = tuEstado(p); return !!e && e.falta === 1; }
 };
-Object.assign(SEG_LABEL, {tuok:"TU de pago cumplida (4 SKU)", tupend:"TU de pago pendiente", tu1:"TU de pago: le falta 1 empaque"});
+Object.assign(SEG_LABEL, {tuok:"TU de pago cumplida", tupend:"TU de pago pendiente", tu1:"TU de pago: le falta 1 empaque"});
 // TU de pago: empaques que ya cumplen (datos) + los que el vendedor marcó como vendidos este mes (o en vivo, para el supervisor)
 let TU_LIVE = {t:-1, m:new Map()};
 function tuEstado(p){
@@ -2666,7 +2688,8 @@ function tuEstado(p){
   if (LIVE.data){ if (TU_LIVE.t !== LIVE.t){ TU_LIVE = {t:LIVE.t, m:new Map()}; for (const e of LIVE.data.st.values()) if (e.k === "tu" && e.v){ if (!TU_LIVE.m.has(e.c)) TU_LIVE.m.set(e.c, new Set()); TU_LIVE.m.get(e.c).add(e.i); } } const lv = TU_LIVE.m.get(p.c); if (lv) for (const k of lv) mk.add(k); }
   const packs = p.tu.packs.map(x => ({...x, mk: !x.ok && mk.has(x.k)}));
   const n = packs.filter(x => x.ok || x.mk).length;
-  return {packs, n, ok: n >= 4, falta: Math.max(0, 4 - n)};
+  const need = p.tu.need || 4;
+  return {packs, n, need, ab: !!p.tu.ab, ok: n >= need, falta: Math.max(0, need - n)};
 }
 // planes del Plan Gambito (cerveza) que tiene el cliente
 function gambPlans(p){ const x = DB.vp && DB.vp.cli.get(p.c); if (!x) return []; return [...new Set(Object.values(x.prods).map(o => o.plan || "VPO"))]; }
@@ -2909,7 +2932,7 @@ function cardHTML(p){
   const nec = rnNec(p), wp = wellPend(p).length;
   const segN = (nec > 0 ? `<span class="pill warn" title="Necesidad real amarilla">Nec ${fmt(nec)}</span>` : "") + (wp ? `<span class="pill bad" title="Equipos sin lectura Wellington">Well ${wp}</span>` : "") + (DB.rn && DB.rn.sem && rnEq(p).length ? `<span class="pill bad" title="Equipos fríos en rojo o negro">R+N ${rnEq(p).length}</span>` : "") + (() => { const g = gambPlans(p); if (!g.length) return ""; const e = DB.gcb && DB.gcb.cli.size ? gambEstado(p) : null; return `<span class="pill ${e && e.act ? "ok" : "acc"}" title="Plan Gambito de cerveza${e ? (e.act ? ": ya se activó" : ": por activar") : ""}">🍺 ${esc(g.join(" · "))}${e && e.act ? " ✓" : ""}</span>`; })();
   const tuE = p.tu ? tuEstado(p) : null;
-  const acN = (tuE ? `<span class="pill ${tuE.ok ? "ok" : tuE.falta === 1 ? "warn" : "bad"}" title="TU de pago: empaques de Pepsi con 0.5 CJ o más">TU ${Math.min(4, tuE.n)}/4</span>` : "") + segN + (nPromosCliente(p) ? `<span class="pill acc" title="Promociones vigentes para este cliente">${nPromosCliente(p)} promo</span>` : "") + (p.vpo ? `<span class="pill ${p.vpo.pct >= 1 ? "ok" : "warn"}">VPO ${p.vpo.pct != null ? Math.round(p.vpo.pct*100)+"%" : "0%"}</span>` : "");
+  const acN = (tuE ? `<span class="pill ${tuE.ok ? "ok" : tuE.falta === 1 ? "warn" : "bad"}" title="${tuE.ab ? "TU de pago (ruta AB): Pepsi 3L o 1.5L con 0.5 CJ o más" : "TU de pago: empaques de Pepsi con 0.5 CJ o más"}">TU ${tuE.ab ? (tuE.ok ? "✓" : "0/1") : Math.min(4, tuE.n) + "/4"}</span>` : "") + segN + (nPromosCliente(p) ? `<span class="pill acc" title="Promociones vigentes para este cliente">${nPromosCliente(p)} promo</span>` : "") + (p.vpo ? `<span class="pill ${p.vpo.pct >= 1 ? "ok" : "warn"}">VPO ${p.vpo.pct != null ? Math.round(p.vpo.pct*100)+"%" : "0%"}</span>` : "");
   let pills = acN.match(/<span class="pill[^"]*"[^>]*>.*?<\/span>/g) || [];
   const fam = new Set(F.segs.map(segFam)), prio = x => (fam.has("gamb") || fam.has("gambst")) && x.includes("🍺") || fam.has("promo") && /\d promo</.test(x) || fam.has("rn") && x.includes("R+N") || fam.has("well") && x.includes("Well") || fam.has("nec") && x.includes("Nec") || fam.has("tu") && x.includes(">TU ") || fam.has("vpo") && x.includes("VPO") ? 0 : 1;
   pills = pills.map((x, i) => [x, i]).sort((a, b) => prio(a[0]) - prio(b[0]) || a[1] - b[1]).map(x => x[0]);
@@ -3458,7 +3481,8 @@ function renderCPago(L){
     const pct = t.real / t.meta, falt = t.falt, cls = cpCls(t);
     return `<div class="kpi evk"><span class="kl">${lab}</span><span class="kv num ${cls}">${Math.round(pct * 100)}%</span><span class="ks">${fmt(t.real)} de ${fmt(t.meta)} coberturas · faltan <b>${fmt(falt)}</b></span><span class="ks">Necesidad del día: <b class="num">${dias ? fmt(t.dia) : "—"}</b>${dias ? ` coberturas/día <small>(${needFx(falt, dias)})</small>` : ""}</span>${k === "ms" && msSub(tot) ? `<span class="ks">${msSub(tot)}</span>` : ""}<span class="ks">${k === "sku4" && nTop ? `${nTop} ruta${nTop > 1 ? "s" : ""} top` : k === "ms" && nTop ? `${rutas.length - nTop} ruta${rutas.length - nTop > 1 ? "s" : ""} normales` : ""}</span>${meter(pct, pct >= 1 ? "ok" : "")}</div>`; }).join("") + `</div>`;
   { const C = L.filter(p => p.tu); if (C.length){ let ok = 0, f1 = 0, pend = 0; for (const p of C){ const e = tuEstado(p); if (e.ok) ok++; else { pend++; if (e.falta === 1) f1++; } }
-    h += `<h4 class="cpt">TU de pago por cliente (rutas top)</h4><div class="kpis"><button class="kpi evk" data-seg="tuok"><span class="kl">Cumplen 4 SKU</span><span class="kv num ok">${fmt(ok)}</span><span class="ks">de ${fmt(C.length)} clientes de rutas top</span></button><button class="kpi evk" data-seg="tu1"><span class="kl">Les falta 1 empaque</span><span class="kv num warn">${fmt(f1)}</span><span class="ks">los más fáciles de completar · toca para verlos</span></button><button class="kpi evk" data-seg="tupend"><span class="kl">Pendientes</span><span class="kv num bad">${fmt(pend)}</span><span class="ks">con menos de 4 empaques de 0.5 CJ</span></button></div><p class="note">Por cliente se calcula con los empaques de listados (${DB.baseInfo ? "al " + esc(DB.baseInfo.act) : "última carga"}) más lo que marcan los vendedores este mes; el real de la ruta arriba viene del reporte oficial y puede ir más adelantado.</p>`; } }
+    const nAB = C.filter(p => p.tu.ab).length, nTp = C.length - nAB, okAB = C.filter(p => p.tu.ab && tuEstado(p).ok).length;
+    h += `<h4 class="cpt">TU de pago por cliente (${nTp && nAB ? "rutas top y AB" : nAB ? "rutas AB" : "rutas top"})</h4><div class="kpis"><button class="kpi evk" data-seg="tuok"><span class="kl">Cumplen TU</span><span class="kv num ok">${fmt(ok)}</span><span class="ks">de ${fmt(C.length)} clientes${nAB && nTp ? ` · AB ${fmt(okAB)}/${fmt(nAB)} · top ${fmt(ok - okAB)}/${fmt(nTp)}` : ""}</span></button><button class="kpi evk" data-seg="tu1"><span class="kl">Les falta 1 empaque</span><span class="kv num warn">${fmt(f1)}</span><span class="ks">los más fáciles de completar · toca para verlos</span></button><button class="kpi evk" data-seg="tupend"><span class="kl">Pendientes</span><span class="kv num bad">${fmt(pend)}</span><span class="ks">${nAB && nTp ? "AB: sin 3L ni 1.5L de 0.5 CJ · top: menos de 4 empaques" : nAB ? "sin 3L ni 1.5L de 0.5 CJ" : "con menos de 4 empaques de 0.5 CJ"}</span></button></div><p class="note">Por cliente se calcula con los empaques de listados (${DB.baseInfo ? "al " + esc(DB.baseInfo.act) : "última carga"}) más lo que marcan los vendedores este mes; el real de la ruta arriba viene del reporte oficial y puede ir más adelantado.</p>`; } }
   if (nTop) h += `<p class="note">Según la estructura de cada ruta: las rutas <b>top</b> solo tienen meta de <b>4 SKU</b>; las demás, meta de <b>1.5L y 3L</b>. El alcance y lo que falta se calculan solo con la meta que le corresponde a cada ruta.</p>`;
   h += `<p class="note">"Faltan" suma lo pendiente de cada ruta (una ruta que pasa su meta no compensa a otra). Necesidad del día = faltantes ÷ días hábiles restantes, redondeado hacia arriba (en los totales se divide la suma de faltantes, no se suman redondeos).${dias ? ` Total del alcance: faltan <b>${fmt(faltTot(tot))}</b> · <b>${fmt(diaTot(tot))}</b> por día.` : ""}</p>`;
   const head = first => `<thead><tr><th>${first}</th>${CP_CATS.map(([, l]) => `<th>${l}</th>`).join("")}<th>Faltan</th><th>Total /día</th></tr></thead>`;
@@ -4349,7 +4373,8 @@ function liveSupDe(p){ const K = liveKeys(); if (!K) return null; const s = norm
 function liveMark(c, kind, id, val){
   const K = liveKeys(); if (!K) return;
   const p = DB.pdv.get(Number(c)); if (!p) return; const s = liveSupDe(p); if (!s) return;
-  LIVE.q.push({s, e:{d:todayKey(), c:p.c, r:p.ruta, k:kind, i:String(id), v:val, t:Date.now(), u:(SRC && SRC.code ? SRC.code.slice(-4) : "")}});
+  const ev = {d:todayKey(), c:p.c, r:p.ruta, k:kind, i:String(id), v:val, t:Date.now(), u:(SRC && SRC.code ? SRC.code.slice(-4) : "")};
+  LIVE.q.push({s, e:ev}); liveDiaAdd(s, ev);
   if (LIVE.q.length > 2000) LIVE.q = LIVE.q.slice(-2000);
   ls.set("rutapdv_liveq", LIVE.q);
   clearTimeout(LIVE.timer); LIVE.timer = setTimeout(liveFlush, 2500);
@@ -4370,6 +4395,27 @@ async function liveFlush(){
   finally{ LIVE.busy = false; }
 }
 window.addEventListener("online", () => liveFlush());
+/* Reenvío de respaldo: el buzón no confirma cada envío (Google responde sin permiso de lectura), así que si uno se pierde
+   (sin señal, Google ocupado) la marca no le llegaba al supervisor. Cada 10 min se vuelve a mandar todo lo marcado hoy
+   en este teléfono; el supervisor se queda con la última versión de cada marca, así que repetir no duplica nada. */
+let LIVE_DIA = ls.get("rutapdv_livedia", {d:"", m:{}, h:"", t:0});
+function liveDiaAdd(s, ev){
+  if (LIVE_DIA.d !== ev.d) LIVE_DIA = {d:ev.d, m:{}, h:"", t:0};
+  LIVE_DIA.m[ev.c + "|" + ev.k + "|" + ev.i] = {s, e:ev};
+  ls.set("rutapdv_livedia", LIVE_DIA);
+}
+function liveReenviar(forzar){
+  const K = liveKeys(); if (!K || !navigator.onLine || LIVE.busy || LIVE.q.length) return;
+  if (LIVE_DIA.d !== todayKey()) return;
+  const xs = Object.values(LIVE_DIA.m).filter(x => K[x.s]); if (!xs.length) return;
+  const h = xs.length + "|" + Math.max(...xs.map(x => x.e.t || 0));
+  if (!forzar && h === LIVE_DIA.h && Date.now() - (LIVE_DIA.t || 0) < 30 * 60000) return;   // sin cambios: cada 30 min
+  LIVE_DIA.h = h; LIVE_DIA.t = Date.now(); ls.set("rutapdv_livedia", LIVE_DIA);
+  for (const x of xs) LIVE.q.push({s:x.s, e:x.e});
+  ls.set("rutapdv_liveq", LIVE.q); liveFlush();
+}
+setInterval(() => { try{ if (!document.hidden) liveReenviar(false); }catch(e){} }, 10 * 60000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(() => { try{ liveReenviar(false); }catch(e){} }, 8000); });
 /* deja listo en segundo plano cómo suena cada nombre (la primera búsqueda por voz ya sale rápida) */
 setTimeout(function fonWarm(){ try{ if (!DB || !DB.pdv || !DB.pdv.size){ setTimeout(fonWarm, 5000); return; } const it = [...DB.pdv.values()]; let i = 0; const step = () => { const end = Math.min(it.length, i + 1500); for (; i < end; i++){ const p = it[i]; if (!p._qnp){ p._qnn = p._qnn || qnorm(p.n); p._qnp = p._qnn.split(" ").filter(Boolean).map(fon); } } if (i < it.length) setTimeout(step, 30); }; step(); }catch(e){} }, 4000);
 document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-copydir]"); if (!b) return; const t = b.dataset.copydir; (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast("Dirección copiada"), () => toast(t)); });
@@ -4398,10 +4444,21 @@ async function liveFetch(force){
     for (const {k, rows} of res){ if (!rows) continue;
       for (const row of rows){ let evs; try{ evs = await liveDec(k, row[1]); }catch(e){ continue; }
         for (const e of evs){ if (e.d !== d) continue; n++; const key = e.c + "|" + e.k + "|" + e.i, o = st.get(key); if (!o || o.t <= e.t) st.set(key, e); } } }
-    LIVE.data = {st, n}; LIVE.t = Date.now(); LIVE.err = fail ? `No se pudo leer ${fail} de ${res.length} equipos; reintenta` : "";
+    if (LIVE.data && LIVE.data.d === d) for (const [key, e] of LIVE.data.st){ const o = st.get(key); if (!o || (o.t || 0) < (e.t || 0)) st.set(key, e); }   // lo leído antes se conserva
+    n = Math.max(n, st.size);
+    LIVE.data = {st, n, d}; liveGuardarLocal(); LIVE.t = Date.now(); LIVE.err = fail ? `No se pudo leer ${fail} de ${res.length} equipos; reintenta` : "";
   }catch(e){ const m = String(e.message || "");
     LIVE.err = m === "html" ? "El buzón respondió una página de Google en vez de datos: en Apps Script la implementación debe ser «Aplicación web», ejecutar como «Yo» y acceso «Cualquier persona»" : m === "tiempo" ? "El buzón tardó demasiado en responder; toca Actualizar" : m.startsWith("http") ? "El buzón respondió con error (" + m + ")" : m.startsWith("gs:") ? "El buzón respondió: " + m.slice(3) : "No se pudo leer el buzón en vivo (revisa la conexión)"; LIVE.t = LIVE.t || 0; }
   return LIVE.data;
+}
+// copia en el teléfono de lo último leído del buzón: al abrir la app (o si se cae la señal) se ven las visitas al instante
+let LIVE_GT = null;
+function liveGuardarLocal(){ clearTimeout(LIVE_GT); LIVE_GT = setTimeout(() => { if (LIVE.data) IDB.set("live_dia", {d:LIVE.data.d, ev:[...LIVE.data.st.entries()]}); }, 800); }
+async function liveCargarLocal(){
+  const x = await IDB.get("live_dia"); if (!x || x.d !== todayKey() || !Array.isArray(x.ev)) return;
+  const st = new Map(x.ev);
+  if (LIVE.data && LIVE.data.d === x.d) for (const [k, e] of LIVE.data.st){ const o = st.get(k); if (!o || (o.t || 0) < (e.t || 0)) st.set(k, e); }
+  LIVE.data = {st, n:st.size, d:x.d};
 }
 // las marcas de este teléfono (aunque todavía no se hayan enviado)
 function liveLocal(){
@@ -4583,7 +4640,8 @@ const repKey = r => "rutapdv_rep_" + todayKey() + "_" + r;
 function liveMarkRuta(r, kind, id, val){
   const K = liveKeys(); if (!K) return false;
   const p = [...DB.pdv.values()].find(x => x.ruta === r); if (!p) return false; const s = liveSupDe(p); if (!s) return false;
-  LIVE.q.push({s, e:{d:todayKey(), c:0, r, k:kind, i:String(id), v:val, t:Date.now(), u:(SRC && SRC.code ? SRC.code.slice(-4) : "")}}); ls.set("rutapdv_liveq", LIVE.q);
+  const ev = {d:todayKey(), c:0, r, k:kind, i:String(id), v:val, t:Date.now(), u:(SRC && SRC.code ? SRC.code.slice(-4) : "")};
+  LIVE.q.push({s, e:ev}); liveDiaAdd(s, ev); ls.set("rutapdv_liveq", LIVE.q);
   clearTimeout(LIVE.timer); LIVE.timer = setTimeout(liveFlush, 800); return true;
 }
 // lo que ya se sabe de la ruta hoy: coberturas y R+N marcados, y lo cargado en el catálogo por categoría
@@ -4728,14 +4786,20 @@ async function owFetch(key){
 }
 // caché del sentido de calles en IndexedDB del navegador (más espacio que localStorage: alcanza para toda la zona)
 let OW_C = null;
-function owCacheGet(){ if (!OW_C){ OW_C = ls.get("rutapdv_ow_cache", {}); } return OW_C; }
+function owCacheGet(){ if (!OW_C){ OW_C = {}; owCacheCargar(); } return OW_C; }
+async function owCacheCargar(){
+  const C = OW_C, I = await IDB.get("ow_cache"), L0 = ls.get("rutapdv_ow_cache", null);
+  if (I && typeof I === "object") for (const k in I) if (!C[k]) C[k] = I[k];
+  if (L0 && typeof L0 === "object"){ for (const k in L0) if (!C[k]) C[k] = L0[k]; try{ localStorage.removeItem("rutapdv_ow_cache"); }catch(e){} IDB.set("ow_cache", C); }
+}
+setTimeout(() => { try{ owCacheGet(); }catch(e){} }, 1500);
 function owCacheSet(add){
   const C = owCacheGet(); Object.assign(C, add);
   const keys = Object.keys(C); if (keys.length > 1500) for (const k of keys.sort((a, b) => C[a].t - C[b].t).slice(0, keys.length - 1500)) delete C[k];
   clearTimeout(owCacheSet.t); owCacheSet.t = setTimeout(() => owCacheGuardar(C), 2500);   // se guarda con calma (no en medio del arrastre)
 }
 function owCacheGuardar(C){
-  try{ ls.set("rutapdv_ow_cache", C); }catch(err){ const ks = Object.keys(C).sort((a, b) => C[a].t - C[b].t); for (const k of ks.slice(0, Math.ceil(ks.length / 2))) delete C[k]; try{ ls.set("rutapdv_ow_cache", C); }catch(e2){} }
+  IDB.set("ow_cache", C);
 }
 // una sola consulta para toda la zona (al guardar el mapa sin conexión)
 async function owGuardarZona(s, w, n, e){
@@ -4923,14 +4987,14 @@ function openPdv(c){
     h += `<div class="sec"><h3>Coberturas<span class="r"><span class="pill ${covClass(p)}">${p.cov.okN}/${p.cov.n} cumplen · ${pct}%</span></span></h3><div class="in">
       <div class="kv2">${kv("PromU3M", `<span class="num">${fmt(p.cov.prom,2)}</span>`, "hi")}${kv("Real TP", `<span class="num">${fmt(p.cov.real,2)}</span>`, "hi")}</div>
       <div class="covbar" aria-hidden="true"><i style="width:${pct}%"></i></div>
-      <p class="note" style="margin:0">Marca con check los empaques que vendiste para llevar tu seguimiento (las categorías que ya cumplen no se marcan) · <b id="covSold">${sold}</b> marcados hoy</p>
+      <p class="note" style="margin:0">Marca con check los empaques que vendiste para llevar tu seguimiento (los empaques que ya cumplen no se marcan; en multiserve y singleserve puedes cubrir los dos empaques) · <b id="covSold">${sold}</b> marcados hoy</p>
       ${p.cov.groups.map(g => {
         const head = `<div class="cgh"><span class="cgn">${esc(g.label)}</span>${g.ok ? `<span class="pill ok">✓ Cumple</span>` : `<span class="pill bad">Pendiente${g.nd ? " · sin dato" : ""}</span>`}</div>`;
         const its = g.items.map(it => {
           const i = p.cov.items.indexOf(it);
           const on = !!v.cov[it.k];
-          const st = it.nd ? `<b class="na">Sin dato</b>` : it.ok ? `<b class="ok">Cumple ${fmt(it.v,2)}</b>` : `<b class="bad">Falta ${fmt(it.v,2)}</b>`;
-          if (g.ok) return `<div class="chk ok-item"><span class="okmark ok" aria-hidden="true">${it.ok ? "✓" : "·"}</span><span class="t">${esc(it.k)}${st}</span></div>`;
+          const st = it.nd ? `<b class="na">Sin venta · mín. ${fmt(covThr(it.k),2)}</b>` : it.ok ? `<b class="ok">Cumple ${fmt(it.v,2)}</b>` : `<b class="bad">Falta ${fmt(it.v,2)}</b>`;
+          if (it.ok) return `<div class="chk ok-item"><span class="okmark ok" aria-hidden="true">✓</span><span class="t">${esc(it.k)}${st}</span></div>`;
           return `<label class="chk ${on?"done":""}" for="cv_${i}"><input type="checkbox" id="cv_${i}" data-kind="cov" data-k="${esc(it.k)}" ${on?"checked":""}><span class="t">${esc(it.k)}${st}</span></label>`;
         }).join("");
         return `<div class="cgroup ${g.ok ? "gok" : ""}">${head}<div class="covgrid">${its}</div></div>`;
@@ -4944,10 +5008,10 @@ function openPdv(c){
   // TU de pago (rutas top)
   if (p.tu){
     const e = tuEstado(p), pend = e.packs.filter(x => !x.ok && !x.mk).sort((a, b) => (b.v || 0) - (a.v || 0));
-    h += `<div class="sec" id="secTU"><h3>TU de pago · 4 SKU colas<span class="r"><span class="pill ${e.ok ? "ok" : e.falta === 1 ? "warn" : "bad"}">${e.ok ? "✓ Cumple" : `${Math.min(4, e.n)}/4 · faltan ${e.falta}`}</span></span></h3><div class="in">
-      <p class="note" style="margin:0 0 6px">Ruta top: la cobertura cuenta cuando el cliente compra <b>0.5 caja o más de 4 empaques distintos de Pepsi</b> (3L, 1.5L, 1.25L, lata, 600 ML, 12 oz PET o vidrio). Marca lo que le vendas hoy.</p>
+    h += `<div class="sec" id="secTU"><h3>${e.ab ? "TU de pago · 1.5L y 3L" : "TU de pago · 4 SKU colas"}<span class="r"><span class="pill ${e.ok ? "ok" : e.falta === 1 ? "warn" : "bad"}">${e.ok ? "✓ Cumple" : e.ab ? "Pendiente" : `${Math.min(4, e.n)}/4 · faltan ${e.falta}`}</span></span></h3><div class="in">
+      <p class="note" style="margin:0 0 6px">${e.ab ? "Ruta AB: el cliente cumple cuando compra <b>0.5 caja o más de Pepsi 3L o 1.5L</b>. Lata y 600 ML no cuentan. Puedes cubrir los dos empaques. Marca lo que le vendas hoy." : "Ruta top: la cobertura cuenta cuando el cliente compra <b>0.5 caja o más de 4 empaques distintos de Pepsi</b> (3L, 1.5L, 1.25L, lata, 600 ML, 12 oz PET o vidrio). Marca lo que le vendas hoy."}</p>
       <div class="covgrid">${e.packs.map((x, i) => x.ok ? `<div class="chk ok-item"><span class="okmark" aria-hidden="true">✓</span><span class="t">${esc(x.k)}<b class="ok">Cumple ${fmt(x.v, 2)}</b></span></div>` : `<label class="chk ${x.mk ? "done" : ""}" for="tu_${i}"><input type="checkbox" id="tu_${i}" data-kind="tu" data-k="${esc(x.k)}" ${x.mk ? "checked" : ""}><span class="t">${esc(x.k)}${x.v == null ? `<b class="na">Sin compra</b>` : `<b class="bad">Falta ${fmt(Math.max(0, 0.5 - x.v), 2)} CJ</b>`}</span></label>`).join("")}</div>
-      <p class="note" style="margin:6px 0 0">${e.ok ? "Ya tiene los 4 empaques de la TU de pago." : `Le falta${e.falta > 1 ? "n" : ""} <b>${e.falta}</b> empaque${e.falta > 1 ? "s" : ""}. Lo más fácil: ${pend.slice(0, e.falta + 1).map(x => `<b>${esc(x.k.replace(/ Pepsi$/i, ""))}</b> (${x.v ? "le falta " + fmt(Math.max(0, 0.5 - x.v), 2) : "0.5"} CJ)`).join(", ")}.`}</p>
+      <p class="note" style="margin:6px 0 0">${e.ok ? (e.ab ? "Ya cumple la TU de pago; puedes cubrir también el otro empaque." : "Ya tiene los 4 empaques de la TU de pago.") : `Le falta${e.falta > 1 ? "n" : ""} <b>${e.falta}</b> empaque${e.falta > 1 ? "s" : ""}. Lo más fácil: ${pend.slice(0, e.falta + 1).map(x => `<b>${esc(x.k.replace(/ Pepsi$/i, ""))}</b> (${x.v ? "le falta " + fmt(Math.max(0, 0.5 - x.v), 2) : "0.5"} CJ)`).join(", ")}.`}</p>
     </div></div>`;
   }
   // Plan VPO
@@ -5325,7 +5389,10 @@ function showWelcome(){
 /* ---------- arranque ---------- */
 (async function boot(){
   const saved = await IDB.get("data");
+  try{ await visRestaurar(); }catch(e){}
   if (saved && saved.S){ build(saved.S); SRC = saved.SRC; } else build(fromEmbed(EMBED));
+  try{ await liveCargarLocal(); }catch(e){}
+  setTimeout(() => { try{ liveReenviar(true); }catch(e){} }, 6000);   // al abrir, reenvía lo marcado hoy por si algo se quedó sin llegar
   if (F.sup && !DB.sups.includes(F.sup)) F.sup = "";
   wire(); buildFilterUI(); setSrcInfo(); $("#btnReset").lastChild.textContent = RESET_LBL; showWelcome(); syncMenu();
   if (window.innerWidth < 900) $("#fBox").open = false;
