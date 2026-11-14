@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pendientes de Ruta</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pendientes">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: una sola columna tipo "hoja de ruta" — resumen arriba, importar de WhatsApp, lista de pendientes agrupada */
+/* Estilo RutaPDV: fondo gris claro, paneles blancos, azul #1F4E8C, letra Inter */
+:root{
+  --bg:#F3F5F8; --surface:#FFFFFF; --surface2:#F8FAFC; --line:#D8DFE7;
+  --ink:#14202E; --muted:#5A6878; --accent:#1F4E8C; --accent-ink:#FFFFFF; --accent-soft:#E8EEF7;
+  --wa:#17803D; --wa-soft:#E7F4EC;
+  --hi:#C0352F; --hi-soft:#FAE9E8; --mid:#B25E09; --mid-soft:#FBF1E2; --lo:#5A6878; --lo-soft:#EEF2F6;
+  --ok:#17803D;
+  --display:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+img{max-width:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:18px 60px;display:grid;gap:18px}
+h1,h2{font-family:var(--display);font-weight:700;letter-spacing:.01em;margin:0;text-wrap:balance}
+h1{font-size:2.1rem;line-height:1}
+h2{font-size:1.35rem}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.sync{font-size:.8rem;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:2px}
+.stat b{font-family:var(--display);font-size:1.9rem;line-height:1;font-variant-numeric:tabular-nums}
+.stat span{font-size:.78rem;color:var(--muted)}
+.stat.hi b{color:var(--hi)} .stat.mid b{color:var(--mid)} .stat.ok b{color:var(--ok)}
+@media (max-width:520px){.stats{grid-template-columns:repeat(2,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:12px}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+textarea,input,select{font:inherit;color:var(--ink);background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
+textarea{min-height:120px;resize:vertical;font-size:.9rem}
+input:focus,textarea:focus,select:focus,button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row > *{min-width:0}
+button,.btn{font:inherit;font-weight:700;border-radius:8px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);padding:8px 13px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;font-size:.88rem;white-space:nowrap}
+button:hover,.btn:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button[disabled]{opacity:.55;cursor:default}
+.btn.wa{background:var(--wa-soft);border-color:transparent;color:var(--wa)}
+button.ghost{background:transparent;border-color:transparent;color:var(--muted);padding:6px 8px}
+button.ghost:hover{color:var(--ink)}
+label.chk{display:inline-flex;gap:6px;align-items:center;font-size:.88rem;color:var(--muted)}
+label.chk input{width:auto}
+.file{position:relative;overflow:hidden}
+.file input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.hint{font-size:.82rem;color:var(--muted)}
+.status{font-size:.88rem;color:var(--muted)}
+.status.err{color:var(--hi)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{background:transparent;border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:.84rem;font-weight:700;color:var(--muted)}
+.tab[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.group{display:grid;gap:8px}
+.group-title{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:4px}
+.group-title h3{font-family:var(--display);font-size:1.15rem;margin:0}
+.count{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--lo);border-radius:10px;padding:12px 14px;display:grid;gap:8px}
+.card.p-alta{border-left-color:var(--hi)} .card.p-media{border-left-color:var(--mid)}
+.card.done{opacity:.6} .card.done .title{text-decoration:line-through}
+.card-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.title{font-weight:700;font-size:1rem;min-width:0;overflow-wrap:anywhere}
+.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.8rem;color:var(--muted)}
+.pill{display:inline-flex;align-items:center;border-radius:999px;padding:2px 9px;font-size:.74rem;font-weight:700;background:var(--lo-soft);color:var(--lo);white-space:nowrap}
+.pill.alta{background:var(--hi-soft);color:var(--hi)} .pill.media{background:var(--mid-soft);color:var(--mid)}
+.pill.vend{background:var(--accent-soft);color:var(--accent)}
+.pill.late{background:var(--hi-soft);color:var(--hi)}
+.pill.ex{border:1px dashed var(--muted);background:transparent}
+.state{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;border:1px solid var(--line);border-radius:6px;padding:3px 7px;background:var(--surface2);color:var(--muted);cursor:pointer;white-space:nowrap}
+.state.s-proceso{color:var(--mid);border-color:var(--mid)} .state.s-hecho{color:var(--ok);border-color:var(--ok)}
+.orig{font-size:.85rem;color:var(--muted);background:var(--surface2);border-radius:8px;padding:8px 10px;white-space:pre-wrap;overflow-wrap:anywhere}
+.actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.confirm{display:inline-flex;gap:6px;align-items:center;font-size:.84rem;color:var(--hi)}
+.preview{display:grid;gap:8px}
+.pv{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:10px}
+.pv input[type=checkbox]{width:18px;height:18px;margin-top:2px}
+.pv .title{font-size:.95rem}
+.empty{text-align:center;padding:28px 12px;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
+.empty b{display:block;color:var(--ink);font-family:var(--display);font-size:1.3rem;margin-bottom:4px}
+details > summary{cursor:pointer;font-weight:700;list-style:none}
+details > summary::-webkit-details-marker{display:none}
+details > summary::before{content:"▸ ";color:var(--muted)}
+details[open] > summary::before{content:"▾ "}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (max-width:520px){.grid2{grid-template-columns:1fr}}
+.vrow{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:.88rem;font-weight:700;max-width:90vw}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+
+header.top{background:var(--surface);border-bottom:1px solid var(--line);margin-inline:-16px;margin-top:-18px;padding:12px 16px;position:sticky;top:0;z-index:5}
+.brand h1{font:800 22px/1.1 var(--display);letter-spacing:.9px;margin:0;color:var(--accent)}
+.brand small{display:block;color:var(--muted);font-size:13px;margin-top:3px}
+h2{font-weight:800;font-size:1.05rem;letter-spacing:.2px}
+.stat b{font-weight:800;font-size:1.7rem}
+.panel{border-radius:14px}
+button,.btn{border-radius:12px}
+.group-title h3{font-weight:800;font-size:.95rem;text-transform:uppercase;letter-spacing:.48px}
+.state{text-transform:uppercase;font-size:.7rem;font-weight:700;letter-spacing:.48px}
+.empty b{font-weight:800;font-size:1.1rem}
+</style>
+</head><body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><h1>PENDIENTES</h1><small><span id="hoy">Hoy</span> · <span id="sync">Cargando…</span></small></div>
+  </header>
+
+  <section class="stats" aria-label="Resumen del día">
+    <div class="stat"><b id="sPend">0</b><span>Pendientes</span></div>
+    <div class="stat hi"><b id="sAlta">0</b><span>Urgentes</span></div>
+    <div class="stat mid"><b id="sLate">0</b><span>Atrasados (+1 día)</span></div>
+    <div class="stat ok"><b id="sDone">0</b><span>Resueltos hoy</span></div>
+  </section>
+
+  <section class="panel" aria-labelledby="impTitle">
+    <div class="panel-head">
+      <h2 id="impTitle">Sacar pendientes de WhatsApp</h2>
+      <span class="file btn">Subir chat exportado (.txt)<input type="file" id="fileIn" accept=".txt,text/plain"></span>
+    </div>
+    <textarea id="chatIn" placeholder="Pega aquí los mensajes de los vendedores (mantén presionado → Copiar en WhatsApp) o sube el chat exportado."></textarea>
+    <div class="row">
+      <label class="chk"><input type="checkbox" id="soloHoy" checked> Solo mensajes de hoy</label>
+      <span style="flex:1"></span>
+      <button class="ghost" id="ejemploBtn" type="button">Probar con un ejemplo</button>
+      <button class="primary" id="extraerBtn" type="button">Sacar pendientes</button>
+    </div>
+    <div class="status" id="impStatus" hidden></div>
+    <div class="preview" id="preview" hidden></div>
+    <div class="row" id="previewActions" hidden>
+      <button class="primary" id="agregarBtn" type="button">Agregar seleccionados</button>
+      <button class="ghost" id="descartarBtn" type="button">Descartar</button>
+    </div>
+    <p class="hint">Atajo: en WhatsApp mantén presionado un mensaje → Compartir → Pendientes. Para un chat completo: ⋮ → Más → Exportar chat → Sin archivos → Pendientes.</p>
+    <p class="hint" hidden>Para exportar: abre el chat en WhatsApp → ⋮ → Más → Exportar chat → Sin archivos. Sirve igual con el grupo de preventa o con un vendedor.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="listTitle">
+    <div class="panel-head">
+      <h2 id="listTitle">Lista del día</h2>
+      <div class="tabs" role="group" aria-label="Agrupar por">
+        <button class="tab" data-g="prioridad" aria-pressed="true" type="button">Por prioridad</button>
+        <button class="tab" data-g="vendedor" aria-pressed="false" type="button">Por vendedor</button>
+        <button class="tab" data-g="hechos" aria-pressed="false" type="button">Resueltos</button>
+      </div>
+    </div>
+    <details id="addBox">
+      <summary>Agregar pendiente a mano</summary>
+      <form id="addForm" class="grid2" style="margin-top:10px">
+        <input id="fTitulo" placeholder="¿Qué hay que hacer?" required style="grid-column:1/-1">
+        <input id="fVend" placeholder="Vendedor" list="vendList">
+        <input id="fCliente" placeholder="Cliente / negocio">
+        <select id="fCat"></select>
+        <select id="fPri"><option value="alta">Prioridad alta</option><option value="media" selected>Prioridad media</option><option value="baja">Prioridad baja</option></select>
+        <button class="primary" type="submit" style="grid-column:1/-1;justify-content:center">Agregar</button>
+      </form>
+      <datalist id="vendList"></datalist>
+    </details>
+    <div id="list" class="group" style="gap:18px"></div>
+    <div class="row">
+      <button id="resumenBtn" type="button">Copiar resumen para WhatsApp</button>
+      <button class="ghost" id="limpiarEj" type="button" hidden>Borrar ejemplos</button>
+      <span style="flex:1"></span>
+      <button class="ghost" id="backupBtn" type="button">Respaldar</button>
+      <span class="file btn" style="background:transparent;border-color:transparent;color:var(--muted)">Restaurar<input type="file" id="restoreIn" accept=".json,application/json"></span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <details id="vendBox">
+      <summary>Vendedores y teléfonos</summary>
+      <p class="hint" style="margin:8px 0">Con el número, el botón "Responder" abre WhatsApp directo al vendedor con el mensaje listo. Escribe el número con código de país (503…).</p>
+      <div id="vendRows" class="group"></div>
+      <div class="row" style="margin-top:8px">
+        <button type="button" id="addVend">Agregar vendedor</button>
+        <button class="primary" type="button" id="saveVend">Guardar</button>
+      </div>
+    </details>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const CATS=["Pedido","Precio / descuento","Crédito / cobro","Devolución / cambio","Cliente nuevo / datos","Enfriador / equipo","Material POP / exhibición","Faltante / inventario","Otro"];
+const PRI_ORDER={alta:0,media:1,baja:2};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const todayKey=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2200)}
+
+{const t=new Date().toLocaleDateString("es-SV",{weekday:"long",day:"numeric",month:"long"});$("hoy").textContent=t.charAt(0).toUpperCase()+t.slice(1);}
+$("fCat").innerHTML=CATS.map(c=>`<option>${esc(c)}</option>`).join("");
+
+/* ---------- Estado y almacenamiento ---------- */
+let items=[]; let config={vendedores:[]}; let group="prioridad"; let previewItems=[]; let confirmDel=null;
+const store={mode:"local",db:null,base:null,
+  async init(){
+    $("sync").textContent="Guardado en este teléfono";
+    try{items=JSON.parse(localStorage.getItem("pdr_items")||"[]");config=JSON.parse(localStorage.getItem("pdr_cfg")||'{"vendedores":[]}')}catch(e){}
+    render();renderVend();
+  },
+  saveLocal(){try{localStorage.setItem("pdr_items",JSON.stringify(items));localStorage.setItem("pdr_cfg",JSON.stringify(config))}catch(e){}},
+  async add(list){
+    if(this.mode==="db"){for(const it of list){const {id,...body}=it;await this.db.collection(this.base+"/app/pendientes").doc(id).set(body)}}
+    else{items=items.concat(list);this.saveLocal();render()}
+  },
+  async update(id,patch){
+    if(this.mode==="db"){await this.db.doc(this.base+"/app/pendientes/"+id).update(patch)}
+    else{items=items.map(i=>i.id===id?{...i,...patch}:i);this.saveLocal();render()}
+  },
+  async remove(id){
+    if(this.mode==="db"){await this.db.doc(this.base+"/app/pendientes/"+id).delete()}
+    else{items=items.filter(i=>i.id!==id);this.saveLocal();render()}
+  },
+  async saveConfig(){
+    if(this.mode==="db"){await this.db.doc(this.base+"/app").set({vendedores:config.vendedores})}
+    else{this.saveLocal()}
+  }
+};
+
+/* ---------- Lectura de chats de WhatsApp ---------- */
+const PATS=[
+  /^\[(\d{1,2}\/\d{1,2}\/\d{2,4}),?\s+([^\]]+)\]\s+([^:]{1,60}):\s?(.*)$/,                 // iPhone: [12/10/26, 08:15:22] Nombre: msg
+  /^\[(\d{1,2}:\d{2}[^,\]]*),\s*(\d{1,2}\/\d{1,2}\/\d{2,4})\]\s+([^:]{1,60}):\s?(.*)$/,    // WhatsApp Web copiado: [8:15 a. m., 12/10/2026] Nombre: msg
+  /^(\d{1,2}\/\d{1,2}\/\d{2,4}),?\s+(\d{1,2}:\d{2}(?::\d{2})?\s*(?:[ap]\.?\s?m\.?)?)\s+-\s+([^:]{1,60}):\s?(.*)$/i // Android: 12/10/26, 8:15 a. m. - Nombre: msg
+];
+function parseDate(s){const m=s.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);if(!m)return null;let y=+m[3];if(y<100)y+=2000;return y+"-"+String(+m[2]).padStart(2,"0")+"-"+String(+m[1]).padStart(2,"0")}
+function parseChat(raw){
+  const lines=raw.replace(/[‎‏‪-‮]/g,"").split(/\r?\n/);const msgs=[];
+  for(const line of lines){
+    let hit=null;
+    for(let i=0;i<PATS.length;i++){const m=line.match(PATS[i]);if(m){hit=i===1?{fecha:parseDate(m[2]),hora:m[1],autor:m[3].trim(),texto:m[4]}:{fecha:parseDate(m[1]),hora:m[2],autor:m[3].trim(),texto:m[4]};break}}
+    if(hit)msgs.push(hit);else if(msgs.length&&line.trim())msgs[msgs.length-1].texto+="\n"+line;else if(line.trim())msgs.push({fecha:null,hora:"",autor:"",texto:line});
+  }
+  return msgs.filter(m=>m.texto&&!/multimedia omitido|media omitted|cifrados de extremo|end-to-end encrypted|eliminaste este mensaje|se eliminó este mensaje/i.test(m.texto));
+}
+const KW=/necesit|ocup[oa]|favor|ayud|lleg|fiad|reclam|queja|autoriz|confirm|pedido|pedir|cambio|cambiar|devoluci|devolver|cr[eé]dito|cobr|precio|descuento|cliente|enfriador|cooler|refri|material|pop|faltan|falt[oó]|no lleg|autoriz|c[oó]digo|alta|baja|urgente|revis|pend|cuando|cu[aá]ndo|\?/i;
+function guessCat(t){t=t.toLowerCase();
+  if(/precio|descuento|oferta|promo/.test(t))return CATS[1];if(/cr[eé]dito|cobr|pago|abono|saldo/.test(t))return CATS[2];
+  if(/devoluci|devolver|cambio|vencid|dañad|quebrad/.test(t))return CATS[3];if(/cliente nuevo|alta|c[oó]digo|nit|datos/.test(t))return CATS[4];
+  if(/enfriador|cooler|refri|equipo/.test(t))return CATS[5];if(/material|pop|exhibi|afiche|rack/.test(t))return CATS[6];
+  if(/faltan|falt[oó]|no lleg|inventario|existencia/.test(t))return CATS[7];if(/pedido|pedir|cajas|fardos/.test(t))return CATS[0];return CATS[8]}
+function localExtract(msgs){
+  const conAutor=msgs.some(m=>m.autor);
+  return msgs.filter(m=>m.texto.trim().length>3&&(!conAutor||KW.test(m.texto))).map(m=>({
+    titulo:m.texto.replace(/\s+/g," ").trim().slice(0,110),vendedor:m.autor||"",cliente:"",categoria:guessCat(m.texto),
+    prioridad:/urgente|ya mismo|hoy mismo|r[aá]pido|ahorita|no est[aá] enfriando|no lleg/i.test(m.texto)?"alta":"media",mensaje:m.texto.trim(),fecha_msg:m.fecha||todayKey(),hora:m.hora||""}));
+}
+/* ---------- Importar ---------- */
+$("fileIn").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{$("chatIn").value=r.result;toast("Chat cargado: "+f.name)};r.readAsText(f);e.target.value=""});
+$("ejemploBtn").addEventListener("click",()=>{
+  const d=new Date();const f=String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+String(d.getFullYear()).slice(2);
+  $("chatIn").value=`${f}, 6:42 a. m. - Vendedor Ejemplo 1: Buenos días jefe
+${f}, 6:45 a. m. - Vendedor Ejemplo 1: Jefe la Tienda El Pino quiere 10 fardos de agua pero me pide el precio de la semana pasada, me lo autoriza?
+${f}, 7:10 a. m. - Vendedor Ejemplo 2: Jefe el enfriador de Abarrotes Doña Tere no está enfriando, me ayuda a reportarlo urgente
+${f}, 7:12 a. m. - Vendedor Ejemplo 2: 👍
+${f}, 8:03 a. m. - Vendedor Ejemplo 3: Ocupo dar de alta un cliente nuevo en la colonia Ciudad Jardín, ya tengo los datos, a quien se los mando?
+${f}, 9:20 a. m. - Vendedor Ejemplo 1: Ayer no le llegaron 3 cajas de Pepsi 3L a Comedor Lupita, hay que ver con reparto`;
+  $("soloHoy").checked=true;toast("Ejemplo cargado, ahora toca Sacar pendientes");
+});
+$("extraerBtn").addEventListener("click",async()=>{
+  const raw=$("chatIn").value.trim();const st=$("impStatus");st.hidden=false;st.classList.remove("err");
+  if(!raw){st.textContent="Pega mensajes o sube un chat exportado primero.";st.classList.add("err");return}
+  let msgs=parseChat(raw);const hoy=todayKey();
+  if($("soloHoy").checked){const withDate=msgs.filter(m=>m.fecha);if(withDate.length)msgs=msgs.filter(m=>!m.fecha||m.fecha===hoy)}
+  if(!msgs.length){st.textContent="No encontré mensajes de hoy. Desmarca \"Solo mensajes de hoy\" para revisar todo el chat.";st.classList.add("err");return}
+  st.textContent="";let res=localExtract(msgs);
+  // evitar duplicados con lo que ya está en la lista
+  const known=new Set(items.map(i=>(i.mensaje||"").slice(0,80)));
+  previewItems=res.filter(r=>r&&r.titulo).map(r=>({...r,_dup:known.has(String(r.mensaje||"").slice(0,80))}));
+  const n=previewItems.length;
+  st.textContent=(st.textContent?st.textContent+" ":"")+(n?`Encontré ${n} ${n>1?"gestiones":"gestión"}. Revisa y agrega las que apliquen.`:"No encontré gestiones pendientes en esos mensajes.");
+  renderPreview();
+});
+function renderPreview(){
+  const box=$("preview");box.hidden=!previewItems.length;$("previewActions").hidden=!previewItems.length;
+  box.innerHTML=previewItems.map((p,i)=>`<label class="pv"><input type="checkbox" data-i="${i}" ${p._dup?"":"checked"}>
+    <div style="display:grid;gap:4px;min-width:0"><div class="title">${esc(p.titulo)}</div>
+    <div class="meta">${p.vendedor?`<span class="pill vend">${esc(p.vendedor)}</span>`:""}<span class="pill ${esc(p.prioridad)}">${esc(p.prioridad||"media")}</span><span>${esc(p.categoria||"")}</span>${p.cliente?`<span>· ${esc(p.cliente)}</span>`:""}${p._dup?`<span class="pill late">Ya está en la lista</span>`:""}</div></div></label>`).join("");
+}
+$("agregarBtn").addEventListener("click",async()=>{
+  const sel=[...document.querySelectorAll("#preview input:checked")].map(c=>previewItems[+c.dataset.i]);
+  if(!sel.length){toast("No hay nada seleccionado");return}
+  const now=Date.now();
+  const list=sel.map(p=>({id:uid(),titulo:String(p.titulo).slice(0,140),vendedor:p.vendedor||"",cliente:p.cliente||"",categoria:CATS.includes(p.categoria)?p.categoria:"Otro",prioridad:["alta","media","baja"].includes(p.prioridad)?p.prioridad:"media",estado:"pendiente",mensaje:String(p.mensaje||"").slice(0,1500),fecha:p.fecha_msg||todayKey(),hora:p.hora||"",creado:now,origen:"whatsapp"}));
+  try{await store.add(list);previewItems=[];renderPreview();$("chatIn").value="";$("impStatus").hidden=true;toast(`${list.length} pendiente${list.length>1?"s":""} agregado${list.length>1?"s":""}`)}
+  catch(e){toast("No se pudo guardar. Revisa tu conexión e intenta otra vez.")}
+});
+$("descartarBtn").addEventListener("click",()=>{previewItems=[];renderPreview();$("impStatus").hidden=true});
+
+$("addForm").addEventListener("submit",async e=>{e.preventDefault();
+  const t=$("fTitulo").value.trim();if(!t)return;
+  await store.add([{id:uid(),titulo:t,vendedor:$("fVend").value.trim(),cliente:$("fCliente").value.trim(),categoria:$("fCat").value,prioridad:$("fPri").value,estado:"pendiente",mensaje:"",fecha:todayKey(),hora:"",creado:Date.now(),origen:"manual"}]);
+  e.target.reset();$("fPri").value="media";toast("Pendiente agregado")});
+
+/* ---------- Lista ---------- */
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{group=b.dataset.g;document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));render()}));
+function daysOld(f){if(!f)return 0;const a=new Date(f+"T00:00:00"),b=new Date(todayKey()+"T00:00:00");return Math.round((b-a)/864e5)}
+function phoneFor(name){const v=config.vendedores.find(v=>v.nombre&&name&&v.nombre.toLowerCase().trim()===name.toLowerCase().trim());return v?String(v.telefono||"").replace(/\D/g,""):""}
+const NEXT={pendiente:"en_proceso",en_proceso:"hecho",hecho:"pendiente"};
+const LABEL={pendiente:"Pendiente",en_proceso:"En proceso",hecho:"Resuelto"};
+function card(it){
+  const old=daysOld(it.fecha);const tel=phoneFor(it.vendedor);const first=(it.vendedor||"").split(" ")[0];
+  const msg=it.estado==="hecho"?`Listo ${first}, ya quedó: ${it.titulo}.`:`${first}, estoy viendo lo de: ${it.titulo}. Te aviso.`;
+  const wa=tel?`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`:`https://wa.me/?text=${encodeURIComponent(msg)}`;
+  return `<article class="card p-${esc(it.prioridad)} ${it.estado==="hecho"?"done":""}">
+    <div class="card-top"><div class="title">${esc(it.titulo)}</div>
+      <button class="state s-${it.estado==="en_proceso"?"proceso":it.estado}" data-act="estado" data-id="${esc(it.id)}" type="button" title="Cambiar estado">${LABEL[it.estado]||"Pendiente"}</button></div>
+    <div class="meta">${it.vendedor?`<span class="pill vend">${esc(it.vendedor)}</span>`:""}<span class="pill ${esc(it.prioridad)}">${esc(it.prioridad)}</span>
+      ${old>=1&&it.estado!=="hecho"?`<span class="pill late">${old===1?"Desde ayer":"Hace "+old+" días"}</span>`:""}
+      ${it.ejemplo?`<span class="pill ex">Ejemplo</span>`:""}
+      <span>${esc(it.categoria||"")}</span>${it.cliente?`<span>· ${esc(it.cliente)}</span>`:""}${it.hora?`<span>· ${esc(it.hora)}</span>`:""}</div>
+    ${it.mensaje?`<details><summary class="hint">Mensaje original</summary><div class="orig">${esc(it.mensaje)}</div></details>`:""}
+    <div class="actions">
+      <a class="btn wa" href="${wa}" target="_blank" rel="noopener">Responder${tel?"":" (elegir chat)"}</a>
+      ${it.estado!=="hecho"?`<button type="button" data-act="hecho" data-id="${esc(it.id)}">Marcar resuelto</button>`:""}
+      <select data-act="pri" data-id="${esc(it.id)}" aria-label="Prioridad" style="width:auto;padding:6px 8px;font-size:.84rem">${["alta","media","baja"].map(p=>`<option value="${p}" ${p===it.prioridad?"selected":""}>${p[0].toUpperCase()+p.slice(1)}</option>`).join("")}</select>
+      <span style="flex:1"></span>
+      ${confirmDel===it.id?`<span class="confirm">¿Borrar? <button type="button" data-act="delok" data-id="${esc(it.id)}">Sí</button><button class="ghost" type="button" data-act="delno">No</button></span>`:`<button class="ghost" type="button" data-act="del" data-id="${esc(it.id)}">Borrar</button>`}
+    </div></article>`;
+}
+function render(){
+  const hoy=todayKey();
+  const open=items.filter(i=>i.estado!=="hecho");
+  $("sPend").textContent=open.length;$("sAlta").textContent=open.filter(i=>i.prioridad==="alta").length;
+  $("sLate").textContent=open.filter(i=>daysOld(i.fecha)>=1).length;
+  $("sDone").textContent=items.filter(i=>i.estado==="hecho"&&i.resuelto===hoy).length;
+  $("limpiarEj").hidden=!items.some(i=>i.ejemplo);
+  const vends=[...new Set(items.map(i=>i.vendedor).concat(config.vendedores.map(v=>v.nombre)).filter(Boolean))];
+  $("vendList").innerHTML=vends.map(v=>`<option value="${esc(v)}">`).join("");
+  const sortFn=(a,b)=>(PRI_ORDER[a.prioridad]-PRI_ORDER[b.prioridad])||((a.fecha||"").localeCompare(b.fecha||""))||((a.creado||0)-(b.creado||0));
+  let groups=[];
+  if(group==="hechos"){const d=items.filter(i=>i.estado==="hecho").sort((a,b)=>(b.resueltoTs||0)-(a.resueltoTs||0));groups=[["Resueltos",d]]}
+  else if(group==="vendedor"){const m={};open.forEach(i=>{(m[i.vendedor||"Sin vendedor"]??=[]).push(i)});groups=Object.entries(m).sort((a,b)=>b[1].length-a[1].length).map(([k,v])=>[k,v.sort(sortFn)])}
+  else{groups=[["Urgentes",open.filter(i=>i.prioridad==="alta")],["Para hoy",open.filter(i=>i.prioridad==="media")],["Pueden esperar",open.filter(i=>i.prioridad==="baja")]].map(([k,v])=>[k,v.sort(sortFn)]).filter(g=>g[1].length)}
+  if(!groups.length||!groups.some(g=>g[1].length)){
+    $("list").innerHTML=`<div class="empty"><b>${group==="hechos"?"Todavía no hay resueltos":"Sin pendientes abiertos"}</b>${group==="hechos"?"Lo que marques como resuelto aparece aquí.":"Pega los mensajes de tus vendedores arriba y toca \"Sacar pendientes\", o agrega uno a mano."}</div>`;return}
+  $("list").innerHTML=groups.map(([k,v])=>`<div class="group"><div class="group-title"><h3>${esc(k)}</h3><span class="count">${v.length}</span></div>${v.map(card).join("")}</div>`).join("");
+}
+$("list").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-act]");if(!b||b.tagName==="SELECT")return;const id=b.dataset.id;const it=items.find(i=>i.id===id);const act=b.dataset.act;
+  try{
+    if(act==="estado"&&it){const n=NEXT[it.estado]||"en_proceso";await store.update(id,n==="hecho"?{estado:n,resuelto:todayKey(),resueltoTs:Date.now()}:{estado:n})}
+    if(act==="hecho"){await store.update(id,{estado:"hecho",resuelto:todayKey(),resueltoTs:Date.now()});toast("Resuelto. Avísale al vendedor con Responder.")}
+    if(act==="del"){confirmDel=id;render()}
+    if(act==="delno"){confirmDel=null;render()}
+    if(act==="delok"){confirmDel=null;await store.remove(id);toast("Pendiente borrado")}
+  }catch(err){toast("No se pudo guardar el cambio. Intenta otra vez.")}
+});
+$("list").addEventListener("change",async e=>{const s=e.target.closest('select[data-act="pri"]');if(!s)return;try{await store.update(s.dataset.id,{prioridad:s.value})}catch(err){toast("No se pudo guardar el cambio.")}});
+$("limpiarEj").addEventListener("click",async()=>{for(const i of items.filter(i=>i.ejemplo))await store.remove(i.id);toast("Ejemplos borrados")});
+
+$("resumenBtn").addEventListener("click",async()=>{
+  const open=items.filter(i=>i.estado!=="hecho").sort((a,b)=>PRI_ORDER[a.prioridad]-PRI_ORDER[b.prioridad]);
+  const fecha=new Date().toLocaleDateString("es-SV",{day:"numeric",month:"long"});
+  const txt=`*Pendientes ${fecha}* (${open.length})\n`+open.map(i=>`${i.prioridad==="alta"?"🔴":i.prioridad==="media"?"🟡":"⚪"} ${i.titulo}${i.vendedor?" — "+i.vendedor:""}${i.estado==="en_proceso"?" _(en proceso)_":""}`).join("\n");
+  try{await navigator.clipboard.writeText(txt);toast("Resumen copiado, pégalo en WhatsApp")}
+  catch(err){$("chatIn").value=txt;$("chatIn").focus();$("chatIn").select();toast("Selecciona y copia el resumen del cuadro de arriba")}
+});
+
+/* ---------- Vendedores ---------- */
+function renderVend(){
+  const rows=config.vendedores.length?config.vendedores:[{nombre:"",telefono:""}];
+  $("vendRows").innerHTML=rows.map((v,i)=>`<div class="vrow"><input id="vn${i}" placeholder="Nombre como sale en WhatsApp" value="${esc(v.nombre)}"><input id="vt${i}" placeholder="503 7xxx xxxx" inputmode="tel" value="${esc(v.telefono)}"><button class="ghost" type="button" data-rm="${i}" aria-label="Quitar">✕</button></div>`).join("");
+  render();
+}
+function readVend(){return [...document.querySelectorAll("#vendRows .vrow")].map(r=>{const [n,t]=r.querySelectorAll("input");return{nombre:n.value.trim(),telefono:t.value.trim()}})}
+$("addVend").addEventListener("click",()=>{config.vendedores=readVend().concat([{nombre:"",telefono:""}]);renderVend()});
+$("vendRows").addEventListener("click",e=>{const b=e.target.closest("[data-rm]");if(!b)return;const v=readVend();v.splice(+b.dataset.rm,1);config.vendedores=v;renderVend()});
+$("saveVend").addEventListener("click",async()=>{config.vendedores=readVend().filter(v=>v.nombre);try{await store.saveConfig();renderVend();toast("Vendedores guardados")}catch(e){toast("No se pudo guardar. Intenta otra vez.")}});
+
+render();renderVend();store.init().then(loadShared);
+
+/* ---------- Recibir desde "Compartir" de WhatsApp ---------- */
+async function loadShared(){
+  const q=new URLSearchParams(location.search);let txt="";
+  if(q.get("text")||q.get("title"))txt=[q.get("title"),q.get("text")].filter(Boolean).join("\n");
+  if(q.has("shared")&&"caches" in window){try{const c=await caches.open("pendientes-compartido");const r=await c.match("shared");if(r){txt=await r.text();await c.delete("shared")}}catch(e){}}
+  if(!txt)return;
+  history.replaceState(null,"",location.pathname);
+  $("chatIn").value=txt;
+  // si es un solo mensaje compartido, no filtrar por fecha
+  if(!/\d{1,2}\/\d{1,2}\/\d{2,4}/.test(txt))$("soloHoy").checked=false;
+  $("extraerBtn").click();
+  $("chatIn").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+/* ---------- Respaldo ---------- */
+$("backupBtn").addEventListener("click",()=>{
+  const blob=new Blob([JSON.stringify({items,config,fecha:new Date().toISOString()},null,1)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="pendientes-respaldo-"+todayKey()+".json";document.body.appendChild(a);a.click();a.remove();toast("Respaldo descargado");
+});
+$("restoreIn").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.items))throw 0;const ids=new Set(items.map(i=>i.id));items=items.concat(d.items.filter(i=>!ids.has(i.id)));if(d.config&&Array.isArray(d.config.vendedores)&&!config.vendedores.length)config=d.config;store.saveLocal();render();renderVend();toast("Respaldo restaurado")}catch(err){toast("Ese archivo no es un respaldo de Pendientes")}};r.readAsText(f);e.target.value=""});
+
+if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}
+</script>
+</body></html>
