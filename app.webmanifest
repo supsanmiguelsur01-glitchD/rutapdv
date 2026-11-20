@@ -1,0 +1,30 @@
+{
+ "name": "VERTICORE",
+ "short_name": "VERTICORE",
+ "description": "Donde se cruza toda tu venta: gente, clientes, cobertura, planes, promociones, recurso, digital y despacho",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "portrait",
+ "background_color": "#071538",
+ "theme_color": "#0B1E4A",
+ "lang": "es",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}
